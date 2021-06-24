@@ -6,10 +6,13 @@ import argparse
 from argparse import Namespace
 import glob
 import random
-import numpy as np
+import os
 import itertools
+
 import logging
 logger = logging.getLogger(__name__)
+
+import numpy as np
 
 # pytorch packages
 import torch
