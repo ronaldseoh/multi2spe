@@ -360,7 +360,16 @@ def main():
     args = parse_args()
     random.seed(args.seed)
     np.random.seed(args.seed)
+    
+    # cuBLAS reproducibility
+    # https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility
+    os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
+
+    torch.use_deterministic_algorithms(True)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
     torch.manual_seed(args.seed)
+ 
     if args.num_workers ==0:
         print("num_workers cannot be less than 1")
         return
