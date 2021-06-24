@@ -122,7 +122,7 @@ class TripletLoss(nn.Module):
             raise TypeError(f"Unrecognized option for `reduction`:{self.reduction}")
 
 
-class Specter(pl.LightningModule):
+class QuarterMaster(pl.LightningModule):
     def __init__(self, init_args):
         super().__init__()
         if isinstance(init_args, dict):
@@ -376,13 +376,13 @@ def main():
 
     if args.test_only:
         print('loading model...')
-        model = Specter.load_from_checkpoint(args.test_checkpoint)
+        model = QuarterMaster.load_from_checkpoint(args.test_checkpoint)
         trainer = pl.Trainer(gpus=args.gpus, limit_val_batches=args.limit_val_batches)
         trainer.test(model)
 
     else:
 
-        model = Specter(args)
+        model = QuarterMaster(args)
 
         # default logger used by trainer
         logger = TensorBoardLogger(
