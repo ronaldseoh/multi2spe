@@ -177,7 +177,7 @@ class QuarterMaster(pl.LightningModule):
                             shuffle=False, pin_memory=False)
         return loader
 
-    def setup(self, mode):
+    def setup(self, stage):
         self.train_loader = self._get_loader("train")
 
     def train_dataloader(self):
