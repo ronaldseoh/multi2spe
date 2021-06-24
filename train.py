@@ -410,7 +410,6 @@ def main():
             verbose=True,
             monitor='avg_val_loss', # monitors metrics logged by self.log.
             mode='min',
-            prefix=''
         )
 
         extra_train_params = get_train_params(args)
