@@ -1,0 +1,6 @@
+[submodule "specter"]
+	path = specter
+	url = https://github.com/ronaldseoh/specter
+[submodule "s2orc"]
+	path = s2orc
+	url = https://github.com/ronaldseoh/s2orc
