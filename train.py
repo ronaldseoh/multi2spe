@@ -93,8 +93,6 @@ class QuarterMaster(pl.LightningModule):
             # for loading the checkpoint, pl passes a dict (hparams are saved as dict)
             init_args = argparse.Namespace(**init_args)
 
-        checkpoint_path = init_args.checkpoint_path
-
         self._set_hparams(init_args)
 
         self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
@@ -263,8 +261,6 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--checkpoint_path', default=None, help='path to the model (if not setting checkpoint)')
-
     parser.add_argument('--train_file')
     parser.add_argument('--dev_file')
     parser.add_argument('--test_file')
@@ -273,33 +269,34 @@ def parse_args():
     parser.add_argument('--dev_size', default=145375)
     parser.add_argument('--test_size', default=145375)
 
+    parser.add_argument('--test_checkpoint', default=None)
+
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
-    parser.add_argument('--gpus', default='1')
-    parser.add_argument('--seed', default=1918, type=int)
-    parser.add_argument('--fp16', default=False, action='store_true')
-    parser.add_argument('--test_only', default=False, action='store_true')
-    parser.add_argument('--test_checkpoint', default=None)
     parser.add_argument('--limit_test_batches', default=1.0, type=float)
     parser.add_argument('--limit_val_batches', default=1.0, type=float)
     parser.add_argument('--val_check_interval', default=1.0, type=float)
     parser.add_argument('--num_epochs', default=1, type=int)
-    parser.add_argument('--log_every_n_steps', default=1, type=int)
-    parser.add_argument("--lr", type=float, default=2e-5)
-    parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
-    parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
-    parser.add_argument("--warmup_steps", default=0, type=int, help="Linear warmup over warmup_steps.")
     parser.add_argument("--num_workers", default=4, type=int, help="kwarg passed to DataLoader")
-    parser.add_argument("--adafactor", action="store_true")
-    parser.add_argument('--save_dir', required=True)
-
-    parser.add_argument('--num_samples', default=None, type=int)
+    parser.add_argument('--gpus', default='1')
+    parser.add_argument('--seed', default=1918, type=int)
+    parser.add_argument('--fp16', default=False, action='store_true')
+    
     parser.add_argument("--lr_scheduler",
                         default="linear",
                         choices=ARG_TO_SCHEDULER_CHOICES,
                         metavar=ARG_TO_SCHEDULER_METAVAR,
                         type=str,
                         help="Learning rate scheduler")
+    parser.add_argument("--lr", type=float, default=2e-5)
+    parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
+    parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
+    parser.add_argument("--warmup_steps", default=0, type=int, help="Linear warmup over warmup_steps.")
+    parser.add_argument("--adafactor", action="store_true")
+
+    parser.add_argument('--log_every_n_steps', default=1, type=int)
+
+    parser.add_argument('--save_dir', required=True)
 
     parsed_args = parser.parse_args()
 
@@ -323,7 +320,7 @@ def get_train_params(input_args):
     train_params['val_check_interval'] = input_args.val_check_interval
     train_params['gpus'] = input_args.gpus
     train_params['max_epochs'] = input_args.num_epochs
-    
+
     # LOG_EVERY_N_STEPS how frequently pytorch lightning logs.
     # By default, Lightning logs every 50 rows, or 50 training steps.
     train_params['log_every_n_steps'] = input_args.log_every_n_steps
