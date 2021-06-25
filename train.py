@@ -1,4 +1,3 @@
-import json
 import argparse
 import random
 import os
@@ -11,7 +10,6 @@ import transformers
 # data loader classes defined in the Lightning version of specter
 from specter.scripts.pytorch_lightning_training_script.train import (
     IterableDataSetMultiWorker,
-    IterableDataSetMultiWorkerTestStep,
 )
 
 
@@ -20,8 +18,6 @@ ARG_TO_SCHEDULER = {
     "cosine": transformers.optimization.get_cosine_schedule_with_warmup,
     "cosine_w_restarts": transformers.optimization.get_cosine_with_hard_restarts_schedule_with_warmup,
     "polynomial": transformers.optimization.get_polynomial_decay_schedule_with_warmup,
-    # '': get_constant_schedule,             # not supported for now
-    # '': get_constant_schedule_with_warmup, # not supported for now
 }
 
 ARG_TO_SCHEDULER_CHOICES = sorted(ARG_TO_SCHEDULER.keys())
@@ -107,9 +103,6 @@ class QuarterMaster(pl.LightningModule):
 
         self.triple_loss = TripletLoss()
 
-        # This is a dictionary to save the embeddings for source papers in test step.
-        self.embedding_output = {}
-
     def forward(self, input_ids, token_type_ids, attention_mask):
         # in lightning, forward defines the prediction/inference actions
         source_embedding = self.model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
@@ -122,16 +115,10 @@ class QuarterMaster(pl.LightningModule):
         elif split == 'dev':
             fname = self.hparams.dev_file
             size = self.hparams.val_size
-        elif split == 'test':
-            fname = self.hparams.test_file
-            size = self.hparams.test_size
         else:
             raise Exception("Invalid value for split: " + str(split))
 
-        if split == 'test':
-            dataset = IterableDataSetMultiWorkerTestStep(file_path=fname, tokenizer=self.tokenizer, size=size)
-        else:
-            dataset = IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size)
+        dataset = IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         loader = torch.utils.data.DataLoader(
@@ -146,9 +133,6 @@ class QuarterMaster(pl.LightningModule):
 
     def val_dataloader(self):
         return self._get_loader('dev')
-
-    def test_dataloader(self):
-        return self._get_loader('test')
 
     @property
     def total_steps(self) -> int:
@@ -218,11 +202,14 @@ class QuarterMaster(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         source_embedding = self.model(**batch[0])[1]
+
         pos_embedding = self.model(**batch[1])[1]
         neg_embedding = self.model(**batch[2])[1]
 
         loss = self.triple_loss(source_embedding, pos_embedding, neg_embedding)
+
         self.log('val_loss', loss, on_step=True, on_epoch=False, prog_bar=True)
+
         return {'val_loss': loss}
 
     def _eval_end(self, outputs) -> tuple:
@@ -241,23 +228,6 @@ class QuarterMaster(pl.LightningModule):
 
         self.log('avg_val_loss', ret["avg_val_loss"], on_epoch=True, prog_bar=True)
 
-    def test_epoch_end(self, outputs: list):
-        # convert the dictionary of {id1:embedding1, id2:embedding2, ...} to a
-        # list of dictionaries [{'id':'id1', 'embedding': 'embedding1'},{'id':'id2', 'embedding': 'embedding2'}, ...]
-        embedding_output_list = [{'id': key, 'embedding': value.detach().cpu().numpy().tolist()}
-                                 for key, value in self.embedding_output.items()]
-
-        with open(self.hparams.save_dir+'/embedding_result.jsonl', 'w') as fp:
-            fp.write('\n'.join(json.dumps(i) for i in embedding_output_list))
-
-    def test_step(self, batch, batch_nb):
-        source_embedding = self.model(**batch[0])[1]
-        source_paper_id = batch[1]
-
-        batch_embedding_output = dict(zip(source_paper_id, source_embedding))
-
-        # .update() will automatically remove duplicates.
-        self.embedding_output.update(batch_embedding_output)
 
 def parse_args():
 
@@ -265,17 +235,12 @@ def parse_args():
 
     parser.add_argument('--train_file')
     parser.add_argument('--dev_file')
-    parser.add_argument('--test_file')
 
     parser.add_argument('--train_size', default=684100)
     parser.add_argument('--dev_size', default=145375)
-    parser.add_argument('--test_size', default=145375)
-
-    parser.add_argument('--test_checkpoint', default=None)
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
-    parser.add_argument('--limit_test_batches', default=1.0, type=float)
     parser.add_argument('--limit_val_batches', default=1.0, type=float)
     parser.add_argument('--val_check_interval', default=1.0, type=float)
     parser.add_argument('--num_epochs', default=1, type=int)
@@ -355,35 +320,28 @@ if __name__ == '__main__':
         args.gpus = int(args.gpus)
         args.total_gpus = args.gpus
 
-    if args.test_checkpoint is not None:
-        model = QuarterMaster.load_from_checkpoint(args.test_checkpoint)
+    model = QuarterMaster(args)
 
-        trainer = pl.Trainer(gpus=args.gpus, limit_val_batches=args.limit_val_batches)
+    # default logger used by trainer
+    pl_logger = pl.loggers.TensorBoardLogger(
+        save_dir=args.save_dir,
+        version=0,
+        name='pl-logs'
+    )
 
-        trainer.test(model)
-    else:
-        model = QuarterMaster(args)
+    checkpoint_callback = pl.callbacks.ModelCheckpoint(
+        dirpath='{}/version_{}/checkpoints/'.format(args.save_dir, pl_logger.version),
+        filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
+        save_top_k=1,
+        verbose=True,
+        monitor='avg_val_loss', # monitors metrics logged by self.log.
+        mode='min',
+    )
 
-        # default logger used by trainer
-        pl_logger = pl.loggers.TensorBoardLogger(
-            save_dir=args.save_dir,
-            version=0,
-            name='pl-logs'
-        )
+    extra_train_params = get_train_params(args)
 
-        checkpoint_callback = pl.callbacks.ModelCheckpoint(
-            dirpath='{}/version_{}/checkpoints/'.format(args.save_dir, pl_logger.version),
-            filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
-            save_top_k=1,
-            verbose=True,
-            monitor='avg_val_loss', # monitors metrics logged by self.log.
-            mode='min',
-        )
+    trainer = pl.Trainer(logger=pl_logger,
+                         checkpoint_callback=checkpoint_callback,
+                         **extra_train_params)
 
-        extra_train_params = get_train_params(args)
-
-        trainer = pl.Trainer(logger=pl_logger,
-                             checkpoint_callback=checkpoint_callback,
-                             **extra_train_params)
-
-        trainer.fit(model)
+    trainer.fit(model)
