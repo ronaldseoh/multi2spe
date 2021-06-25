@@ -1,5 +1,6 @@
 import argparse
 import os
+import pathlib
 
 import torch
 import pytorch_lightning as pl
@@ -309,6 +310,9 @@ def get_train_params(input_args):
 if __name__ == '__main__':
 
     args = parse_args()
+    
+    # Create args.save_dir if it doesn't exist already
+    pathlib.Path(args.save_dir).mkdir(exist_ok=True)
 
     # cuBLAS reproducibility
     # https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility
