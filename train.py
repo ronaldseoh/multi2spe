@@ -287,10 +287,11 @@ def get_train_params(input_args):
     train_params['gpus'] = input_args.gpus
     train_params['max_epochs'] = input_args.num_epochs
     
+    # PyTorch cuDNN options
     train_params['deterministic'] = True
     train_params['benchmark'] = False
 
-    # LOG_EVERY_N_STEPS how frequently pytorch lightning logs.
+    # log_every_n_steps how frequently pytorch lightning logs.
     # By default, Lightning logs every 50 rows, or 50 training steps.
     train_params['log_every_n_steps'] = input_args.log_every_n_steps
 
