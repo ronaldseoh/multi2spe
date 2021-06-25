@@ -346,10 +346,6 @@ if __name__ == '__main__':
 
     torch.manual_seed(args.seed)
 
-    if args.num_workers == 0:
-        print("num_workers cannot be less than 1")
-        return
-
     if ',' in args.gpus:
         args.gpus = list(map(int, args.gpus.split(',')))
         args.total_gpus = len(args.gpus)
@@ -357,9 +353,7 @@ if __name__ == '__main__':
         args.gpus = int(args.gpus)
         args.total_gpus = args.gpus
 
-    if args.test_only:
-        print('loading model...')
-
+    if args.test_checkpoint is not None:
         model = QuarterMaster.load_from_checkpoint(args.test_checkpoint)
 
         trainer = pl.Trainer(gpus=args.gpus, limit_val_batches=args.limit_val_batches)
