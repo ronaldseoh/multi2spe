@@ -326,7 +326,8 @@ def get_train_params(args):
     return train_params
 
 
-def main():
+if __name__ == '__main__':
+
     args = parse_args()
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -385,7 +386,3 @@ def main():
                              **extra_train_params)
 
         trainer.fit(model)
-
-
-if __name__ == '__main__':
-    main()
