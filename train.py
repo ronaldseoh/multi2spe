@@ -329,14 +329,13 @@ if __name__ == '__main__':
     # default logger used by trainer
     pl_logger = pl.loggers.TensorBoardLogger(
         save_dir=args.save_dir,
-        version=0,
         name='pl-logs'
     )
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath='{}/version_{}/checkpoints/'.format(args.save_dir, pl_logger.version),
+        dirpath=args.save_dir,
         filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
-        save_top_k=1,
+        save_top_k=3,
         verbose=True,
         monitor='avg_val_loss', # monitors metrics logged by self.log.
         mode='min',
