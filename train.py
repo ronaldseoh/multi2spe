@@ -2,7 +2,6 @@ import argparse
 import random
 import os
 
-import numpy as np
 import torch
 import pytorch_lightning as pl
 import transformers
@@ -299,19 +298,16 @@ if __name__ == '__main__':
 
     args = parse_args()
 
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-
     # cuBLAS reproducibility
     # https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility
     os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
 
+    # PyTorch CUDA reproducibility
     torch.use_deterministic_algorithms(True)
-
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    torch.manual_seed(args.seed)
+    pl.seed_everything(args.seed, workers=True)
 
     if ',' in args.gpus:
         args.gpus = list(map(int, args.gpus.split(',')))
