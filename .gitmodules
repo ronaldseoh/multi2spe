@@ -4,3 +4,6 @@
 [submodule "s2orc"]
 	path = s2orc
 	url = https://github.com/ronaldseoh/s2orc
+[submodule "scidocs"]
+	path = scidocs
+	url = https://github.com/ronaldseoh/scidocs
