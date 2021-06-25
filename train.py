@@ -1,56 +1,23 @@
-# basic python packages
 import json
-import pickle
-from typing import Dict
 import argparse
-from argparse import Namespace
 import glob
 import random
 import os
-import itertools
-
 import logging
-logger = logging.getLogger(__name__)
 
 import numpy as np
-
-# pytorch packages
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, IterableDataset
-
-# pytorch lightning packages
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
-
-# huggingface transformers packages
-from transformers import AdamW
-from transformers import AutoTokenizer, AutoModel
-from transformers.optimization import (
-    Adafactor,
-    get_cosine_schedule_with_warmup,
-    get_cosine_with_hard_restarts_schedule_with_warmup,
-    get_linear_schedule_with_warmup,
-    get_polynomial_decay_schedule_with_warmup,
-)
-
-# allennlp dataloading packages
-from allennlp.data.dataset_readers.dataset_reader import DatasetReader
-from allennlp.data.tokenizers import Tokenizer
-from allennlp.data.token_indexers import TokenIndexer
-from allennlp.data.tokenizers.word_splitter import WordSplitter
-from allennlp.data.tokenizers.token import Token
+import transformers
 
 # data loader classes defined in the Lightning version of specter
 from specter.scripts.pytorch_lightning_training_script.train import (
-    DataReaderFromPickled,
     IterableDataSetMultiWorker,
     IterableDataSetMultiWorkerTestStep,
 )
 
-# Globe constants
+
+logger = logging.getLogger(__name__)
 training_size = 684100
 # validation_size = 145375
 
@@ -59,10 +26,10 @@ training_size = 684100
 log_every_n_steps = 1
 
 arg_to_scheduler = {
-    "linear": get_linear_schedule_with_warmup,
-    "cosine": get_cosine_schedule_with_warmup,
-    "cosine_w_restarts": get_cosine_with_hard_restarts_schedule_with_warmup,
-    "polynomial": get_polynomial_decay_schedule_with_warmup,
+    "linear": transformers.optimization.get_linear_schedule_with_warmup,
+    "cosine": transformers.optimization.get_cosine_schedule_with_warmup,
+    "cosine_w_restarts": transformers.optimization.get_cosine_with_hard_restarts_schedule_with_warmup,
+    "polynomial": transformers.optimization.get_polynomial_decay_schedule_with_warmup,
     # '': get_constant_schedule,             # not supported for now
     # '': get_constant_schedule_with_warmup, # not supported for now
 }
@@ -70,7 +37,7 @@ arg_to_scheduler_choices = sorted(arg_to_scheduler.keys())
 arg_to_scheduler_metavar = "{" + ", ".join(arg_to_scheduler_choices) + "}"
 
 
-class TripletLoss(nn.Module):
+class TripletLoss(torch.nn.Module):
     """
     Triplet loss: copied from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159 without any change
     """
@@ -93,13 +60,13 @@ class TripletLoss(nn.Module):
 
     def forward(self, query, positive, negative):
         if self.distance == 'l2-norm':
-            distance_positive = F.pairwise_distance(query, positive)
-            distance_negative = F.pairwise_distance(query, negative)
-            losses = F.relu(distance_positive - distance_negative + self.margin)
+            distance_positive = torch.nn.functional.pairwise_distance(query, positive)
+            distance_negative = torch.nn.functional.pairwise_distance(query, negative)
+            losses = torch.nn.functional.relu(distance_positive - distance_negative + self.margin)
         elif self.distance == 'cosine':  # independent of length
-            distance_positive = F.cosine_similarity(query, positive)
-            distance_negative = F.cosine_similarity(query, negative)
-            losses = F.relu(-distance_positive + distance_negative + self.margin)
+            distance_positive = torch.nn.functional.cosine_similarity(query, positive)
+            distance_negative = torch.nn.functional.cosine_similarity(query, negative)
+            losses = torch.nn.functional.relu(-distance_positive + distance_negative + self.margin)
         elif self.distance == 'dot':  # takes into account the length of vectors
             shapes = query.shape
             # batch dot product
@@ -111,7 +78,7 @@ class TripletLoss(nn.Module):
                 query.view(shapes[0], 1, shapes[1]),
                 negative.view(shapes[0], shapes[1], 1)
             ).reshape(shapes[0], )
-            losses = F.relu(-distance_positive + distance_negative + self.margin)
+            losses = torch.nn.functional.relu(-distance_positive + distance_negative + self.margin)
         else:
             raise TypeError(f"Unrecognized option for `distance`:{self.distance}")
 
@@ -130,7 +97,7 @@ class QuarterMaster(pl.LightningModule):
         super().__init__()
         if isinstance(init_args, dict):
             # for loading the checkpoint, pl passes a dict (hparams are saved as dict)
-            init_args = Namespace(**init_args)
+            init_args = argparse.Namespace(**init_args)
         checkpoint_path = init_args.checkpoint_path
         logger.info(f'loading model from checkpoint: {checkpoint_path}')
 
@@ -173,7 +140,7 @@ class QuarterMaster(pl.LightningModule):
             dataset = IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
-        loader = DataLoader(dataset, batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers,
+        loader = torch.utils.data.DataLoader(dataset, batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers,
                             shuffle=False, pin_memory=False)
         return loader
 
@@ -223,12 +190,12 @@ class QuarterMaster(pl.LightningModule):
             },
         ]
         if self.hparams.adafactor:
-            optimizer = Adafactor(
+            optimizer = transformers.optimization.Adafactor(
                 optimizer_grouped_parameters, lr=self.hparams.lr, scale_parameter=False, relative_step=False
             )
 
         else:
-            optimizer = AdamW(
+            optimizer = transformers.AdamW(
                 optimizer_grouped_parameters, lr=self.hparams.lr, eps=self.hparams.adam_epsilon
             )
         self.opt = optimizer
@@ -363,7 +330,7 @@ def main():
     args = parse_args()
     random.seed(args.seed)
     np.random.seed(args.seed)
-    
+
     # cuBLAS reproducibility
     # https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility
     os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
@@ -372,7 +339,7 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     torch.manual_seed(args.seed)
- 
+
     if args.num_workers ==0:
         print("num_workers cannot be less than 1")
         return
@@ -393,17 +360,16 @@ def main():
         trainer.test(model)
 
     else:
-
         model = QuarterMaster(args)
 
         # default logger used by trainer
-        logger = TensorBoardLogger(
+        pl_logger = pl.loggers.TensorBoardLogger(
             save_dir=args.save_dir,
             version=0,
             name='pl-logs'
         )
 
-        checkpoint_callback = ModelCheckpoint(
+        checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath='{}/version_{}/checkpoints/'.format(args.save_dir, logger.version),
             filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
             save_top_k=1,
@@ -414,7 +380,7 @@ def main():
 
         extra_train_params = get_train_params(args)
 
-        trainer = pl.Trainer(logger=logger,
+        trainer = pl.Trainer(logger=pl_logger,
                              checkpoint_callback=checkpoint_callback,
                              **extra_train_params)
 
