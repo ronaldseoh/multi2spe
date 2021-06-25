@@ -102,8 +102,8 @@ class QuarterMaster(pl.LightningModule):
         logger.info(f'loading model from checkpoint: {checkpoint_path}')
 
         self._set_hparams(init_args)
-        self.model = AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
-        self.tokenizer = AutoTokenizer.from_pretrained("allenai/scibert_scivocab_cased")
+        self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained("allenai/scibert_scivocab_cased")
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
         self.hparams.seqlen = self.model.config.max_position_embeddings
         self.triple_loss = TripletLoss()
