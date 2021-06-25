@@ -265,10 +265,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--checkpoint_path', default=None, help='path to the model (if not setting checkpoint)')
+
     parser.add_argument('--train_file')
     parser.add_argument('--dev_file')
     parser.add_argument('--test_file')
-    parser.add_argument('--input_dir', default=None, help='optionally provide a directory of the data and train/test/dev files will be automatically detected')
+    
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
     parser.add_argument('--gpus', default='1')
@@ -297,19 +298,6 @@ def parse_args():
                         help="Learning rate scheduler")
 
     args = parser.parse_args()
-
-    if args.input_dir is not None:
-        files = glob.glob(args.input_dir + '/*')
-
-        for f in files:
-            fname = f.split('/')[-1]
-
-            if 'train' in fname:
-                args.train_file = f
-            elif 'dev' in fname or 'val' in fname:
-                args.dev_file = f
-            elif 'test' in fname:
-                args.test_file = f
 
     return args
 
