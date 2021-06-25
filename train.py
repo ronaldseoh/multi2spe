@@ -267,6 +267,7 @@ def parse_args():
     parser.add_argument("--adafactor", action="store_true")
 
     parser.add_argument('--log_every_n_steps', default=1, type=int)
+    parser.add_argument('--wandb', default=False, action="store_true")
 
     parser.add_argument('--save_dir', required=True)
 
@@ -327,11 +328,14 @@ if __name__ == '__main__':
 
     model = QuarterMaster(args)
 
-    # default logger used by trainer
-    pl_logger = pl.loggers.TensorBoardLogger(
-        save_dir=os.path.join(args.save_dir, 'logs'),
-        name='pl-logs'
-    )
+    # logger used by trainer
+    if args.wandb:
+        pl_logger = pl.loggers.WandbLogger(
+            save_dir=os.path.join(args.save_dir, 'logs'))
+    else:
+        pl_logger = pl.loggers.TensorBoardLogger(
+            save_dir=os.path.join(args.save_dir, 'logs'),
+            name='pl-logs')
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=os.path.join(args.save_dir, 'checkpoints'),
@@ -339,8 +343,7 @@ if __name__ == '__main__':
         save_top_k=3,
         verbose=True,
         monitor='avg_val_loss', # monitors metrics logged by self.log.
-        mode='min',
-    )
+        mode='min')
 
     extra_train_params = get_train_params(args)
 
