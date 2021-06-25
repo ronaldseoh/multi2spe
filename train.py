@@ -370,7 +370,7 @@ def main():
         )
 
         checkpoint_callback = pl.callbacks.ModelCheckpoint(
-            dirpath='{}/version_{}/checkpoints/'.format(args.save_dir, logger.version),
+            dirpath='{}/version_{}/checkpoints/'.format(args.save_dir, pl_logger.version),
             filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
             save_top_k=1,
             verbose=True,
