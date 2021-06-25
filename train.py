@@ -313,6 +313,8 @@ if __name__ == '__main__':
     
     # Create args.save_dir if it doesn't exist already
     pathlib.Path(args.save_dir).mkdir(exist_ok=True)
+    pathlib.Path(os.path.join(args.save_dir, 'logs').mkdir(exist_ok=True)
+    pathlib.Path(os.path.join(args.save_dir, 'checkpoints').mkdir(exist_ok=True)
 
     # cuBLAS reproducibility
     # https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility
@@ -334,6 +336,7 @@ if __name__ == '__main__':
 
     # logger used by trainer
     if args.wandb:
+        pathlib.Path(os.path.join(args.save_dir, 'logs', 'wandb').mkdir(exist_ok=True)
         pl_logger = pl.loggers.WandbLogger(
             save_dir=os.path.join(args.save_dir, 'logs'))
     else:
