@@ -263,6 +263,7 @@ class QuarterMaster(pl.LightningModule):
 
 def parse_args():
     parser = argparse.ArgumentParser()
+
     parser.add_argument('--checkpoint_path', default=None, help='path to the model (if not setting checkpoint)')
     parser.add_argument('--train_file')
     parser.add_argument('--dev_file')
@@ -294,28 +295,36 @@ def parse_args():
                         metavar=arg_to_scheduler_metavar,
                         type=str,
                         help="Learning rate scheduler")
+
     args = parser.parse_args()
 
     if args.input_dir is not None:
         files = glob.glob(args.input_dir + '/*')
+
         for f in files:
             fname = f.split('/')[-1]
+
             if 'train' in fname:
                 args.train_file = f
             elif 'dev' in fname or 'val' in fname:
                 args.dev_file = f
             elif 'test' in fname:
                 args.test_file = f
+
     return args
 
 
 def get_train_params(args):
+
     train_params = {}
+
     train_params["precision"] = 16 if args.fp16 else 32
-    if (isinstance(args.gpus, int) and args.gpus > 1) or (isinstance(args.gpus, list ) and len(args.gpus) > 1):
+
+    if (isinstance(args.gpus, int) and args.gpus > 1) or (isinstance(args.gpus, list) and len(args.gpus) > 1):
         train_params["distributed_backend"] = "ddp"
     else:
         train_params["distributed_backend"] = None
+
     train_params["accumulate_grad_batches"] = args.grad_accum
     train_params['track_grad_norm'] = -1
     train_params['limit_val_batches'] = args.limit_val_batches
@@ -323,12 +332,14 @@ def get_train_params(args):
     train_params['gpus'] = args.gpus
     train_params['max_epochs'] = args.num_epochs
     train_params['log_every_n_steps'] = log_every_n_steps
+
     return train_params
 
 
 if __name__ == '__main__':
 
     args = parse_args()
+
     random.seed(args.seed)
     np.random.seed(args.seed)
 
@@ -337,11 +348,13 @@ if __name__ == '__main__':
     os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
 
     torch.use_deterministic_algorithms(True)
+
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
     torch.manual_seed(args.seed)
 
-    if args.num_workers ==0:
+    if args.num_workers == 0:
         print("num_workers cannot be less than 1")
         return
 
@@ -356,10 +369,12 @@ if __name__ == '__main__':
 
     if args.test_only:
         print('loading model...')
-        model = QuarterMaster.load_from_checkpoint(args.test_checkpoint)
-        trainer = pl.Trainer(gpus=args.gpus, limit_val_batches=args.limit_val_batches)
-        trainer.test(model)
 
+        model = QuarterMaster.load_from_checkpoint(args.test_checkpoint)
+
+        trainer = pl.Trainer(gpus=args.gpus, limit_val_batches=args.limit_val_batches)
+
+        trainer.test(model)
     else:
         model = QuarterMaster(args)
 
