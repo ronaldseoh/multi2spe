@@ -259,6 +259,7 @@ def parse_args():
                         metavar=ARG_TO_SCHEDULER_METAVAR,
                         type=str,
                         help="Learning rate scheduler")
+
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
     parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
@@ -328,12 +329,12 @@ if __name__ == '__main__':
 
     # default logger used by trainer
     pl_logger = pl.loggers.TensorBoardLogger(
-        save_dir=args.save_dir,
+        save_dir=os.path.join(args.save_dir, 'logs'),
         name='pl-logs'
     )
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath=args.save_dir,
+        dirpath=os.path.join(args.save_dir, 'checkpoints'),
         filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
         save_top_k=3,
         verbose=True,
