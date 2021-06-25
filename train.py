@@ -44,7 +44,8 @@ class TripletLoss(torch.nn.Module):
                 and :attr:`reduce` are in the process of being deprecated, and in the meantime,
                 specifying either of those two args will override :attr:`reduction`. Default: 'mean'
         """
-        super(TripletLoss, self).__init__()
+        super().__init__()
+
         self.margin = margin
         self.distance = distance
         self.reduction = reduction
@@ -75,19 +76,21 @@ class TripletLoss(torch.nn.Module):
 
         if self.reduction == 'mean':
             return losses.mean()
-        elif self.reduction == 'sum':
+
+        if self.reduction == 'sum':
             return losses.sum()
-        elif self.reduction == 'none':
+
+        if self.reduction == 'none':
             return losses
-        else:
-            raise TypeError(f"Unrecognized option for `reduction`:{self.reduction}")
+
+        raise TypeError(f"Unrecognized option for `reduction`:{self.reduction}")
 
 
 class QuarterMaster(pl.LightningModule):
 
     def __init__(self, init_args):
 
-        super()
+        super().__init__()
 
         if isinstance(init_args, dict):
             # for loading the checkpoint, pl passes a dict (hparams are saved as dict)
@@ -255,7 +258,6 @@ class QuarterMaster(pl.LightningModule):
 
         # .update() will automatically remove duplicates.
         self.embedding_output.update(batch_embedding_output)
-        # return self.validation_step(batch, batch_nb)
 
 def parse_args():
 
@@ -281,7 +283,7 @@ def parse_args():
     parser.add_argument('--gpus', default='1')
     parser.add_argument('--seed', default=1918, type=int)
     parser.add_argument('--fp16', default=False, action='store_true')
-    
+
     parser.add_argument("--lr_scheduler",
                         default="linear",
                         choices=ARG_TO_SCHEDULER_CHOICES,
