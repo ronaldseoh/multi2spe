@@ -100,18 +100,15 @@ class QuarterMaster(pl.LightningModule):
         checkpoint_path = init_args.checkpoint_path
 
         self._set_hparams(init_args)
+
         self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
+
         self.tokenizer = transformers.AutoTokenizer.from_pretrained("allenai/scibert_scivocab_cased")
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
-        self.hparams.seqlen = self.model.config.max_position_embeddings
-        self.triple_loss = TripletLoss()
 
-        # number of training instances
-        self.training_size = init_args.train_size
-        # number of testing instances
-        self.validation_size = init_args.val_size
-        # number of test instances
-        self.test_size = init_args.test_size
+        self.hparams.seqlen = self.model.config.max_position_embeddings
+
+        self.triple_loss = TripletLoss()
 
         # This is a dictionary to save the embeddings for source papers in test step.
         self.embedding_output = {}
@@ -124,15 +121,15 @@ class QuarterMaster(pl.LightningModule):
     def _get_loader(self, split):
         if split == 'train':
             fname = self.hparams.train_file
-            size = self.training_size
+            size = self.hparams.train_size
         elif split == 'dev':
             fname = self.hparams.dev_file
-            size = self.validation_size
+            size = self.hparams.val_size
         elif split == 'test':
             fname = self.hparams.test_file
-            size = self.test_size
+            size = self.hparams.test_size
         else:
-            assert False
+            raise Exception("Invalid value for split: " + str(split))
 
         if split == 'test':
             dataset = IterableDataSetMultiWorkerTestStep(file_path=fname, tokenizer=self.tokenizer, size=size)
@@ -140,19 +137,18 @@ class QuarterMaster(pl.LightningModule):
             dataset = IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
-        loader = torch.utils.data.DataLoader(dataset, batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers,
-                            shuffle=False, pin_memory=False)
+        loader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers,
+            shuffle=False, pin_memory=True)
+
         return loader
 
-    def setup(self, stage):
-        self.train_loader = self._get_loader("train")
-
     def train_dataloader(self):
-        return self.train_loader
+        return self._get_loader("train")
 
     def val_dataloader(self):
-        self.val_dataloader_obj = self._get_loader('dev')
-        return self.val_dataloader_obj
+        return self._get_loader('dev')
 
     def test_dataloader(self):
         return self._get_loader('test')
@@ -161,9 +157,10 @@ class QuarterMaster(pl.LightningModule):
     def total_steps(self) -> int:
         """The number of total training steps that will be run. Used for lr scheduler purposes."""
         num_devices = max(1, self.hparams.total_gpus)  # TODO: consider num_tpu_cores
+
         effective_batch_size = self.hparams.batch_size * self.hparams.grad_accum * num_devices
 
-        return (self.training_size / effective_batch_size) * self.hparams.num_epochs
+        return (self.hparams.training_size / effective_batch_size) * self.hparams.num_epochs
 
     def get_lr_scheduler(self):
         get_schedule_func = ARG_TO_SCHEDULER[self.hparams.lr_scheduler]
@@ -209,6 +206,7 @@ class QuarterMaster(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         source_embedding = self.model(**batch[0])[1]
+
         pos_embedding = self.model(**batch[1])[1]
         neg_embedding = self.model(**batch[2])[1]
 
@@ -218,6 +216,7 @@ class QuarterMaster(pl.LightningModule):
 
         self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
         self.log('rate', lr_scheduler.get_last_lr()[-1], on_step=True, on_epoch=False, prog_bar=True, logger=True)
+
         return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
