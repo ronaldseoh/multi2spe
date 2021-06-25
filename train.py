@@ -113,7 +113,7 @@ class QuarterMaster(pl.LightningModule):
             fname = self.hparams.train_file
             size = self.hparams.train_size
         elif split == 'dev':
-            fname = self.hparams.dev_file
+            fname = self.hparams.val_file
             size = self.hparams.val_size
         else:
             raise Exception("Invalid value for split: " + str(split))
@@ -238,10 +238,10 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--train_file')
-    parser.add_argument('--dev_file')
+    parser.add_argument('--val_file')
 
     parser.add_argument('--train_size', default=684100)
-    parser.add_argument('--dev_size', default=145375)
+    parser.add_argument('--val_size', default=145375)
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
