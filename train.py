@@ -1,5 +1,4 @@
 import argparse
-import random
 import os
 
 import torch
@@ -101,6 +100,8 @@ class QuarterMaster(pl.LightningModule):
         self.hparams.seqlen = self.model.config.max_position_embeddings
 
         self.triple_loss = TripletLoss()
+
+        self.opt = None
 
     def forward(self, input_ids, token_type_ids, attention_mask):
         # in lightning, forward defines the prediction/inference actions
@@ -213,13 +214,17 @@ class QuarterMaster(pl.LightningModule):
 
     def _eval_end(self, outputs) -> tuple:
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
+
         if self.trainer.use_ddp:
             torch.distributed.all_reduce(avg_loss, op=torch.distributed.ReduceOp.SUM)
             avg_loss /= self.trainer.world_size
+
         results = {"avg_val_loss": avg_loss}
+
         for k, v in results.items():
             if isinstance(v, torch.Tensor):
                 results[k] = v.detach().cpu().item()
+
         return results
 
     def validation_epoch_end(self, outputs: list) -> dict:
@@ -273,6 +278,13 @@ def get_train_params(input_args):
 
     train_params = {}
 
+    train_params["accumulate_grad_batches"] = input_args.grad_accum
+    train_params['track_grad_norm'] = -1
+    train_params['limit_val_batches'] = input_args.limit_val_batches
+    train_params['val_check_interval'] = input_args.val_check_interval
+    train_params['max_epochs'] = input_args.num_epochs
+
+    # PyTorch GPU related
     train_params["precision"] = 16 if input_args.fp16 else 32
 
     if (isinstance(input_args.gpus, int) and input_args.gpus > 1) or (isinstance(input_args.gpus, list) and len(input_args.gpus) > 1):
@@ -280,14 +292,8 @@ def get_train_params(input_args):
     else:
         train_params["distributed_backend"] = None
 
-    train_params["accumulate_grad_batches"] = input_args.grad_accum
-    train_params['track_grad_norm'] = -1
-    train_params['limit_val_batches'] = input_args.limit_val_batches
-    train_params['val_check_interval'] = input_args.val_check_interval
     train_params['gpus'] = input_args.gpus
-    train_params['max_epochs'] = input_args.num_epochs
-    
-    # PyTorch cuDNN options
+    train_params['amp_backend'] = 'native' # PyTorch AMP
     train_params['deterministic'] = True
     train_params['benchmark'] = False
 
