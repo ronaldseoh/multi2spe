@@ -15,10 +15,6 @@ from specter.scripts.pytorch_lightning_training_script.train import (
 )
 
 
-# LOG_EVERY_N_STEPS how frequently pytorch lightning logs.
-# By default, Lightning logs every 50 rows, or 50 training steps.
-LOG_EVERY_N_STEPS = 1
-
 ARG_TO_SCHEDULER = {
     "linear": transformers.optimization.get_linear_schedule_with_warmup,
     "cosine": transformers.optimization.get_cosine_schedule_with_warmup,
@@ -288,6 +284,7 @@ def parse_args():
     parser.add_argument('--limit_val_batches', default=1.0, type=float)
     parser.add_argument('--val_check_interval', default=1.0, type=float)
     parser.add_argument('--num_epochs', default=1, type=int)
+    parser.add_argument('--log_every_n_steps', default=1, type=int)
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
     parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
@@ -326,7 +323,10 @@ def get_train_params(input_args):
     train_params['val_check_interval'] = input_args.val_check_interval
     train_params['gpus'] = input_args.gpus
     train_params['max_epochs'] = input_args.num_epochs
-    train_params['log_every_n_steps'] = LOG_EVERY_N_STEPS
+    
+    # LOG_EVERY_N_STEPS how frequently pytorch lightning logs.
+    # By default, Lightning logs every 50 rows, or 50 training steps.
+    train_params['log_every_n_steps'] = input_args.log_every_n_steps
 
     return train_params
 
