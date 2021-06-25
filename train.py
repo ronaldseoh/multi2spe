@@ -18,8 +18,6 @@ from specter.scripts.pytorch_lightning_training_script.train import (
 
 
 logger = logging.getLogger(__name__)
-training_size = 684100
-# validation_size = 145375
 
 # log_every_n_steps how frequently pytorch lightning logs.
 # By default, Lightning logs every 50 rows, or 50 training steps.
@@ -107,12 +105,14 @@ class QuarterMaster(pl.LightningModule):
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
         self.hparams.seqlen = self.model.config.max_position_embeddings
         self.triple_loss = TripletLoss()
+
         # number of training instances
-        self.training_size = None
+        self.training_size = init_args.train_size
         # number of testing instances
-        self.validation_size = None
+        self.validation_size = init_args.val_size
         # number of test instances
-        self.test_size = None
+        self.test_size = init_args.test_size
+
         # This is a dictionary to save the embeddings for source papers in test step.
         self.embedding_output = {}
 
@@ -162,10 +162,8 @@ class QuarterMaster(pl.LightningModule):
         """The number of total training steps that will be run. Used for lr scheduler purposes."""
         num_devices = max(1, self.hparams.total_gpus)  # TODO: consider num_tpu_cores
         effective_batch_size = self.hparams.batch_size * self.hparams.grad_accum * num_devices
-        # dataset_size = len(self.train_loader.dataset)
-        """The size of the training data need to be coded with more accurate number"""
-        dataset_size = training_size
-        return (dataset_size / effective_batch_size) * self.hparams.num_epochs
+
+        return (self.training_size / effective_batch_size) * self.hparams.num_epochs
 
     def get_lr_scheduler(self):
         get_schedule_func = arg_to_scheduler[self.hparams.lr_scheduler]
@@ -269,6 +267,10 @@ def parse_args():
     parser.add_argument('--train_file')
     parser.add_argument('--dev_file')
     parser.add_argument('--test_file')
+    
+    parser.add_argument('--train_size', default=684100)
+    parser.add_argument('--dev_size', default=145375)
+    parser.add_argument('--test_size', default=145375)
     
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
