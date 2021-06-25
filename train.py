@@ -286,6 +286,9 @@ def get_train_params(input_args):
     train_params['val_check_interval'] = input_args.val_check_interval
     train_params['gpus'] = input_args.gpus
     train_params['max_epochs'] = input_args.num_epochs
+    
+    train_params['deterministic'] = True
+    train_params['benchmark'] = False
 
     # LOG_EVERY_N_STEPS how frequently pytorch lightning logs.
     # By default, Lightning logs every 50 rows, or 50 training steps.
@@ -302,10 +305,8 @@ if __name__ == '__main__':
     # https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility
     os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
 
-    # PyTorch CUDA reproducibility
+    # PyTorch reproducibility
     torch.use_deterministic_algorithms(True)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
 
     pl.seed_everything(args.seed, workers=True)
 
