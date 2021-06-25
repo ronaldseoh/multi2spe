@@ -1,9 +1,7 @@
 import json
 import argparse
-import glob
 import random
 import os
-import logging
 
 import numpy as np
 import torch
@@ -17,13 +15,11 @@ from specter.scripts.pytorch_lightning_training_script.train import (
 )
 
 
-logger = logging.getLogger(__name__)
-
-# log_every_n_steps how frequently pytorch lightning logs.
+# LOG_EVERY_N_STEPS how frequently pytorch lightning logs.
 # By default, Lightning logs every 50 rows, or 50 training steps.
-log_every_n_steps = 1
+LOG_EVERY_N_STEPS = 1
 
-arg_to_scheduler = {
+ARG_TO_SCHEDULER = {
     "linear": transformers.optimization.get_linear_schedule_with_warmup,
     "cosine": transformers.optimization.get_cosine_schedule_with_warmup,
     "cosine_w_restarts": transformers.optimization.get_cosine_with_hard_restarts_schedule_with_warmup,
@@ -31,8 +27,8 @@ arg_to_scheduler = {
     # '': get_constant_schedule,             # not supported for now
     # '': get_constant_schedule_with_warmup, # not supported for now
 }
-arg_to_scheduler_choices = sorted(arg_to_scheduler.keys())
-arg_to_scheduler_metavar = "{" + ", ".join(arg_to_scheduler_choices) + "}"
+ARG_TO_SCHEDULER_CHOICES = sorted(ARG_TO_SCHEDULER.keys())
+ARG_TO_SCHEDULER_METAVAR = "{" + ", ".join(ARG_TO_SCHEDULER_CHOICES) + "}"
 
 
 class TripletLoss(torch.nn.Module):
@@ -91,13 +87,16 @@ class TripletLoss(torch.nn.Module):
 
 
 class QuarterMaster(pl.LightningModule):
+
     def __init__(self, init_args):
-        super().__init__()
+
+        super()
+
         if isinstance(init_args, dict):
             # for loading the checkpoint, pl passes a dict (hparams are saved as dict)
             init_args = argparse.Namespace(**init_args)
+
         checkpoint_path = init_args.checkpoint_path
-        logger.info(f'loading model from checkpoint: {checkpoint_path}')
 
         self._set_hparams(init_args)
         self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
@@ -166,7 +165,7 @@ class QuarterMaster(pl.LightningModule):
         return (self.training_size / effective_batch_size) * self.hparams.num_epochs
 
     def get_lr_scheduler(self):
-        get_schedule_func = arg_to_scheduler[self.hparams.lr_scheduler]
+        get_schedule_func = ARG_TO_SCHEDULER[self.hparams.lr_scheduler]
         scheduler = get_schedule_func(
             self.opt, num_warmup_steps=self.hparams.warmup_steps, num_training_steps=self.total_steps
         )
@@ -260,6 +259,7 @@ class QuarterMaster(pl.LightningModule):
         # return self.validation_step(batch, batch_nb)
 
 def parse_args():
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--checkpoint_path', default=None, help='path to the model (if not setting checkpoint)')
@@ -267,11 +267,11 @@ def parse_args():
     parser.add_argument('--train_file')
     parser.add_argument('--dev_file')
     parser.add_argument('--test_file')
-    
+
     parser.add_argument('--train_size', default=684100)
     parser.add_argument('--dev_size', default=145375)
     parser.add_argument('--test_size', default=145375)
-    
+
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
     parser.add_argument('--gpus', default='1')
@@ -294,34 +294,34 @@ def parse_args():
     parser.add_argument('--num_samples', default=None, type=int)
     parser.add_argument("--lr_scheduler",
                         default="linear",
-                        choices=arg_to_scheduler_choices,
-                        metavar=arg_to_scheduler_metavar,
+                        choices=ARG_TO_SCHEDULER_CHOICES,
+                        metavar=ARG_TO_SCHEDULER_METAVAR,
                         type=str,
                         help="Learning rate scheduler")
 
-    args = parser.parse_args()
+    parsed_args = parser.parse_args()
 
-    return args
+    return parsed_args
 
 
-def get_train_params(args):
+def get_train_params(input_args):
 
     train_params = {}
 
-    train_params["precision"] = 16 if args.fp16 else 32
+    train_params["precision"] = 16 if input_args.fp16 else 32
 
-    if (isinstance(args.gpus, int) and args.gpus > 1) or (isinstance(args.gpus, list) and len(args.gpus) > 1):
+    if (isinstance(input_args.gpus, int) and input_args.gpus > 1) or (isinstance(input_args.gpus, list) and len(input_args.gpus) > 1):
         train_params["distributed_backend"] = "ddp"
     else:
         train_params["distributed_backend"] = None
 
-    train_params["accumulate_grad_batches"] = args.grad_accum
+    train_params["accumulate_grad_batches"] = input_args.grad_accum
     train_params['track_grad_norm'] = -1
-    train_params['limit_val_batches'] = args.limit_val_batches
-    train_params['val_check_interval'] = args.val_check_interval
-    train_params['gpus'] = args.gpus
-    train_params['max_epochs'] = args.num_epochs
-    train_params['log_every_n_steps'] = log_every_n_steps
+    train_params['limit_val_batches'] = input_args.limit_val_batches
+    train_params['val_check_interval'] = input_args.val_check_interval
+    train_params['gpus'] = input_args.gpus
+    train_params['max_epochs'] = input_args.num_epochs
+    train_params['log_every_n_steps'] = LOG_EVERY_N_STEPS
 
     return train_params
 
@@ -348,8 +348,6 @@ if __name__ == '__main__':
         print("num_workers cannot be less than 1")
         return
 
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(args.seed)
     if ',' in args.gpus:
         args.gpus = list(map(int, args.gpus.split(',')))
         args.total_gpus = len(args.gpus)
