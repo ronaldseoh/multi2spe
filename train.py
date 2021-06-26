@@ -343,6 +343,7 @@ if __name__ == '__main__':
     if args.wandb:
         pathlib.Path(os.path.join(args.save_dir, 'logs', 'wandb')).mkdir(exist_ok=True)
         pl_logger = pl.loggers.WandbLogger(
+            name=args.save_dir,
             save_dir=os.path.join(args.save_dir, 'logs'))
     else:
         pl_logger = pl.loggers.TensorBoardLogger(
