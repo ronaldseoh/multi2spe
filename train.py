@@ -308,6 +308,26 @@ def get_train_params(input_args):
     # log_every_n_steps how frequently pytorch lightning logs.
     # By default, Lightning logs every 50 rows, or 50 training steps.
     train_params['log_every_n_steps'] = input_args.log_every_n_steps
+    
+    # logger used by trainer
+    if input_args.wandb:
+        pathlib.Path(os.path.join(input_args.save_dir, 'logs', 'wandb')).mkdir(exist_ok=True)
+
+        train_params['logger'] = pl.loggers.WandbLogger(
+            name=input_args.save_dir,
+            save_dir=os.path.join(input_args.save_dir, 'logs'))
+    else:
+        train_params['logger'] = pl.loggers.TensorBoardLogger(
+            save_dir=os.path.join(input_args.save_dir, 'logs'),
+            name='pl-logs')
+
+    train_params['checkpoint_callback'] = pl.callbacks.ModelCheckpoint(
+        dirpath=os.path.join(input_args.save_dir, 'checkpoints'),
+        filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
+        save_top_k=1,
+        verbose=True,
+        monitor='avg_val_loss', # monitors metrics logged by self.log.
+        mode='min')
 
     return train_params
 
@@ -321,13 +341,9 @@ if __name__ == '__main__':
     pathlib.Path(os.path.join(args.save_dir, 'logs')).mkdir(exist_ok=True)
     pathlib.Path(os.path.join(args.save_dir, 'checkpoints')).mkdir(exist_ok=True)
 
-    # cuBLAS reproducibility
-    # https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility
+    # Reproducibility
     os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
-
-    # PyTorch reproducibility
     torch.use_deterministic_algorithms(True)
-
     pl.seed_everything(args.seed, workers=True)
 
     if ',' in args.gpus:
@@ -339,29 +355,6 @@ if __name__ == '__main__':
 
     model = QuarterMaster(args)
 
-    # logger used by trainer
-    if args.wandb:
-        pathlib.Path(os.path.join(args.save_dir, 'logs', 'wandb')).mkdir(exist_ok=True)
-        pl_logger = pl.loggers.WandbLogger(
-            name=args.save_dir,
-            save_dir=os.path.join(args.save_dir, 'logs'))
-    else:
-        pl_logger = pl.loggers.TensorBoardLogger(
-            save_dir=os.path.join(args.save_dir, 'logs'),
-            name='pl-logs')
-
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath=os.path.join(args.save_dir, 'checkpoints'),
-        filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
-        save_top_k=1,
-        verbose=True,
-        monitor='avg_val_loss', # monitors metrics logged by self.log.
-        mode='min')
-
-    extra_train_params = get_train_params(args)
-
-    trainer = pl.Trainer(logger=pl_logger,
-                         checkpoint_callback=checkpoint_callback,
-                         **extra_train_params)
+    trainer = pl.Trainer(**get_train_params(args))
 
     trainer.fit(model)
