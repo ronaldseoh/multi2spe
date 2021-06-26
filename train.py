@@ -315,28 +315,6 @@ def get_lightning_trainer_params(input_args):
     # log_every_n_steps how frequently pytorch lightning logs.
     # By default, Lightning logs every 50 rows, or 50 training steps.
     train_params['log_every_n_steps'] = input_args.log_every_n_steps
-    
-    # logger used by trainer
-    if input_args.wandb:
-        pathlib.Path(os.path.join(input_args.save_dir, 'logs', 'wandb')).mkdir(exist_ok=True)
-
-        train_params['logger'] = pl.loggers.WandbLogger(
-            save_dir=os.path.join(input_args.save_dir, 'logs'))
-
-        # Upload input_args to wandb
-        train_params['logger'].log_hyperparams(input_args)
-    else:
-        train_params['logger'] = pl.loggers.TensorBoardLogger(
-            save_dir=os.path.join(input_args.save_dir, 'logs'),
-            name='pl-logs')
-
-    train_params['checkpoint_callback'] = pl.callbacks.ModelCheckpoint(
-        dirpath=os.path.join(input_args.save_dir, 'checkpoints'),
-        filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
-        save_top_k=1,
-        verbose=True,
-        monitor='avg_val_loss', # monitors metrics logged by self.log.
-        mode='min')
 
     return train_params
 
@@ -356,7 +334,34 @@ if __name__ == '__main__':
     pl.seed_everything(args.seed, workers=True)
 
     model = QuarterMaster(args)
+    
+    # logger used by trainer
+    if args.wandb:
+        pathlib.Path(os.path.join(args.save_dir, 'logs', 'wandb')).mkdir(exist_ok=True)
 
-    trainer = pl.Trainer(**get_lightning_trainer_params(args))
+        pl_logger = pl.loggers.WandbLogger(
+            save_dir=os.path.join(args.save_dir, 'logs'))
+
+        # Upload input_args to wandb
+        pl_logger.log_hyperparams(args)
+    else:
+        pl_logger = pl.loggers.TensorBoardLogger(
+            save_dir=os.path.join(args.save_dir, 'logs'),
+            name='pl-logs')
+
+    pl_checkpoint_callback = pl.callbacks.ModelCheckpoint(
+        dirpath=os.path.join(args.save_dir, 'checkpoints'),
+        filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
+        save_top_k=1,
+        verbose=True,
+        monitor='avg_val_loss', # monitors metrics logged by self.log.
+        mode='min')
+        
+    pl_other_trainer_params = get_lightning_trainer_params(args)
+
+    trainer = pl.Trainer(
+        logger=pl_logger,
+        checkpoint_callback=pl_checkpoint_callback,
+        **pl_other_trainer_params)
 
     trainer.fit(model)
