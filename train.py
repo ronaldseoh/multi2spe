@@ -292,6 +292,11 @@ def get_train_params(input_args):
 
     if (isinstance(input_args.gpus, int) and input_args.gpus > 1) or (isinstance(input_args.gpus, list) and len(input_args.gpus) > 1):
         train_params["accelerator"] = "ddp"
+        # DDP optimizations
+        # https://pytorch-lightning.readthedocs.io/en/stable/advanced/advanced_gpu.html#ddp-optimizations
+        train_params["plugins"] = pl.plugins.DDPPlugin(
+            find_unused_parameters=False,
+            gradient_as_bucket_view=True)
     else:
         train_params["accelerator"] = None
 
