@@ -323,6 +323,9 @@ def get_lightning_trainer_params(input_args):
         train_params['logger'] = pl.loggers.WandbLogger(
             name=input_args.save_dir,
             save_dir=os.path.join(input_args.save_dir, 'logs'))
+
+        # Upload input_args to wandb
+        train_params['logger'].log_hyperparams(input_args)
     else:
         train_params['logger'] = pl.loggers.TensorBoardLogger(
             save_dir=os.path.join(input_args.save_dir, 'logs'),
