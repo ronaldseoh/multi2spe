@@ -94,6 +94,7 @@ class QuarterMaster(pl.LightningModule):
 
         self._set_hparams(init_args)
 
+        # NOTE: The exact model class will be transformers.BertModel
         self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained("allenai/scibert_scivocab_cased")
