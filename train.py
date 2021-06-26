@@ -321,7 +321,6 @@ def get_lightning_trainer_params(input_args):
         pathlib.Path(os.path.join(input_args.save_dir, 'logs', 'wandb')).mkdir(exist_ok=True)
 
         train_params['logger'] = pl.loggers.WandbLogger(
-            name=input_args.save_dir,
             save_dir=os.path.join(input_args.save_dir, 'logs'))
 
         # Upload input_args to wandb
