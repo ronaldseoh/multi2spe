@@ -340,6 +340,7 @@ if __name__ == '__main__':
         pathlib.Path(os.path.join(args.save_dir, 'logs', 'wandb')).mkdir(exist_ok=True)
 
         pl_logger = pl.loggers.WandbLogger(
+            name=input_args.save_dir,
             save_dir=os.path.join(args.save_dir, 'logs'))
 
         # Upload input_args to wandb
