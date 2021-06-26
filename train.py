@@ -352,7 +352,7 @@ if __name__ == '__main__':
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=os.path.join(args.save_dir, 'checkpoints'),
         filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
-        save_top_k=3,
+        save_top_k=1,
         verbose=True,
         monitor='avg_val_loss', # monitors metrics logged by self.log.
         mode='min')
