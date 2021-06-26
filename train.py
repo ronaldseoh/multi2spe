@@ -291,9 +291,9 @@ def get_train_params(input_args):
     train_params["precision"] = 16 if input_args.fp16 else 32
 
     if (isinstance(input_args.gpus, int) and input_args.gpus > 1) or (isinstance(input_args.gpus, list) and len(input_args.gpus) > 1):
-        train_params["distributed_backend"] = "ddp"
+        train_params["accelerator"] = "ddp"
     else:
-        train_params["distributed_backend"] = None
+        train_params["accelerator"] = None
 
     train_params['gpus'] = input_args.gpus
     train_params['amp_backend'] = 'native' # PyTorch AMP
