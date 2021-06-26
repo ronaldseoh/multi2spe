@@ -273,11 +273,18 @@ def parse_args():
     parser.add_argument('--save_dir', required=True)
 
     parsed_args = parser.parse_args()
+    
+    if ',' in parsed_args.gpus:
+        parsed_args.gpus = list(map(int, parsed_args.gpus.split(',')))
+        parsed_args.total_gpus = len(parsed_args.gpus)
+    else:
+        parsed_args.gpus = int(parsed_args.gpus)
+        parsed_args.total_gpus = parsed_args.gpus
 
     return parsed_args
 
 
-def get_train_params(input_args):
+def get_lightning_trainer_params(input_args):
 
     train_params = {}
 
@@ -346,15 +353,8 @@ if __name__ == '__main__':
     torch.use_deterministic_algorithms(True)
     pl.seed_everything(args.seed, workers=True)
 
-    if ',' in args.gpus:
-        args.gpus = list(map(int, args.gpus.split(',')))
-        args.total_gpus = len(args.gpus)
-    else:
-        args.gpus = int(args.gpus)
-        args.total_gpus = args.gpus
-
     model = QuarterMaster(args)
 
-    trainer = pl.Trainer(**get_train_params(args))
+    trainer = pl.Trainer(**get_lightning_trainer_params(args))
 
     trainer.fit(model)
