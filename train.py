@@ -8,7 +8,6 @@ import transformers
 
 # data loader classes defined in the Lightning version of specter
 from specter.scripts.pytorch_lightning_training_script.train import (
-    IterableDataSetMultiWorker,
     TripletLoss
 )
 
