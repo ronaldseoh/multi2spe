@@ -8,12 +8,28 @@ from specter.scripts.pytorch_lightning_training_script.train import (
 
 
 class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
-    def __init__(self, file_path, tokenizer, size, block_size=100):
+    def __init__(self, file_path, tokenizer, size, block_size=100, num_facets=1):
         self.datareaderfp = DataReaderFromPickled(max_sequence_length=512)
         self.data_instances = self.datareaderfp._read(file_path)
         self.tokenizer = tokenizer
         self.size = size
         self.block_size = block_size
+        
+        self.num_facets = num_facets
+        
+        self.extra_facets_input_ids = []
+        
+        if self.num_facets > 1:
+            if self.num_facets > 100:
+                raise Exception("We currently only support up to 100 facets: [CLS] plus all [unused] tokens.")
+
+            # If more than one facet is requested, then determine the ids
+            # of "unused" tokens from the tokenizer
+            # For BERT, [unused1] has the id of 1, and so on until
+            # [unused99]
+            for i in range(self.num_facets - 1):
+                self.extra_facets_input_ids.append(
+                    self.tokenizer.convert_tokens_to_ids('[unused{}]'.format(i+1))
 
     def __iter__(self):
         worker_info = torch.utils.data.get_worker_info()
