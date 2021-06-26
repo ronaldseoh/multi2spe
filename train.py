@@ -344,8 +344,8 @@ if __name__ == '__main__':
             save_dir=os.path.join(args.save_dir, 'logs'))
     else:
         pl_logger = pl.loggers.TensorBoardLogger(
-            save_dir=os.path.join(args.save_dir, 'logs'),
-            name='pl-logs')
+            name='pl-logs',
+            save_dir=os.path.join(args.save_dir, 'logs'))
 
     pl_checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=os.path.join(args.save_dir, 'checkpoints'),
