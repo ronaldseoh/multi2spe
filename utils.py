@@ -29,7 +29,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
             # [unused99]
             for i in range(self.num_facets - 1):
                 self.extra_facets_input_ids.append(
-                    self.tokenizer.convert_tokens_to_ids('[unused{}]'.format(i+1))
+                    self.tokenizer.convert_tokens_to_ids('[unused{}]'.format(i+1)))
 
     def __iter__(self):
         worker_info = torch.utils.data.get_worker_info()
