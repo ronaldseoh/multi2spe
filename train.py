@@ -9,6 +9,7 @@ import transformers
 # data loader classes defined in the Lightning version of specter
 from specter.scripts.pytorch_lightning_training_script.train import (
     IterableDataSetMultiWorker,
+    TripletLoss
 )
 
 
@@ -23,9 +24,9 @@ ARG_TO_SCHEDULER_CHOICES = sorted(ARG_TO_SCHEDULER.keys())
 ARG_TO_SCHEDULER_METAVAR = "{" + ", ".join(ARG_TO_SCHEDULER_CHOICES) + "}"
 
 
-class TripletLoss(torch.nn.Module):
+class MultiFacetTripletLoss(torch.nn.Module):
     """
-    Triplet loss: copied from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159 without any change
+    Triplet loss function for multi-facet embeddings: Based on the TripletLoss function from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159
     """
     def __init__(self, margin=1.0, distance='l2-norm', reduction='mean'):
         """
