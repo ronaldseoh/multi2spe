@@ -102,7 +102,7 @@ class QuarterMaster(pl.LightningModule):
 
         self.hparams.seqlen = self.model.config.max_position_embeddings
 
-        self.triple_loss = TripletLoss()
+        self.loss = TripletLoss()
 
         self.opt = None
 
@@ -194,7 +194,7 @@ class QuarterMaster(pl.LightningModule):
         pos_embedding = self.model(**batch[1])[1]
         neg_embedding = self.model(**batch[2])[1]
 
-        loss = self.triple_loss(source_embedding, pos_embedding, neg_embedding)
+        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
         lr_scheduler = self.trainer.lr_schedulers[0]["scheduler"]
 
@@ -209,7 +209,7 @@ class QuarterMaster(pl.LightningModule):
         pos_embedding = self.model(**batch[1])[1]
         neg_embedding = self.model(**batch[2])[1]
 
-        loss = self.triple_loss(source_embedding, pos_embedding, neg_embedding)
+        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
         self.log('val_loss', loss, on_step=True, on_epoch=False, prog_bar=True)
 
