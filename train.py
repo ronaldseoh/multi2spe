@@ -342,9 +342,6 @@ if __name__ == '__main__':
         pl_logger = pl.loggers.WandbLogger(
             name=args.save_dir,
             save_dir=os.path.join(args.save_dir, 'logs'))
-
-        # Upload input_args to wandb
-        pl_logger.log_hyperparams(args)
     else:
         pl_logger = pl.loggers.TensorBoardLogger(
             save_dir=os.path.join(args.save_dir, 'logs'),
