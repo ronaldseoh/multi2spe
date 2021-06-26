@@ -246,8 +246,8 @@ def parse_args():
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
-    parser.add_argument('--limit_val_batches', default=1.0, type=float)
-    parser.add_argument('--val_check_interval', default=1.0, type=float)
+    parser.add_argument('--limit_val_batches', default=1.0, type=float) # Check 1.0 * 1 = 1 of the val set
+    parser.add_argument('--val_check_interval', default=1.0, type=float) # 1.0 * 1 = Every 1 epoch
     parser.add_argument('--num_epochs', default=1, type=int)
     parser.add_argument("--num_workers", default=4, type=int, help="kwarg passed to DataLoader")
     parser.add_argument('--gpus', default='1')
