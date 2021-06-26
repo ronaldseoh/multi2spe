@@ -12,6 +12,8 @@ from specter.scripts.pytorch_lightning_training_script.train import (
     TripletLoss
 )
 
+import utils
+
 
 ARG_TO_SCHEDULER = {
     "linear": transformers.optimization.get_linear_schedule_with_warmup,
@@ -121,7 +123,7 @@ class QuarterMaster(pl.LightningModule):
         else:
             raise Exception("Invalid value for split: " + str(split))
 
-        dataset = IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size)
+        dataset = utils.IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         loader = torch.utils.data.DataLoader(
