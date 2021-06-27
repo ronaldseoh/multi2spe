@@ -149,10 +149,14 @@ class QuarterMaster(pl.LightningModule):
 
     def get_lr_scheduler(self):
         get_schedule_func = ARG_TO_SCHEDULER[self.hparams.lr_scheduler]
+        
+        if self.opt is None:
+            return Exception("get_lr_scheduler() should not be called before the optimizer is configured.")
 
         scheduler = get_schedule_func(
-            self.opt, num_warmup_steps=self.hparams.warmup_steps, num_training_steps=self.total_steps
-        )
+            self.opt,
+            num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
+            num_training_steps=self.total_steps)
 
         scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
 
@@ -176,12 +180,10 @@ class QuarterMaster(pl.LightningModule):
 
         if self.hparams.adafactor:
             optimizer = transformers.optimization.Adafactor(
-                optimizer_grouped_parameters, lr=self.hparams.lr, scale_parameter=False, relative_step=False
-            )
+                optimizer_grouped_parameters, lr=self.hparams.lr, scale_parameter=False, relative_step=False)
         else:
             optimizer = transformers.AdamW(
-                optimizer_grouped_parameters, lr=self.hparams.lr, eps=self.hparams.adam_epsilon
-            )
+                optimizer_grouped_parameters, lr=self.hparams.lr, eps=self.hparams.adam_epsilon)
 
         self.opt = optimizer
 
@@ -270,7 +272,7 @@ def parse_args():
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
     parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
-    parser.add_argument("--warmup_steps", default=0, type=int, help="Linear warmup over warmup_steps.")
+    parser.add_argument("--warmup_frac", default=0.1, type=float, help="Fraction of steps to perform linear warmup.")
     parser.add_argument("--adafactor", action="store_true")
 
     parser.add_argument('--log_every_n_steps', default=1, type=int)
