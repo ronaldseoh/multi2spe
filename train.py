@@ -6,6 +6,9 @@ import torch
 import pytorch_lightning as pl
 import transformers
 
+# Slanted triangular learning rate scheduler from AllenNLP
+from allennlp.training.learning_rate_schedulers import SlantedTriangular
+
 # data loader classes defined in the Lightning version of specter
 from specter.scripts.pytorch_lightning_training_script.train import (
     TripletLoss
@@ -19,6 +22,7 @@ ARG_TO_SCHEDULER = {
     "cosine": transformers.optimization.get_cosine_schedule_with_warmup,
     "cosine_w_restarts": transformers.optimization.get_cosine_with_hard_restarts_schedule_with_warmup,
     "polynomial": transformers.optimization.get_polynomial_decay_schedule_with_warmup,
+    "slanted_triangular": SlantedTriangular,
 }
 
 ARG_TO_SCHEDULER_CHOICES = sorted(ARG_TO_SCHEDULER.keys())
@@ -153,10 +157,17 @@ class QuarterMaster(pl.LightningModule):
         if self.opt is None:
             return Exception("get_lr_scheduler() should not be called before the optimizer is configured.")
 
-        scheduler = get_schedule_func(
-            self.opt,
-            num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
-            num_training_steps=self.total_steps)
+        if self.hparams.lr_scheduler == 'slanted_triangular':
+            scheduler = get_schedule_func(
+                self.opt,
+                num_epochs=self.hparams.num_epochs,
+                cut_frac=self.hparams.warmup_frac,
+                num_steps_per_epoch=self.total_steps / num_epochs)
+        else:
+            scheduler = get_schedule_func(
+                self.opt,
+                num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
+                num_training_steps=self.total_steps)
 
         scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
 
