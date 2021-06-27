@@ -17,7 +17,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
         
         self.num_facets = num_facets
         
-        self.extra_facets_input_ids = []
+        self.extra_facets_tokens = []
         
         if self.num_facets > 1:
             if self.num_facets > 100:
@@ -28,8 +28,16 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
             # For BERT, [unused1] has the id of 1, and so on until
             # [unused99]
             for i in range(self.num_facets - 1):
-                self.extra_facets_input_ids.append(
-                    self.tokenizer.convert_tokens_to_ids('[unused{}]'.format(i+1)))
+                self.extra_facets_tokens.append('[unused{}]'.format(i+1))
+                
+            # Let tokenizer recognize our facet tokens in order to prevent it
+            # from doing WordPiece stuff on these tokens
+            # According to the transformers documentation, special_tokens=True prevents
+            # these tokens from being normalized.
+            num_added_vocabs = self.tokenizer.add_tokens(self.extra_facets_tokens, special_tokens=True)
+            
+            if num_added_vocabs > 0:
+                print("{} facet tokens were newly added to the vocabulary.".format(num_added_vocabs))
 
     def __iter__(self):
         worker_info = torch.utils.data.get_worker_info()
@@ -60,7 +68,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
             data_instance: ai2 data instance
             tokenizer: huggingface transformers tokenizer
         """
-        source_tokens = data_instance["source_title"].tokens + self.extra_facets_input_ids
+        source_tokens = self.extra_facets_tokens + data_instance["source_title"].tokens
 
         source_title = tokenizer(' '.join([str(token) for token in source_tokens]),
                                  truncation=True, padding="max_length", return_tensors="pt",
@@ -70,7 +78,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                         'token_type_ids': source_title['token_type_ids'][0],
                         'attention_mask': source_title['attention_mask'][0]}
 
-        pos_tokens = data_instance["pos_title"].tokens + self.extra_facets_input_ids
+        pos_tokens = self.extra_facets_tokens + data_instance["pos_title"].tokens
 
         pos_title = tokenizer(' '.join([str(token) for token in pos_tokens]),
                               truncation=True, padding="max_length", return_tensors="pt", max_length=512)
@@ -79,7 +87,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                      'token_type_ids': pos_title['token_type_ids'][0],
                      'attention_mask': pos_title['attention_mask'][0]}
 
-        neg_tokens = data_instance["neg_title"].tokens + self.extra_facets_input_ids
+        neg_tokens = self.extra_facets_tokens + data_instance["neg_title"].tokens
 
         neg_title = tokenizer(' '.join([str(token) for token in neg_tokens]),
                               truncation=True, padding="max_length", return_tensors="pt", max_length=512)
