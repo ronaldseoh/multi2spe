@@ -162,7 +162,7 @@ class QuarterMaster(pl.LightningModule):
                 self.opt,
                 num_epochs=self.hparams.num_epochs,
                 cut_frac=self.hparams.warmup_frac,
-                num_steps_per_epoch=self.total_steps / self.hparams.num_epochs)
+                num_steps_per_epoch=self.total_steps / num_epochs)
         else:
             scheduler = get_schedule_func(
                 self.opt,
