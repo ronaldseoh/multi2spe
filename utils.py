@@ -44,7 +44,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
         if worker_info is None:
             iter_end = self.size
             for data_instance in itertools.islice(self.data_instances, iter_end):
-                data_input = self.ai2_to_transformers(data_instance, self.tokenizer)
+                data_input = self.ai2_to_transformers(data_instance)
                 yield data_input
 
         else:
@@ -59,18 +59,17 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                     pass
                 else:
                     i = i + 1
-                    data_input = self.ai2_to_transformers(data_instance, self.tokenizer)
+                    data_input = self.ai2_to_transformers(data_instance)
                     yield data_input
 
-    def ai2_to_transformers(self, data_instance, tokenizer):
+    def ai2_to_transformers(self, data_instance):
         """
         Args:
             data_instance: ai2 data instance
-            tokenizer: huggingface transformers tokenizer
         """
         source_tokens = self.extra_facets_tokens + data_instance["source_title"].tokens
 
-        source_title = tokenizer(' '.join([str(token) for token in source_tokens]),
+        source_title = self.tokenizer(' '.join([str(token) for token in source_tokens]),
                                  truncation=True, padding="max_length", return_tensors="pt",
                                  max_length=512)
 
@@ -80,7 +79,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
 
         pos_tokens = self.extra_facets_tokens + data_instance["pos_title"].tokens
 
-        pos_title = tokenizer(' '.join([str(token) for token in pos_tokens]),
+        pos_title = self.tokenizer(' '.join([str(token) for token in pos_tokens]),
                               truncation=True, padding="max_length", return_tensors="pt", max_length=512)
 
         pos_input = {'input_ids': pos_title['input_ids'][0],
@@ -89,7 +88,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
 
         neg_tokens = self.extra_facets_tokens + data_instance["neg_title"].tokens
 
-        neg_title = tokenizer(' '.join([str(token) for token in neg_tokens]),
+        neg_title = self.tokenizer(' '.join([str(token) for token in neg_tokens]),
                               truncation=True, padding="max_length", return_tensors="pt", max_length=512)
 
         neg_input = {'input_ids': neg_title['input_ids'][0],
