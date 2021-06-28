@@ -49,7 +49,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
 
     def forward(self, query, positive, negative):
         if self.distance == 'l2-norm':
-            if len(query.shape) == 2: # single embedding (one facet) is used (shape would be (batch size, dimension)
+            if len(query.shape) == 2 or query.shape[1] == 1: # single embedding (one facet) is used (shape would be (batch size, dimension)
                 distance_positive = torch.nn.functional.pairwise_distance(query, positive)
                 distance_negative = torch.nn.functional.pairwise_distance(query, negative)
             else: # multi-facet (batch size, num facets, dimension)
