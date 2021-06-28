@@ -103,14 +103,21 @@ class QuarterMaster(pl.LightningModule):
 
         self.hparams.seqlen = self.model.config.max_position_embeddings
 
-        self.loss = TripletLoss()
+        if self.hparams.model_behavior == 'specter':
+            self.loss = TripletLoss()
+        else:
+            self.loss = MultiFacetTripletLoss()
 
         self.opt = None
 
     def forward(self, input_ids, token_type_ids, attention_mask):
         # in lightning, forward defines the prediction/inference actions
         source_embedding = self.model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        return source_embedding[1]
+
+        if self.hparams.model_behavior == 'specter':
+            return source_embedding[1]
+        else:
+            return source_embedding.last_hidden_state[:, 0:self.hparams.num_facets, :]
 
     def _get_loader(self, split):
         if split == 'train':
@@ -149,7 +156,7 @@ class QuarterMaster(pl.LightningModule):
 
     def get_lr_scheduler(self):
         get_schedule_func = ARG_TO_SCHEDULER[self.hparams.lr_scheduler]
-        
+
         if self.opt is None:
             return Exception("get_lr_scheduler() should not be called before the optimizer is configured.")
 
@@ -192,10 +199,17 @@ class QuarterMaster(pl.LightningModule):
         return [optimizer], [scheduler]
 
     def training_step(self, batch, batch_idx):
-        source_embedding = self.model(**batch[0])[1]
 
-        pos_embedding = self.model(**batch[1])[1]
-        neg_embedding = self.model(**batch[2])[1]
+        if self.hparams.model_behavior == 'specter':
+            # [1] actually contains what's referred to as "pooled output" in the Huggingface docs,
+            # which is the [CLS] last hidden state followed by the BERT NSP linear layer
+            source_embedding = self.model(**batch[0])[1]
+            pos_embedding = self.model(**batch[1])[1]
+            neg_embedding = self.model(**batch[2])[1]
+        else:
+            source_embedding = self.model(**batch[0]).last_hidden_state[:, 0:self.hparams.num_facets, :]
+            pos_embedding = self.model(**batch[1]).last_hidden_state[:, 0:self.hparams.num_facets, :]
+            neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :]
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
@@ -207,10 +221,17 @@ class QuarterMaster(pl.LightningModule):
         return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
-        source_embedding = self.model(**batch[0])[1]
 
-        pos_embedding = self.model(**batch[1])[1]
-        neg_embedding = self.model(**batch[2])[1]
+        if self.hparams.model_behavior == 'specter':
+            # [1] actually contains what's referred to as "pooled output" in the Huggingface docs,
+            # which is the [CLS] last hidden state followed by the BERT NSP linear layer
+            source_embedding = self.model(**batch[0])[1]
+            pos_embedding = self.model(**batch[1])[1]
+            neg_embedding = self.model(**batch[2])[1]
+        else:
+            source_embedding = self.model(**batch[0]).last_hidden_state[:, 0:self.hparams.num_facets, :]
+            pos_embedding = self.model(**batch[1]).last_hidden_state[:, 0:self.hparams.num_facets, :]
+            neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :]
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
@@ -248,7 +269,7 @@ def parse_args():
 
     parser.add_argument('--train_size', default=684100)
     parser.add_argument('--val_size', default=145375)
-    
+
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
 
@@ -281,7 +302,7 @@ def parse_args():
     parser.add_argument('--save_dir', required=True)
 
     parsed_args = parser.parse_args()
-    
+
     if ',' in parsed_args.gpus:
         parsed_args.gpus = list(map(int, parsed_args.gpus.split(',')))
         parsed_args.total_gpus = len(parsed_args.gpus)
@@ -330,7 +351,7 @@ def get_lightning_trainer_params(input_args):
 if __name__ == '__main__':
 
     args = parse_args()
-    
+
     # Create args.save_dir if it doesn't exist already
     pathlib.Path(args.save_dir).mkdir(exist_ok=True)
     pathlib.Path(os.path.join(args.save_dir, 'logs')).mkdir(exist_ok=True)
@@ -342,7 +363,7 @@ if __name__ == '__main__':
     pl.seed_everything(args.seed, workers=True)
 
     model = QuarterMaster(args)
-    
+
     # logger used by trainer
     if args.wandb:
         pathlib.Path(os.path.join(args.save_dir, 'logs', 'wandb')).mkdir(exist_ok=True)
@@ -364,7 +385,7 @@ if __name__ == '__main__':
         verbose=True,
         monitor='avg_val_loss', # monitors metrics logged by self.log.
         mode='min')
-        
+
     pl_other_trainer_params = get_lightning_trainer_params(args)
 
     trainer = pl.Trainer(
