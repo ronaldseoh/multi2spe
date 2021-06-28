@@ -358,7 +358,7 @@ if __name__ == '__main__':
     pl_checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=os.path.join(args.save_dir, 'checkpoints'),
         filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
-        save_top_k=1,
+        save_top_k=-1,
         save_last=1,
         every_n_val_epochs=1,
         verbose=True,
