@@ -359,6 +359,8 @@ if __name__ == '__main__':
         dirpath=os.path.join(args.save_dir, 'checkpoints'),
         filename='ep-{epoch}_avg_val_loss-{avg_val_loss:.3f}',
         save_top_k=1,
+        save_last=1,
+        every_n_val_epochs=1,
         verbose=True,
         monitor='avg_val_loss', # monitors metrics logged by self.log.
         mode='min')
