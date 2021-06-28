@@ -215,9 +215,9 @@ class QuarterMaster(pl.LightningModule):
             pos_embedding = self.model(**batch[1])[1]
             neg_embedding = self.model(**batch[2])[1]
         else:
-            source_embedding = self.model(**batch[0]).last_hidden_state[:, 0:self.hparams.num_facets, :]
-            pos_embedding = self.model(**batch[1]).last_hidden_state[:, 0:self.hparams.num_facets, :]
-            neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :]
+            source_embedding = self.model(**batch[0]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
+            pos_embedding = self.model(**batch[1]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
+            neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
 
             if self.hparams.num_facets > 1:
                 with torch.no_grad():
