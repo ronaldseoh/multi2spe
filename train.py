@@ -49,10 +49,10 @@ class MultiFacetTripletLoss(torch.nn.Module):
 
     def forward(self, query, positive, negative):
         if self.distance == 'l2-norm':
-            if self.hparams.model_behavior == 'specter' or self.hparams.num_facets == 1:
+            if len(query.shape) == 2: # single embedding (one facet) is used (shape would be (batch size, dimension)
                 distance_positive = torch.nn.functional.pairwise_distance(query, positive)
                 distance_negative = torch.nn.functional.pairwise_distance(query, negative)
-            else:
+            else: # multi-facet (batch size, num facets, dimension)
                 distance_positive_all = torch.cdist(query, positive, p=2).flatten(start_dim=1)
                 distance_negative_all = torch.cdist(query, negative, p=2).flatten(start_dim=1)
 
