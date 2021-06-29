@@ -227,13 +227,13 @@ class QuarterMaster(pl.LightningModule):
             if self.hparams.num_facets > 1:
                 with torch.no_grad():
                     source_center_point = torch.mean(source_embedding, dim=1, keepdims=True)
-                    source_embedding_distances_mean = torch.mean((source_embedding - source_center_point).norm(dim=2))
+                    source_embedding_distances_mean = torch.mean(torch.linalg.norm(source_embedding - source_center_point, ord=2, dim=2))
 
                     pos_center_point = torch.mean(pos_embedding, 1, keepdims=True)
-                    pos_embedding_distances_mean = torch.mean((pos_embedding - pos_center_point).norm(dim=2))
+                    pos_embedding_distances_mean = torch.mean(torch.linalg.norm(pos_embedding - pos_center_point, ord=2, dim=2))
 
                     neg_center_point = torch.mean(neg_embedding, 1, keepdims=True)
-                    neg_embedding_distances_mean = torch.mean((pos_embedding - pos_center_point).norm(dim=2))
+                    neg_embedding_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_center_point, ord=2, dim=2))
 
                     self.log(
                         'avg_facet_dist_source', source_embedding_distances_mean,
