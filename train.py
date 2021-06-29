@@ -61,22 +61,6 @@ class MultiFacetTripletLoss(torch.nn.Module):
                 distance_negative = torch.mean(distance_negative_all, dim=1)
 
             losses = torch.nn.functional.relu(distance_positive - distance_negative + self.margin)
-        elif self.distance == 'cosine':  # independent of length
-            distance_positive = torch.nn.functional.cosine_similarity(query, positive)
-            distance_negative = torch.nn.functional.cosine_similarity(query, negative)
-            losses = torch.nn.functional.relu(-distance_positive + distance_negative + self.margin)
-        elif self.distance == 'dot':  # takes into account the length of vectors
-            shapes = query.shape
-            # batch dot product
-            distance_positive = torch.bmm(
-                query.view(shapes[0], 1, shapes[1]),
-                positive.view(shapes[0], shapes[1], 1)
-            ).reshape(shapes[0], )
-            distance_negative = torch.bmm(
-                query.view(shapes[0], 1, shapes[1]),
-                negative.view(shapes[0], shapes[1], 1)
-            ).reshape(shapes[0], )
-            losses = torch.nn.functional.relu(-distance_positive + distance_negative + self.margin)
         else:
             raise TypeError(f"Unrecognized option for `distance`:{self.distance}")
 
