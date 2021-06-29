@@ -490,7 +490,7 @@ if __name__ == '__main__':
 
     trainer = pl.Trainer(
         logger=pl_logger,
-        checkpoint_callback=pl_checkpoint_callback,
+        callbacks=[pl_checkpoint_callback],
         **pl_other_trainer_params)
 
     trainer.fit(model)
