@@ -49,15 +49,11 @@ class MultiFacetTripletLoss(torch.nn.Module):
 
     def forward(self, query, positive, negative):
         if self.distance == 'l2-norm':
-            if len(query.shape) == 2 or query.shape[1] == 1: # single embedding (one facet) is used (shape would be (batch size, dimension)
-                distance_positive = torch.nn.functional.pairwise_distance(query, positive)
-                distance_negative = torch.nn.functional.pairwise_distance(query, negative)
-            else: # multi-facet (batch size, num facets, dimension)
-                distance_positive_all = torch.cdist(query, positive, p=2).flatten(start_dim=1)
-                distance_negative_all = torch.cdist(query, negative, p=2).flatten(start_dim=1)
+            distance_positive_all = torch.cdist(query, positive, p=2).flatten(start_dim=1)
+            distance_negative_all = torch.cdist(query, negative, p=2).flatten(start_dim=1)
 
-                distance_positive = torch.min(distance_positive_all, dim=1).values
-                distance_negative = torch.min(distance_negative_all, dim=1).values
+            distance_positive = torch.min(distance_positive_all, dim=1).values
+            distance_negative = torch.min(distance_negative_all, dim=1).values
 
             losses = torch.nn.functional.relu(distance_positive - distance_negative + self.margin)
         elif self.distance == 'cosine':  # independent of length
