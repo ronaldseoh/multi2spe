@@ -236,15 +236,15 @@ class QuarterMaster(pl.LightningModule):
                     neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_facets_center_point, ord=2, dim=2))
 
                     self.log(
-                        'avg_facet_dist_source', source_facets_distances_mean,
+                        'mean_facet_dist_source', source_facets_distances_mean,
                         on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
                     self.log(
-                        'avg_facet_dist_pos', pos_facets_distances_mean,
+                        'mean_facet_dist_pos', pos_facets_distances_mean,
                         on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
                     self.log(
-                        'avg_facet_dist_neg', neg_facets_distances_mean,
+                        'mean_facet_dist_neg', neg_facets_distances_mean,
                         on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
