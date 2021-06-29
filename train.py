@@ -226,6 +226,11 @@ class QuarterMaster(pl.LightningModule):
 
             if self.hparams.num_facets > 1:
                 with torch.no_grad():
+                    pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding - pos_batch_mean, ord=2, dim=2))
+
+                    neg_batch_mean = torch.mean(neg_embedding, dim=0, keepdims=True)
+                    neg_loss_set_reg = torch.mean(torch.linalg.norm(neg_embedding - neg_batch_mean, ord=2, dim=2))
+
                     source_facets_center_point = torch.mean(source_embedding, dim=1, keepdims=True)
                     source_facets_distances_mean = torch.mean(torch.linalg.norm(source_embedding - source_facets_center_point, ord=2, dim=2))
 
@@ -236,15 +241,27 @@ class QuarterMaster(pl.LightningModule):
                     neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_facets_center_point, ord=2, dim=2))
 
                     self.log(
-                        'mean_facet_dist_source', source_facets_distances_mean,
+                        'source_loss_set_reg', source_loss_set_reg,
                         on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
                     self.log(
-                        'mean_facet_dist_pos', pos_facets_distances_mean,
+                        'pos_loss_set_reg', pos_loss_set_reg,
                         on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
                     self.log(
-                        'mean_facet_dist_neg', neg_facets_distances_mean,
+                        'neg_loss_set_reg', neg_loss_set_reg,
+                        on_step=True, on_epoch=False, prog_bar=True, logger=True)
+
+                    self.log(
+                        'source_facets_distances_mean', source_facets_distances_mean,
+                        on_step=True, on_epoch=False, prog_bar=True, logger=True)
+
+                    self.log(
+                        'pos_facets_distances_mean', pos_facets_distances_mean,
+                        on_step=True, on_epoch=False, prog_bar=True, logger=True)
+
+                    self.log(
+                        'neg_facets_distances_mean', neg_facets_distances_mean,
                         on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
