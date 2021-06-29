@@ -226,25 +226,25 @@ class QuarterMaster(pl.LightningModule):
 
             if self.hparams.num_facets > 1:
                 with torch.no_grad():
-                    source_center_point = torch.mean(source_embedding, 1, keepdims=True)
-                    source_embedding_distances = torch.cdist(source_center_point, source_embedding, p=2)
+                    source_center_point = torch.mean(source_embedding, dim=1, keepdims=True)
+                    source_embedding_distances_mean = torch.mean((source_embedding - source_center_point).norm(dim=2))
 
                     pos_center_point = torch.mean(pos_embedding, 1, keepdims=True)
-                    pos_embedding_distances = torch.cdist(pos_center_point, pos_embedding, p=2)
+                    pos_embedding_distances_mean = torch.mean((pos_embedding - pos_center_point).norm(dim=2))
 
                     neg_center_point = torch.mean(neg_embedding, 1, keepdims=True)
-                    neg_embedding_distances = torch.cdist(neg_center_point, neg_embedding, p=2)
+                    neg_embedding_distances_mean = torch.mean((pos_embedding - pos_center_point).norm(dim=2))
 
                     self.log(
-                        'avg_facet_dist_source', torch.mean(source_embedding_distances),
+                        'avg_facet_dist_source', source_embedding_distances_mean,
                         on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
                     self.log(
-                        'avg_facet_dist_pos', torch.mean(pos_embedding_distances),
+                        'avg_facet_dist_pos', pos_embedding_distances_mean,
                         on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
                     self.log(
-                        'avg_facet_dist_neg', torch.mean(neg_embedding_distances),
+                        'avg_facet_dist_neg', neg_embedding_distances_mean,
                         on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
