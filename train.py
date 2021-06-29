@@ -226,6 +226,10 @@ class QuarterMaster(pl.LightningModule):
 
             if self.hparams.num_facets > 1:
                 with torch.no_grad():
+                    source_batch_mean = torch.mean(source_embedding, dim=0, keepdims=True)
+                    source_loss_set_reg = torch.mean(torch.linalg.norm(source_embedding - source_batch_mean, ord=2, dim=2))
+
+                    pos_batch_mean = torch.mean(pos_embedding, dim=0, keepdims=True)
                     pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding - pos_batch_mean, ord=2, dim=2))
 
                     neg_batch_mean = torch.mean(neg_embedding, dim=0, keepdims=True)
