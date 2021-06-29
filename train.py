@@ -29,7 +29,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
     """
     Triplet loss function for multi-facet embeddings: Based on the TripletLoss function from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159
     """
-    def __init__(self, margin=1.0, distance='l2-norm', reduction='mean'):
+    def __init__(self, margin=1.0, distance='l2-norm', reduction='mean', reduction_multifacet='mean'):
         """
         Args:
             margin: margin (float, optional): Default: `1`.
@@ -46,14 +46,19 @@ class MultiFacetTripletLoss(torch.nn.Module):
         self.margin = margin
         self.distance = distance
         self.reduction = reduction
+        self.reduction_multifacet = reduction_multifacet
 
     def forward(self, query, positive, negative):
         if self.distance == 'l2-norm':
             distance_positive_all = torch.cdist(query, positive, p=2).flatten(start_dim=1)
             distance_negative_all = torch.cdist(query, negative, p=2).flatten(start_dim=1)
 
-            distance_positive = torch.min(distance_positive_all, dim=1).values
-            distance_negative = torch.min(distance_negative_all, dim=1).values
+            if self.reduction_multifacet == 'min':
+                distance_positive = torch.min(distance_positive_all, dim=1).values
+                distance_negative = torch.min(distance_negative_all, dim=1).values
+            elif self.reduction_multifacet == 'mean':
+                distance_positive = torch.mean(distance_positive_all, dim=1)
+                distance_negative = torch.mean(distance_negative_all, dim=1)
 
             losses = torch.nn.functional.relu(distance_positive - distance_negative + self.margin)
         elif self.distance == 'cosine':  # independent of length
