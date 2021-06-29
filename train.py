@@ -219,6 +219,11 @@ class QuarterMaster(pl.LightningModule):
             pos_embedding = self.model(**batch[1]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
             neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
 
+            # Normalize each facet embeddings
+            source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=2)
+            pos_embedding = torch.nn.functional.normalize(pos_embedding, p=2, dim=2)
+            neg_embedding = torch.nn.functional.normalize(neg_embedding, p=2, dim=2)
+
             if self.hparams.num_facets > 1:
                 with torch.no_grad():
                     source_center_point = torch.mean(source_embedding, 1, keepdims=True)
