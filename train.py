@@ -78,15 +78,11 @@ class MultiFacetTripletLoss(torch.nn.Module):
 
 class QuarterMaster(pl.LightningModule):
 
-    def __init__(self, init_args):
+    def __init__(self, **kwargs):
 
         super().__init__()
 
-        if isinstance(init_args, dict):
-            # for loading the checkpoint, pl passes a dict (hparams are saved as dict)
-            init_args = argparse.Namespace(**init_args)
-
-        self._set_hparams(init_args)
+        self.save_hyperparameters()
 
         # NOTE: The exact model class will be transformers.BertModel
         self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
@@ -458,7 +454,7 @@ if __name__ == '__main__':
     torch.use_deterministic_algorithms(True)
     pl.seed_everything(args.seed, workers=True)
 
-    model = QuarterMaster(args)
+    model = QuarterMaster(**args)
 
     # logger used by trainer
     if args.wandb:
