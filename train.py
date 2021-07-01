@@ -92,7 +92,7 @@ class QuarterMaster(pl.LightningModule):
             if self.hparams.add_extra_facet_layer:
                 self.extra_facet_layer = torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
         except AttributeError:
-            continue
+            pass
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained("allenai/scibert_scivocab_cased")
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
