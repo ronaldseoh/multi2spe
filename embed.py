@@ -1,18 +1,17 @@
-import ujson as json
 import argparse
 import pathlib
 
+import ujson as json
 import tqdm
-import transformers
 
 from train import QuarterMaster
 
 
 class Dataset:
 
-    def __init__(self, data_path, max_length=512, batch_size=32):
+    def __init__(self, pl_model, data_path, max_length=512, batch_size=32):
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained('allenai/specter')
+        self.pl_model = pl_model
         self.max_length = max_length
         self.batch_size = batch_size
 
@@ -20,6 +19,31 @@ class Dataset:
         with open(data_path) as f:
             # key: 'paper_id', value: paper data (including 'title', 'abstract')
             self.data = json.load(f)
+
+        # Add extra 'unused' tokens for facets
+        self.extra_facets_tokens = []
+
+        self.batch_string_prefix = ''
+
+        if self.pl_model.hparams.num_facets > 1:
+            # If more than one facet is requested, then determine the ids
+            # of "unused" tokens from the tokenizer
+            # For BERT, [unused1] has the id of 1, and so on until
+            # [unused99]
+            for i in range(self.num_facets - 1):
+                self.extra_facets_tokens.append('[unused{}]'.format(i+1))
+
+            # Let tokenizer recognize our facet tokens in order to prevent it
+            # from doing WordPiece stuff on these tokens
+            # According to the transformers documentation, special_tokens=True prevents
+            # these tokens from being normalized.
+            num_added_vocabs = self.pl_model.tokenizer.add_tokens(self.extra_facets_tokens, special_tokens=True)
+
+            if num_added_vocabs > 0:
+                print("{} facet tokens were newly added to the vocabulary.".format(num_added_vocabs))
+
+            # Crate prefixes for each batch input to be passed on to the tokenizer.
+            self.batch_string_prefix += ' '.join([str(token) for token in self.extra_facets_tokens]) + ' '
 
     def __len__(self):
         return len(self.data)
@@ -35,44 +59,24 @@ class Dataset:
         for k, d in self.data.items():
             if (i) % batch_size != 0 or i == 0:
                 batch_ids.append(k)
-                batch.append(d['title'] + ' ' + (d.get('abstract') or ''))
+
+                batch.append(batch_string_prefix + d['title'] + ' ' + (d.get('abstract') or ''))
             else:
-                input_ids = self.tokenizer(batch, padding=True, truncation=True, 
+                input_ids = self.pl_model.tokenizer(batch, padding=True, truncation=True,
                                            return_tensors="pt", max_length=self.max_length)
                 yield input_ids.to('cuda'), batch_ids
                 batch_ids = [k]
-                batch = [d['title'] + ' ' + (d.get('abstract') or '')]
+                batch = [batch_string_prefix + d['title'] + ' ' + (d.get('abstract') or '')]
 
             i += 1
 
         if len(batch) > 0:
-            input_ids = self.tokenizer(batch, padding=True, truncation=True, 
-                                       return_tensors="pt", max_length=self.max_length)        
+            input_ids = self.pl_model.tokenizer(batch, padding=True, truncation=True,
+                                       return_tensors="pt", max_length=self.max_length)
 
             input_ids = input_ids.to('cuda')
 
             yield input_ids, batch_ids
-
-class Model:
-
-    def __init__(self, pl_checkpoint_path):
-        if pl_checkpoint_path is not None:
-            # Load the Lightning module first from the checkpoint
-            pl_model = QuarterMaster.load_from_checkpoint(pl_checkpoint_path)
-
-            # Get the Huggingface BERT model from pl_model
-            self.model = pl_model.model
-        else:
-            self.model = transformers.AutoModel.from_pretrained('allenai/specter')
-
-        self.model.to('cuda')
-        self.model.eval()
-
-    def __call__(self, input_ids):
-
-        output = self.model(**input_ids)
-
-        return output.last_hidden_state[:, 0, :] # cls token
 
 
 if __name__ == '__main__':
@@ -88,9 +92,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    dataset = Dataset(data_path=args.data_path, batch_size=args.batch_size)
+    # Load the Lightning module from the checkpoint
+    model = QuarterMaster.load_from_checkpoint(pl_checkpoint_path)
 
-    model = Model(args.pl_checkpoint_path)
+    # Create a Dataset using the tokenizer and other settings in the lightning model
+    dataset = Dataset(pl_model=model, data_path=args.data_path, batch_size=args.batch_size)
 
     results = {}
     batches = []
