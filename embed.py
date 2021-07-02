@@ -107,7 +107,16 @@ if __name__ == '__main__':
         emb = model(batch)
 
         for paper_id, embedding in zip(batch_ids, emb.unbind()):
-            results[paper_id] =  {"paper_id": paper_id, "embedding": embedding.detach().cpu().numpy().tolist()}
+
+            if len(embedding.shape) == 1:
+                results[paper_id] =  {"paper_id": paper_id, "embedding": embedding.detach().cpu().numpy().tolist()}
+            else:
+                embedding_list = embedding.unbind() # list of vectors
+
+                for i in range(len(embedding_list)):
+                    embedding_list[i] = embedding_list[i].detach().cpu().numpy().tolist()
+
+                results[paper_id] =  {"paper_id": paper_id, "embedding": embedding_list}
 
     pathlib.Path(args.output).parent.mkdir(parents=True, exist_ok=True)
 
