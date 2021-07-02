@@ -93,7 +93,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Load the Lightning module from the checkpoint
-    model = QuarterMaster.load_from_checkpoint(pl_checkpoint_path)
+    model = QuarterMaster.load_from_checkpoint(args.pl_checkpoint_path)
 
     # Create a Dataset using the tokenizer and other settings in the lightning model
     dataset = Dataset(pl_model=model, data_path=args.data_path, batch_size=args.batch_size)
