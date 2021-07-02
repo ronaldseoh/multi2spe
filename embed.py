@@ -30,7 +30,7 @@ class Dataset:
             # of "unused" tokens from the tokenizer
             # For BERT, [unused1] has the id of 1, and so on until
             # [unused99]
-            for i in range(self.num_facets - 1):
+            for i in range(self.pl_model.hparams.num_facets - 1):
                 self.extra_facets_tokens.append('[unused{}]'.format(i+1))
 
             # Let tokenizer recognize our facet tokens in order to prevent it
