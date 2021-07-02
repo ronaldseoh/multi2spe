@@ -64,7 +64,8 @@ class Dataset:
             else:
                 input_ids = self.pl_model.tokenizer(batch, padding=True, truncation=True,
                                            return_tensors="pt", max_length=self.max_length)
-                yield input_ids.to('cuda'), batch_ids
+                yield input_ids, batch_ids
+
                 batch_ids = [k]
                 batch = [self.batch_string_prefix + d['title'] + ' ' + (d.get('abstract') or '')]
 
@@ -73,8 +74,6 @@ class Dataset:
         if len(batch) > 0:
             input_ids = self.pl_model.tokenizer(batch, padding=True, truncation=True,
                                        return_tensors="pt", max_length=self.max_length)
-
-            input_ids = input_ids.to('cuda')
 
             yield input_ids, batch_ids
 
@@ -109,7 +108,7 @@ if __name__ == '__main__':
             if len(embedding.shape) == 1:
                 results[paper_id] =  {"paper_id": paper_id, "embedding": embedding.detach().cpu().numpy().tolist()}
             else:
-                embedding_list = embedding.unbind() # list of vectors
+                embedding_list = list(embedding.unbind()) # list of vectors
 
                 for i in range(len(embedding_list)):
                     embedding_list[i] = embedding_list[i].detach().cpu().numpy().tolist()
