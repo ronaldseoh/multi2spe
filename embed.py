@@ -60,13 +60,13 @@ class Dataset:
             if (i) % batch_size != 0 or i == 0:
                 batch_ids.append(k)
 
-                batch.append(batch_string_prefix + d['title'] + ' ' + (d.get('abstract') or ''))
+                batch.append(self.batch_string_prefix + d['title'] + ' ' + (d.get('abstract') or ''))
             else:
                 input_ids = self.pl_model.tokenizer(batch, padding=True, truncation=True,
                                            return_tensors="pt", max_length=self.max_length)
                 yield input_ids.to('cuda'), batch_ids
                 batch_ids = [k]
-                batch = [batch_string_prefix + d['title'] + ' ' + (d.get('abstract') or '')]
+                batch = [self.batch_string_prefix + d['title'] + ' ' + (d.get('abstract') or '')]
 
             i += 1
 
