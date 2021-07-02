@@ -43,7 +43,7 @@ class Dataset:
                 print("{} facet tokens were newly added to the vocabulary.".format(num_added_vocabs))
 
             # Crate prefixes for each batch input to be passed on to the tokenizer.
-            self.batch_string_prefix += ' '.join([str(token) for token in self.extra_facets_tokens]) + ' '
+            self.batch_string_prefix += ' '.join([token for token in self.extra_facets_tokens]) + ' '
 
     def __len__(self):
         return len(self.data)
@@ -99,12 +99,10 @@ if __name__ == '__main__':
     dataset = Dataset(pl_model=model, data_path=args.data_path, batch_size=args.batch_size)
 
     results = {}
-    batches = []
 
     for batch, batch_ids in tqdm.auto.tqdm(dataset.batches(), total=len(dataset) // args.batch_size):
 
-        batches.append(batch)
-        emb = model(batch)
+        emb = model(**batch)
 
         for paper_id, embedding in zip(batch_ids, emb.unbind()):
 
