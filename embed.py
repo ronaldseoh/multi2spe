@@ -12,6 +12,8 @@ class Dataset:
     def __init__(self, pl_model, data_path, max_length=512, batch_size=32):
 
         self.pl_model = pl_model
+        self.pl_model.to('cuda')
+
         self.max_length = max_length
         self.batch_size = batch_size
 
@@ -64,7 +66,7 @@ class Dataset:
             else:
                 input_ids = self.pl_model.tokenizer(batch, padding=True, truncation=True,
                                            return_tensors="pt", max_length=self.max_length)
-                yield input_ids, batch_ids
+                yield input_ids.to('cuda'), batch_ids
 
                 batch_ids = [k]
                 batch = [self.batch_string_prefix + d['title'] + ' ' + (d.get('abstract') or '')]
@@ -75,7 +77,7 @@ class Dataset:
             input_ids = self.pl_model.tokenizer(batch, padding=True, truncation=True,
                                        return_tensors="pt", max_length=self.max_length)
 
-            yield input_ids, batch_ids
+            yield input_ids.to('cuda'), batch_ids
 
 
 if __name__ == '__main__':
