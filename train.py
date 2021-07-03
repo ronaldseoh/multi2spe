@@ -212,11 +212,10 @@ class QuarterMaster(pl.LightningModule):
             neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
 
             # pass through the extra linear layers for each facets if enabled
-            if self.hparams.add_extra_facet_layers:
-                for n in range(self.hparams.num_facets):
-                    source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
-                    pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
-                    neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
+            for n in range(self.hparams.num_facets):
+                source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+                pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
+                neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
             # Normalize each facet embeddings
             source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=2)
