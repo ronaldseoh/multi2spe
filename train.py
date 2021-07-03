@@ -88,9 +88,13 @@ class QuarterMaster(pl.LightningModule):
         self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
 
         # Extra linear layers on top of each facet embeddings
+        self.extra_facet_layers = []
+
         try:
-            if self.hparams.add_extra_facet_layer:
-                self.extra_facet_layer = torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
+            if self.hparams.add_extra_facet_layers:
+                for _ in range(self.hparams.num_facets):
+                    self.extra_facet_layers.append(
+                        torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size))
         except AttributeError:
             pass
 
@@ -208,10 +212,11 @@ class QuarterMaster(pl.LightningModule):
             neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
 
             # pass through the extra linear layers for each facets if enabled
-            if self.hparams.add_extra_facet_layer:
-                source_embedding = self.extra_facet_layer(source_embedding)
-                pos_embedding = self.extra_facet_layer(pos_embedding)
-                neg_embedding = self.extra_facet_layer(neg_embedding)
+            if self.hparams.add_extra_facet_layers:
+                for n in range(self.hparams.num_facets):
+                    source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+                    pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
+                    neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
             # Normalize each facet embeddings
             source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=2)
@@ -366,7 +371,7 @@ def parse_args():
 
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
-    parser.add_argument('--add_extra_facet_layer', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
