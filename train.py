@@ -121,8 +121,9 @@ class QuarterMaster(pl.LightningModule):
 
             # Extra facet layer
             # pass through the extra linear layers for each facets if enabled
-            for n in range(self.hparams.num_facets):
-                source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+            if len(self.extra_facet_layers) > 0:
+                for n in range(self.hparams.num_facets):
+                    source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
             return torch.nn.functional.normalize(
                 source_embedding.last_hidden_state[:, 0:self.hparams.num_facets, :], p=2, dim=2)
@@ -220,10 +221,11 @@ class QuarterMaster(pl.LightningModule):
             neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
 
             # pass through the extra linear layers for each facets if enabled
-            for n in range(self.hparams.num_facets):
-                source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
-                pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
-                neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
+            if len(self.extra_facet_layers) > 0:
+                for n in range(self.hparams.num_facets):
+                    source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+                    pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
+                    neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
             # Normalize each facet embeddings
             source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=2)
@@ -297,10 +299,11 @@ class QuarterMaster(pl.LightningModule):
             neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :]
 
             # pass through the extra linear layers for each facets if enabled
-            for n in range(self.hparams.num_facets):
-                source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
-                pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
-                neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
+            if len(self.extra_facet_layers) > 0:
+                for n in range(self.hparams.num_facets):
+                    source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+                    pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
+                    neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
             # Normalize each facet embeddings
             source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=2)
