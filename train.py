@@ -483,7 +483,7 @@ if __name__ == '__main__':
     torch.use_deterministic_algorithms(True)
     pl.seed_everything(args.seed, workers=True)
 
-    model = QuarterMaster(**args)
+    model = QuarterMaster(**vars(args))
 
     # logger used by trainer
     if args.wandb:
