@@ -126,7 +126,7 @@ class QuarterMaster(pl.LightningModule):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
             return torch.nn.functional.normalize(
-                source_embedding.last_hidden_state[:, 0:self.hparams.num_facets, :], p=2, dim=2)
+                source_embedding[:, 0:self.hparams.num_facets, :], p=2, dim=2)
 
     def _get_loader(self, split):
         if split == 'train':
