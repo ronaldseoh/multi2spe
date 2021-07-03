@@ -88,7 +88,7 @@ class QuarterMaster(pl.LightningModule):
         self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
 
         # Extra linear layers on top of each facet embeddings
-        self.extra_facet_layers = []
+        self.extra_facet_layers = torch.nn.ModuleList()
 
         try:
             if self.hparams.add_extra_facet_layers:
