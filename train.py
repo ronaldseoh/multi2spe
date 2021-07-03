@@ -117,7 +117,15 @@ class QuarterMaster(pl.LightningModule):
         if self.hparams.model_behavior == 'specter':
             return source_embedding[1]
         else:
-            return source_embedding.last_hidden_state[:, 0:self.hparams.num_facets, :]
+            source_embedding = source_embedding.last_hidden_state
+
+            # Extra facet layer
+            # pass through the extra linear layers for each facets if enabled
+            for n in range(self.hparams.num_facets):
+                source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+
+            return torch.nn.functional.normalize(
+                source_embedding.last_hidden_state[:, 0:self.hparams.num_facets, :], p=2, dim=2)
 
     def _get_loader(self, split):
         if split == 'train':
@@ -287,6 +295,17 @@ class QuarterMaster(pl.LightningModule):
             source_embedding = self.model(**batch[0]).last_hidden_state[:, 0:self.hparams.num_facets, :]
             pos_embedding = self.model(**batch[1]).last_hidden_state[:, 0:self.hparams.num_facets, :]
             neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :]
+
+            # pass through the extra linear layers for each facets if enabled
+            for n in range(self.hparams.num_facets):
+                source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+                pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
+                neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
+
+            # Normalize each facet embeddings
+            source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=2)
+            pos_embedding = torch.nn.functional.normalize(pos_embedding, p=2, dim=2)
+            neg_embedding = torch.nn.functional.normalize(neg_embedding, p=2, dim=2)
 
             if self.hparams.num_facets > 1:
                 source_batch_mean = torch.mean(source_embedding, dim=0, keepdims=True)
