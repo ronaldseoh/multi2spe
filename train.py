@@ -310,48 +310,48 @@ class QuarterMaster(pl.LightningModule):
             pos_embedding = torch.nn.functional.normalize(pos_embedding, p=2, dim=2)
             neg_embedding = torch.nn.functional.normalize(neg_embedding, p=2, dim=2)
 
-            if self.hparams.num_facets > 1:
-                source_batch_mean = torch.mean(source_embedding, dim=0, keepdims=True)
-                source_loss_set_reg = torch.mean(torch.linalg.norm(source_embedding - source_batch_mean, ord=2, dim=2))
+        source_batch_mean = torch.mean(source_embedding, dim=0, keepdims=True)
+        source_loss_set_reg = torch.mean(torch.linalg.norm(source_embedding - source_batch_mean, ord=2, dim=2))
 
-                pos_batch_mean = torch.mean(pos_embedding, dim=0, keepdims=True)
-                pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding - pos_batch_mean, ord=2, dim=2))
+        pos_batch_mean = torch.mean(pos_embedding, dim=0, keepdims=True)
+        pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding - pos_batch_mean, ord=2, dim=2))
 
-                neg_batch_mean = torch.mean(neg_embedding, dim=0, keepdims=True)
-                neg_loss_set_reg = torch.mean(torch.linalg.norm(neg_embedding - neg_batch_mean, ord=2, dim=2))
+        neg_batch_mean = torch.mean(neg_embedding, dim=0, keepdims=True)
+        neg_loss_set_reg = torch.mean(torch.linalg.norm(neg_embedding - neg_batch_mean, ord=2, dim=2))
 
-                source_facets_center_point = torch.mean(source_embedding, dim=1, keepdims=True)
-                source_facets_distances_mean = torch.mean(torch.linalg.norm(source_embedding - source_facets_center_point, ord=2, dim=2))
+        self.log(
+            'val_source_loss_set_reg', source_loss_set_reg,
+            on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
-                pos_facets_center_point = torch.mean(pos_embedding, dim=1, keepdims=True)
-                pos_facets_distances_mean = torch.mean(torch.linalg.norm(pos_embedding - pos_facets_center_point, ord=2, dim=2))
+        self.log(
+            'val_pos_loss_set_reg', pos_loss_set_reg,
+            on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
-                neg_facets_center_point = torch.mean(neg_embedding, dim=1, keepdims=True)
-                neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_facets_center_point, ord=2, dim=2))
+        self.log(
+            'val_neg_loss_set_reg', neg_loss_set_reg,
+            on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
-                self.log(
-                    'val_source_loss_set_reg', source_loss_set_reg,
-                    on_step=True, on_epoch=False, prog_bar=False, logger=True)
+        if self.hparams.num_facets > 1:
+            source_facets_center_point = torch.mean(source_embedding, dim=1, keepdims=True)
+            source_facets_distances_mean = torch.mean(torch.linalg.norm(source_embedding - source_facets_center_point, ord=2, dim=2))
 
-                self.log(
-                    'val_pos_loss_set_reg', pos_loss_set_reg,
-                    on_step=True, on_epoch=False, prog_bar=False, logger=True)
+            pos_facets_center_point = torch.mean(pos_embedding, dim=1, keepdims=True)
+            pos_facets_distances_mean = torch.mean(torch.linalg.norm(pos_embedding - pos_facets_center_point, ord=2, dim=2))
 
-                self.log(
-                    'val_neg_loss_set_reg', neg_loss_set_reg,
-                    on_step=True, on_epoch=False, prog_bar=False, logger=True)
+            neg_facets_center_point = torch.mean(neg_embedding, dim=1, keepdims=True)
+            neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_facets_center_point, ord=2, dim=2))
 
-                self.log(
-                    'val_source_facets_distances_mean', source_facets_distances_mean,
-                    on_step=True, on_epoch=False, prog_bar=False, logger=True)
+            self.log(
+                'val_source_facets_distances_mean', source_facets_distances_mean,
+                on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
-                self.log(
-                    'val_pos_facets_distances_mean', pos_facets_distances_mean,
-                    on_step=True, on_epoch=False, prog_bar=False, logger=True)
+            self.log(
+                'val_pos_facets_distances_mean', pos_facets_distances_mean,
+                on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
-                self.log(
-                    'val_neg_facets_distances_mean', neg_facets_distances_mean,
-                    on_step=True, on_epoch=False, prog_bar=False, logger=True)
+            self.log(
+                'val_neg_facets_distances_mean', neg_facets_distances_mean,
+                on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
