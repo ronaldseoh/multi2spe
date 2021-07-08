@@ -126,7 +126,7 @@ class QuarterMaster(pl.LightningModule):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
             return torch.nn.functional.normalize(
-                source_embedding[:, 0:self.hparams.num_facets, :], p=2, dim=2)
+                source_embedding[:, 0:self.hparams.num_facets, :], p=2, dim=-1)
 
     def _get_loader(self, split):
         if split == 'train':
@@ -228,19 +228,19 @@ class QuarterMaster(pl.LightningModule):
                     neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
             # Normalize each facet embeddings
-            source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=2)
-            pos_embedding = torch.nn.functional.normalize(pos_embedding, p=2, dim=2)
-            neg_embedding = torch.nn.functional.normalize(neg_embedding, p=2, dim=2)
+            source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
+            pos_embedding = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
+            neg_embedding = torch.nn.functional.normalize(neg_embedding, p=2, dim=-1)
 
         with torch.no_grad():
             source_batch_mean = torch.mean(source_embedding, dim=0, keepdims=True)
-            source_loss_set_reg = torch.mean(torch.linalg.norm(source_embedding - source_batch_mean, ord=2, dim=2))
+            source_loss_set_reg = torch.mean(torch.linalg.norm(source_embedding - source_batch_mean, ord=2, dim=-1))
 
             pos_batch_mean = torch.mean(pos_embedding, dim=0, keepdims=True)
-            pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding - pos_batch_mean, ord=2, dim=2))
+            pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding - pos_batch_mean, ord=2, dim=-1))
 
             neg_batch_mean = torch.mean(neg_embedding, dim=0, keepdims=True)
-            neg_loss_set_reg = torch.mean(torch.linalg.norm(neg_embedding - neg_batch_mean, ord=2, dim=2))
+            neg_loss_set_reg = torch.mean(torch.linalg.norm(neg_embedding - neg_batch_mean, ord=2, dim=-1))
 
             self.log(
                 'source_loss_set_reg', source_loss_set_reg,
@@ -256,13 +256,13 @@ class QuarterMaster(pl.LightningModule):
 
             if self.hparams.num_facets > 1:
                 source_facets_center_point = torch.mean(source_embedding, dim=1, keepdims=True)
-                source_facets_distances_mean = torch.mean(torch.linalg.norm(source_embedding - source_facets_center_point, ord=2, dim=2))
+                source_facets_distances_mean = torch.mean(torch.linalg.norm(source_embedding - source_facets_center_point, ord=2, dim=-1))
 
                 pos_facets_center_point = torch.mean(pos_embedding, dim=1, keepdims=True)
-                pos_facets_distances_mean = torch.mean(torch.linalg.norm(pos_embedding - pos_facets_center_point, ord=2, dim=2))
+                pos_facets_distances_mean = torch.mean(torch.linalg.norm(pos_embedding - pos_facets_center_point, ord=2, dim=-1))
 
                 neg_facets_center_point = torch.mean(neg_embedding, dim=1, keepdims=True)
-                neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_facets_center_point, ord=2, dim=2))
+                neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_facets_center_point, ord=2, dim=-1))
 
                 self.log(
                     'source_facets_distances_mean', source_facets_distances_mean,
@@ -306,18 +306,18 @@ class QuarterMaster(pl.LightningModule):
                     neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
             # Normalize each facet embeddings
-            source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=2)
-            pos_embedding = torch.nn.functional.normalize(pos_embedding, p=2, dim=2)
-            neg_embedding = torch.nn.functional.normalize(neg_embedding, p=2, dim=2)
+            source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
+            pos_embedding = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
+            neg_embedding = torch.nn.functional.normalize(neg_embedding, p=2, dim=-1)
 
         source_batch_mean = torch.mean(source_embedding, dim=0, keepdims=True)
-        source_loss_set_reg = torch.mean(torch.linalg.norm(source_embedding - source_batch_mean, ord=2, dim=2))
+        source_loss_set_reg = torch.mean(torch.linalg.norm(source_embedding - source_batch_mean, ord=2, dim=-1))
 
         pos_batch_mean = torch.mean(pos_embedding, dim=0, keepdims=True)
-        pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding - pos_batch_mean, ord=2, dim=2))
+        pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding - pos_batch_mean, ord=2, dim=-1))
 
         neg_batch_mean = torch.mean(neg_embedding, dim=0, keepdims=True)
-        neg_loss_set_reg = torch.mean(torch.linalg.norm(neg_embedding - neg_batch_mean, ord=2, dim=2))
+        neg_loss_set_reg = torch.mean(torch.linalg.norm(neg_embedding - neg_batch_mean, ord=2, dim=-1))
 
         self.log(
             'val_source_loss_set_reg', source_loss_set_reg,
@@ -333,13 +333,13 @@ class QuarterMaster(pl.LightningModule):
 
         if self.hparams.num_facets > 1:
             source_facets_center_point = torch.mean(source_embedding, dim=1, keepdims=True)
-            source_facets_distances_mean = torch.mean(torch.linalg.norm(source_embedding - source_facets_center_point, ord=2, dim=2))
+            source_facets_distances_mean = torch.mean(torch.linalg.norm(source_embedding - source_facets_center_point, ord=2, dim=-1))
 
             pos_facets_center_point = torch.mean(pos_embedding, dim=1, keepdims=True)
-            pos_facets_distances_mean = torch.mean(torch.linalg.norm(pos_embedding - pos_facets_center_point, ord=2, dim=2))
+            pos_facets_distances_mean = torch.mean(torch.linalg.norm(pos_embedding - pos_facets_center_point, ord=2, dim=-1))
 
             neg_facets_center_point = torch.mean(neg_embedding, dim=1, keepdims=True)
-            neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_facets_center_point, ord=2, dim=2))
+            neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_facets_center_point, ord=2, dim=-1))
 
             self.log(
                 'val_source_facets_distances_mean', source_facets_distances_mean,
