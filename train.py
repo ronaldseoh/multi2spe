@@ -430,6 +430,7 @@ def parse_args():
     parser.add_argument("--adafactor", action="store_true")
 
     parser.add_argument('--log_every_n_steps', default=1, type=int)
+    parser.add_argument('--flush_logs_every_n_steps', default=100, type=int)
     parser.add_argument('--wandb', default=False, action="store_true")
 
     parser.add_argument('--save_dir', required=True)
@@ -477,6 +478,7 @@ def get_lightning_trainer_params(input_args):
     # log_every_n_steps how frequently pytorch lightning logs.
     # By default, Lightning logs every 50 rows, or 50 training steps.
     train_params['log_every_n_steps'] = input_args.log_every_n_steps
+    train_params['flush_logs_every_n_steps'] = input_args.flush_logs_every_n_steps
 
     return train_params
 
