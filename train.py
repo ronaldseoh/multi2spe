@@ -104,9 +104,16 @@ class QuarterMaster(pl.LightningModule):
         self.hparams.seqlen = self.model.config.max_position_embeddings
 
         if self.hparams.model_behavior == 'specter':
-            self.loss = TripletLoss()
+            self.loss = TripletLoss(
+                margin=self.hparams.loss_margin,
+                distance=self.hparams.loss_distance,
+                reduction=self.hparams.loss_reduction)
         else:
-            self.loss = MultiFacetTripletLoss()
+            self.loss = MultiFacetTripletLoss(
+                margin=self.hparams.loss_margin,
+                distance=self.hparams.loss_distance,
+                reduction=self.hparams.loss_reduction,
+                reduction_multifacet=self.hparams.loss_reduction_multifacet)
 
         self.opt = None
 
@@ -393,6 +400,11 @@ def parse_args():
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
+
+    parser.add_argument('--loss_margin', default=1.0, type=float)
+    parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
+    parser.add_argument('--loss_reduction', default='mean', choices=['mean', 'sum', 'none'], type=str)
+    parser.add_argument('--loss_reduction_multifacet', default='mean', choices=['mean', 'min'], type=str)
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
