@@ -145,7 +145,12 @@ class QuarterMaster(pl.LightningModule):
         else:
             raise Exception("Invalid value for split: " + str(split))
 
-        dataset = utils.IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size)
+        specter_dataset_original = utils.IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size)
+
+        if split == 'train':
+            dataset = torch.utils.data.BufferedShuffleDataset(specter_dataset_original, buffer_size=20)
+        else:
+            datset = specter_dataset_original
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         loader = torch.utils.data.DataLoader(
