@@ -150,7 +150,7 @@ class QuarterMaster(pl.LightningModule):
         if split == 'train':
             dataset = torch.utils.data.BufferedShuffleDataset(specter_dataset_original, buffer_size=20)
         else:
-            datset = specter_dataset_original
+            dataset = specter_dataset_original
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         loader = torch.utils.data.DataLoader(
