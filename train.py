@@ -235,20 +235,27 @@ class QuarterMaster(pl.LightningModule):
                     pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
                     neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
-            # Normalize each facet embeddings
-            source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
-            pos_embedding = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
-            neg_embedding = torch.nn.functional.normalize(neg_embedding, p=2, dim=-1)
+        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+
+        lr_scheduler = self.trainer.lr_schedulers[0]["scheduler"]
+
+        self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
+        self.log('rate', lr_scheduler.get_last_lr()[-1], on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
         with torch.no_grad():
-            source_batch_mean = torch.mean(source_embedding, dim=0, keepdims=True)
-            source_loss_set_reg = torch.mean(torch.linalg.norm(source_embedding - source_batch_mean, ord=2, dim=-1))
+            # Normalize each facet embeddings
+            source_embedding_normalized = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
+            pos_embedding_normalized = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
+            neg_embedding_normalized = torch.nn.functional.normalize(neg_embedding, p=2, dim=-1)
 
-            pos_batch_mean = torch.mean(pos_embedding, dim=0, keepdims=True)
-            pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding - pos_batch_mean, ord=2, dim=-1))
+            source_batch_mean = torch.mean(source_embedding_normalized, dim=0, keepdims=True)
+            source_loss_set_reg = torch.mean(torch.linalg.norm(source_embedding_normalized - source_batch_mean, ord=2, dim=-1))
 
-            neg_batch_mean = torch.mean(neg_embedding, dim=0, keepdims=True)
-            neg_loss_set_reg = torch.mean(torch.linalg.norm(neg_embedding - neg_batch_mean, ord=2, dim=-1))
+            pos_batch_mean = torch.mean(pos_embedding_normalized, dim=0, keepdims=True)
+            pos_loss_set_reg = torch.mean(torch.linalg.norm(pos_embedding_normalized - pos_batch_mean, ord=2, dim=-1))
+
+            neg_batch_mean = torch.mean(neg_embedding_normalized, dim=0, keepdims=True)
+            neg_loss_set_reg = torch.mean(torch.linalg.norm(neg_embedding_normalized - neg_batch_mean, ord=2, dim=-1))
 
             self.log(
                 'source_loss_set_reg', source_loss_set_reg,
@@ -263,14 +270,14 @@ class QuarterMaster(pl.LightningModule):
                 on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
             if self.hparams.num_facets > 1:
-                source_facets_center_point = torch.mean(source_embedding, dim=1, keepdims=True)
-                source_facets_distances_mean = torch.mean(torch.linalg.norm(source_embedding - source_facets_center_point, ord=2, dim=-1))
+                source_facets_center_point = torch.mean(source_embedding_normalized, dim=1, keepdims=True)
+                source_facets_distances_mean = torch.mean(torch.linalg.norm(source_embedding_normalized - source_facets_center_point, ord=2, dim=-1))
 
-                pos_facets_center_point = torch.mean(pos_embedding, dim=1, keepdims=True)
-                pos_facets_distances_mean = torch.mean(torch.linalg.norm(pos_embedding - pos_facets_center_point, ord=2, dim=-1))
+                pos_facets_center_point = torch.mean(pos_embedding_normalized, dim=1, keepdims=True)
+                pos_facets_distances_mean = torch.mean(torch.linalg.norm(pos_embedding_normalized - pos_facets_center_point, ord=2, dim=-1))
 
-                neg_facets_center_point = torch.mean(neg_embedding, dim=1, keepdims=True)
-                neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding - neg_facets_center_point, ord=2, dim=-1))
+                neg_facets_center_point = torch.mean(neg_embedding_normalized, dim=1, keepdims=True)
+                neg_facets_distances_mean = torch.mean(torch.linalg.norm(neg_embedding_normalized - neg_facets_center_point, ord=2, dim=-1))
 
                 self.log(
                     'source_facets_distances_mean', source_facets_distances_mean,
@@ -283,13 +290,6 @@ class QuarterMaster(pl.LightningModule):
                 self.log(
                     'neg_facets_distances_mean', neg_facets_distances_mean,
                     on_step=True, on_epoch=False, prog_bar=False, logger=True)
-
-        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
-
-        lr_scheduler = self.trainer.lr_schedulers[0]["scheduler"]
-
-        self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
-        self.log('rate', lr_scheduler.get_last_lr()[-1], on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
         return {"loss": loss}
 
