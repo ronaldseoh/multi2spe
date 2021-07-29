@@ -416,7 +416,7 @@ def parse_args():
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
-    parser.add_argument('--add_extra_facet_layers_target', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
 
     parser.add_argument('--loss_margin', default=1.0, type=float)
     parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
