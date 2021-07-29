@@ -98,6 +98,17 @@ class QuarterMaster(pl.LightningModule):
         except AttributeError:
             pass
 
+        # Extra linear layers on top of each facet embeddings
+        self.extra_facet_layers_for_target = torch.nn.ModuleList()
+
+        try:
+            if self.hparams.add_extra_facet_layers_for_target:
+                for _ in range(self.hparams.num_facets):
+                    self.extra_facet_layers_for_target.append(
+                        torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size))
+        except AttributeError:
+            pass
+
         self.tokenizer = transformers.AutoTokenizer.from_pretrained("allenai/scibert_scivocab_cased")
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
 
@@ -233,6 +244,13 @@ class QuarterMaster(pl.LightningModule):
                 for n in range(self.hparams.num_facets):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
                     pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
+
+            # For negative papers, we could choose to train separate linear layers from source/pos
+            if len(self.extra_facet_layers_for_target) > 0:
+                for n in range(self.hparams.num_facets):
+                    neg_embedding[:, n, :] = self.extra_facet_layers_for_target[n](neg_embedding[:, n, :])
+            elif len(self.extra_facet_layers) > 0:
+                for n in range(self.hparams.num_facets):
                     neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
@@ -401,6 +419,7 @@ def parse_args():
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_target', default=False, action='store_true')
 
     parser.add_argument('--loss_margin', default=1.0, type=float)
     parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
