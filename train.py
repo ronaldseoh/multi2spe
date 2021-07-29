@@ -255,10 +255,7 @@ class QuarterMaster(pl.LightningModule):
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
-        lr_scheduler = self.trainer.lr_schedulers[0]["scheduler"]
-
         self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
-        self.log('rate', lr_scheduler.get_last_lr()[-1], on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
         with torch.no_grad():
             # Normalize each facet embeddings
@@ -541,11 +538,13 @@ if __name__ == '__main__':
         monitor='avg_val_loss', # monitors metrics logged by self.log.
         mode='min')
 
+    pl_learning_rate_callback = pl.callbacks.LearningRateMonitor(logging_interval='step')
+
     pl_other_trainer_params = get_lightning_trainer_params(args)
 
     trainer = pl.Trainer(
         logger=pl_logger,
-        callbacks=[pl_checkpoint_callback],
+        callbacks=[pl_checkpoint_callback, pl_learning_rate_callback],
         **pl_other_trainer_params)
 
     trainer.fit(model)
