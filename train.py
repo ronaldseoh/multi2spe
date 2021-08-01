@@ -383,25 +383,13 @@ class QuarterMaster(pl.LightningModule):
 
         return loss
 
-    def _eval_end(self, outputs) -> tuple:
-        avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
+    def validation_epoch_end(self, outputs):
+        # Refer to
+        # https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html
+        avg_loss = torch.mean(self.all_gather(outputs))
 
-        if self.trainer.use_ddp:
-            torch.distributed.all_reduce(avg_loss, op=torch.distributed.ReduceOp.SUM)
-            avg_loss /= self.trainer.world_size
-
-        results = {"avg_val_loss": avg_loss}
-
-        for k, v in results.items():
-            if isinstance(v, torch.Tensor):
-                results[k] = v.detach().cpu().item()
-
-        return results
-
-    def validation_epoch_end(self, outputs: list) -> dict:
-        ret = self._eval_end(outputs)
-
-        self.log('avg_val_loss', ret["avg_val_loss"], on_epoch=True, prog_bar=True)
+        if self.trainer.is_global_zero:
+            self.log('avg_val_loss', avg_loss, rank_zero_only=True, on_epoch=True, prog_bar=True)
 
 
 def parse_args():
