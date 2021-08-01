@@ -154,7 +154,7 @@ class QuarterMaster(pl.LightningModule):
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         return torch.utils.data.DataLoader(
             dataset,
-            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, shuffle=True, pin_memory=True)
+            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, pin_memory=True)
 
     def val_dataloader(self):
         # Don't use BufferedShuffleDataset here.
