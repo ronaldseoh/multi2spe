@@ -329,6 +329,10 @@ class QuarterMaster(pl.LightningModule):
                     pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
                     neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
+        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+
+        self.log('val_loss', loss, on_step=True, on_epoch=False, prog_bar=True)
+
         # Normalize each facet embeddings
         source_embedding_normalized = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
         pos_embedding_normalized = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
@@ -376,10 +380,6 @@ class QuarterMaster(pl.LightningModule):
             self.log(
                 'val_neg_facets_distances_mean', neg_facets_distances_mean,
                 on_step=True, on_epoch=False, prog_bar=False, logger=True)
-
-        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
-
-        self.log('val_loss', loss, on_step=True, on_epoch=False, prog_bar=True)
 
         return {'val_loss': loss}
 
