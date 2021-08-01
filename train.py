@@ -248,7 +248,7 @@ class QuarterMaster(pl.LightningModule):
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
-        self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
         with torch.no_grad():
             # Normalize each facet embeddings for visualization purposes
@@ -299,7 +299,7 @@ class QuarterMaster(pl.LightningModule):
                     'neg_facets_distances_mean', neg_facets_distances_mean,
                     on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
-        return {"loss": loss}
+        return loss
 
     def validation_step(self, batch, batch_idx):
 
@@ -331,7 +331,7 @@ class QuarterMaster(pl.LightningModule):
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
-        self.log('val_loss', loss, on_step=True, on_epoch=False, prog_bar=True)
+        self.log('val_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
         # Normalize each facet embeddings for visualization purposes
         source_embedding_normalized = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
@@ -381,7 +381,7 @@ class QuarterMaster(pl.LightningModule):
                 'val_neg_facets_distances_mean', neg_facets_distances_mean,
                 on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
-        return {'val_loss': loss}
+        return loss
 
     def _eval_end(self, outputs) -> tuple:
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
