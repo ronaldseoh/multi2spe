@@ -251,7 +251,7 @@ class QuarterMaster(pl.LightningModule):
         self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
 
         with torch.no_grad():
-            # Normalize each facet embeddings
+            # Normalize each facet embeddings for visualization purposes
             source_embedding_normalized = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
             pos_embedding_normalized = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
             neg_embedding_normalized = torch.nn.functional.normalize(neg_embedding, p=2, dim=-1)
@@ -333,7 +333,7 @@ class QuarterMaster(pl.LightningModule):
 
         self.log('val_loss', loss, on_step=True, on_epoch=False, prog_bar=True)
 
-        # Normalize each facet embeddings
+        # Normalize each facet embeddings for visualization purposes
         source_embedding_normalized = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
         pos_embedding_normalized = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
         neg_embedding_normalized = torch.nn.functional.normalize(neg_embedding, p=2, dim=-1)
