@@ -158,7 +158,7 @@ class QuarterMaster(pl.LightningModule):
 
     def val_dataloader(self):
         # Don't use BufferedShuffleDataset here.
-        dataset = utils.IterableDataSetMultiWorker(file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size), buffer_size=100)
+        dataset = utils.IterableDataSetMultiWorker(file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         return torch.utils.data.DataLoader(
