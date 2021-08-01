@@ -146,32 +146,24 @@ class QuarterMaster(pl.LightningModule):
             return torch.nn.functional.normalize(
                 source_embedding[:, 0:self.hparams.num_facets, :], p=2, dim=-1)
 
-    def _get_loader(self, split):
-        if split == 'train':
-            fname = self.hparams.train_file
-            size = self.hparams.train_size
-        elif split == 'dev':
-            fname = self.hparams.val_file
-            size = self.hparams.val_size
-        else:
-            raise Exception("Invalid value for split: " + str(split))
-
+    def train_dataloader(self):
         dataset = torch.utils.data.BufferedShuffleDataset(
-            utils.IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size), buffer_size=100)
+            utils.IterableDataSetMultiWorker(file_path=self.hparams.train_file, tokenizer=self.tokenizer, size=self.hparams.train_size),
+            buffer_size=100)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
-        loader = torch.utils.data.DataLoader(
+        return torch.utils.data.DataLoader(
             dataset,
-            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers,
-            shuffle=False, pin_memory=True)
-
-        return loader
-
-    def train_dataloader(self):
-        return self._get_loader("train")
+            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, shuffle=True, pin_memory=True)
 
     def val_dataloader(self):
-        return self._get_loader('dev')
+        # Don't use BufferedShuffleDataset here.
+        dataset = utils.IterableDataSetMultiWorker(file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size), buffer_size=100)
+
+        # pin_memory enables faster data transfer to CUDA-enabled GPU.
+        return torch.utils.data.DataLoader(
+            dataset,
+            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, shuffle=False, pin_memory=True)
 
     @property
     def total_steps(self) -> int:
