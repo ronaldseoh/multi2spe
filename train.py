@@ -236,7 +236,7 @@ class QuarterMaster(pl.LightningModule):
                 for n in range(self.hparams.num_facets):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
-            # For negative papers, we could choose to train separate linear layers from source/pos
+            # For positive and negative papers, we could choose to train separate linear layers from source/pos
             if len(self.extra_facet_layers_for_target) > 0:
                 for n in range(self.hparams.num_facets):
                     pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
@@ -319,7 +319,7 @@ class QuarterMaster(pl.LightningModule):
                 for n in range(self.hparams.num_facets):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
-            # For negative papers, we could choose to train separate linear layers from source/pos
+            # For positive and negative papers, we could choose to train separate linear layers from source/pos
             if len(self.extra_facet_layers_for_target) > 0:
                 for n in range(self.hparams.num_facets):
                     pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
