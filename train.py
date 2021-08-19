@@ -185,8 +185,6 @@ class QuarterMaster(pl.LightningModule):
             num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
             num_training_steps=self.total_steps)
 
-        scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
-
         return scheduler
 
     def configure_optimizers(self):
