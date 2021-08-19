@@ -146,32 +146,24 @@ class QuarterMaster(pl.LightningModule):
             return torch.nn.functional.normalize(
                 source_embedding[:, 0:self.hparams.num_facets, :], p=2, dim=-1)
 
-    def _get_loader(self, split):
-        if split == 'train':
-            fname = self.hparams.train_file
-            size = self.hparams.train_size
-        elif split == 'dev':
-            fname = self.hparams.val_file
-            size = self.hparams.val_size
-        else:
-            raise Exception("Invalid value for split: " + str(split))
-
+    def train_dataloader(self):
         dataset = torch.utils.data.BufferedShuffleDataset(
-            utils.IterableDataSetMultiWorker(file_path=fname, tokenizer=self.tokenizer, size=size), buffer_size=100)
+            utils.IterableDataSetMultiWorker(file_path=self.hparams.train_file, tokenizer=self.tokenizer, size=self.hparams.train_size),
+            buffer_size=100)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
-        loader = torch.utils.data.DataLoader(
+        return torch.utils.data.DataLoader(
             dataset,
-            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers,
-            shuffle=False, pin_memory=True)
-
-        return loader
-
-    def train_dataloader(self):
-        return self._get_loader("train")
+            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, pin_memory=True)
 
     def val_dataloader(self):
-        return self._get_loader('dev')
+        # Don't use BufferedShuffleDataset here.
+        dataset = utils.IterableDataSetMultiWorker(file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size)
+
+        # pin_memory enables faster data transfer to CUDA-enabled GPU.
+        return torch.utils.data.DataLoader(
+            dataset,
+            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, shuffle=False, pin_memory=True)
 
     @property
     def total_steps(self) -> int:
@@ -244,7 +236,7 @@ class QuarterMaster(pl.LightningModule):
                 for n in range(self.hparams.num_facets):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
-            # For negative papers, we could choose to train separate linear layers from source/pos
+            # For positive and negative papers, we could choose to train separate linear layers from source/pos
             if len(self.extra_facet_layers_for_target) > 0:
                 for n in range(self.hparams.num_facets):
                     pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
@@ -256,10 +248,10 @@ class QuarterMaster(pl.LightningModule):
 
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
-        self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
         with torch.no_grad():
-            # Normalize each facet embeddings
+            # Normalize each facet embeddings for visualization purposes
             source_embedding_normalized = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
             pos_embedding_normalized = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
             neg_embedding_normalized = torch.nn.functional.normalize(neg_embedding, p=2, dim=-1)
@@ -307,7 +299,7 @@ class QuarterMaster(pl.LightningModule):
                     'neg_facets_distances_mean', neg_facets_distances_mean,
                     on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
-        return {"loss": loss}
+        return loss
 
     def validation_step(self, batch, batch_idx):
 
@@ -327,7 +319,7 @@ class QuarterMaster(pl.LightningModule):
                 for n in range(self.hparams.num_facets):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
-            # For negative papers, we could choose to train separate linear layers from source/pos
+            # For positive and negative papers, we could choose to train separate linear layers from source/pos
             if len(self.extra_facet_layers_for_target) > 0:
                 for n in range(self.hparams.num_facets):
                     pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
@@ -337,7 +329,11 @@ class QuarterMaster(pl.LightningModule):
                     pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
                     neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
-        # Normalize each facet embeddings
+        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+
+        self.log('val_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
+
+        # Normalize each facet embeddings for visualization purposes
         source_embedding_normalized = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
         pos_embedding_normalized = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
         neg_embedding_normalized = torch.nn.functional.normalize(neg_embedding, p=2, dim=-1)
@@ -385,31 +381,16 @@ class QuarterMaster(pl.LightningModule):
                 'val_neg_facets_distances_mean', neg_facets_distances_mean,
                 on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
-        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+        return loss
 
-        self.log('val_loss', loss, on_step=True, on_epoch=False, prog_bar=True)
+    def validation_epoch_end(self, outputs):
+        # Refer to
+        # https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html
+        # Note: Apparently what we get out of self.all_gather(outputs) here is a list, not a tensor
+        avg_loss = torch.mean(torch.Tensor(self.all_gather(outputs)))
 
-        return {'val_loss': loss}
-
-    def _eval_end(self, outputs) -> tuple:
-        avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
-
-        if self.trainer.use_ddp:
-            torch.distributed.all_reduce(avg_loss, op=torch.distributed.ReduceOp.SUM)
-            avg_loss /= self.trainer.world_size
-
-        results = {"avg_val_loss": avg_loss}
-
-        for k, v in results.items():
-            if isinstance(v, torch.Tensor):
-                results[k] = v.detach().cpu().item()
-
-        return results
-
-    def validation_epoch_end(self, outputs: list) -> dict:
-        ret = self._eval_end(outputs)
-
-        self.log('avg_val_loss', ret["avg_val_loss"], on_epoch=True, prog_bar=True)
+        if self.trainer.is_global_zero:
+            self.log('avg_val_loss', avg_loss, rank_zero_only=True, on_epoch=True, prog_bar=True)
 
 
 def parse_args():
