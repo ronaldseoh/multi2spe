@@ -174,19 +174,6 @@ class QuarterMaster(pl.LightningModule):
 
         return (self.hparams.train_size / effective_batch_size) * self.hparams.num_epochs
 
-    def get_lr_scheduler(self):
-        get_schedule_func = ARG_TO_SCHEDULER[self.hparams.lr_scheduler]
-
-        if self.opt is None:
-            return Exception("get_lr_scheduler() should not be called before the optimizer is configured.")
-
-        scheduler = get_schedule_func(
-            self.opt,
-            num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
-            num_training_steps=self.total_steps)
-
-        return scheduler
-
     def configure_optimizers(self):
         """Prepare optimizer and schedule (linear warmup and decay)"""
 
@@ -210,9 +197,12 @@ class QuarterMaster(pl.LightningModule):
             optimizer = transformers.AdamW(
                 optimizer_grouped_parameters, lr=self.hparams.lr, eps=self.hparams.adam_epsilon)
 
-        self.opt = optimizer
+        get_schedule_func = ARG_TO_SCHEDULER[self.hparams.lr_scheduler]
 
-        scheduler = self.get_lr_scheduler()
+        scheduler = get_schedule_func(
+            optimizer,
+            num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
+            num_training_steps=self.total_steps)
 
         return [optimizer], [scheduler]
 
