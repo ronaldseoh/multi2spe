@@ -220,7 +220,11 @@ class QuarterMaster(pl.LightningModule):
             num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
             num_training_steps=self.total_steps)
 
-        return [optimizer], [scheduler]
+        # Refer to https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html#configure-optimizers
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {"scheduler": scheduler, "interval": "step", "frequency": self.hparams.grad_accum}
+        }
 
     def training_step(self, batch, batch_idx):
 
