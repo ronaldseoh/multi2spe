@@ -109,6 +109,12 @@ class QuarterMaster(pl.LightningModule):
         except AttributeError:
             pass
 
+        try:
+            if self.hparams.add_extra_facet_nonlinearity:
+                self.extra_facet_nonlinearity = torch.nn.Tanh()
+        except AttributeError:
+            pass
+
         self.tokenizer = transformers.AutoTokenizer.from_pretrained("allenai/scibert_scivocab_cased")
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
 
@@ -234,6 +240,11 @@ class QuarterMaster(pl.LightningModule):
                     pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
                     neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
+            if self.hparams.add_extra_facet_nonlinearity:
+                source_embedding = self.extra_facet_nonlinearity(source_embedding)
+                pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
+                neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
+
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
         self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
@@ -317,6 +328,11 @@ class QuarterMaster(pl.LightningModule):
                     pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
                     neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
+            if self.hparams.add_extra_facet_nonlinearity:
+                source_embedding = self.extra_facet_nonlinearity(source_embedding)
+                pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
+                neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
+
         loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
         self.log('val_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
@@ -395,6 +411,7 @@ def parse_args():
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_nonlinearity', default=False, action='store_true')
 
     parser.add_argument('--loss_margin', default=1.0, type=float)
     parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
