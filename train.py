@@ -188,7 +188,7 @@ class QuarterMaster(pl.LightningModule):
 
         effective_batch_size = self.hparams.batch_size * self.hparams.grad_accum * num_devices
 
-        return (self.hparams.train_size / effective_batch_size) * self.hparams.num_epochs
+        return int(-(-(self.hparams.train_size / effective_batch_size) * self.hparams.num_epochs // 1))
 
     def configure_optimizers(self):
         """Prepare optimizer and schedule (linear warmup and decay)"""
