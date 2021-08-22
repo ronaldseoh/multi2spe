@@ -223,7 +223,11 @@ class QuarterMaster(pl.LightningModule):
         # Refer to https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html#configure-optimizers
         return {
             "optimizer": optimizer,
-            "lr_scheduler": {"scheduler": scheduler, "interval": "step", "frequency": self.hparams.grad_accum}
+            # It seems that "frequency" needs to be 1:
+            # According to the manual, "If an LR scheduler is specified for an optimizer
+            # using the lr_scheduler key in the above dict,
+            #"the scheduler will only be updated when its optimizer is being used."
+            "lr_scheduler": {"scheduler": scheduler, "interval": "step", "frequency": 1}
         }
 
     def training_step(self, batch, batch_idx):
