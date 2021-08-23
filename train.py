@@ -422,8 +422,8 @@ def parse_args():
     parser.add_argument('--train_file')
     parser.add_argument('--val_file')
 
-    parser.add_argument('--train_size', default=684100, type=int)
-    parser.add_argument('--val_size', default=145375, type=int)
+    parser.add_argument('--train_size', type=int)
+    parser.add_argument('--val_size', type=int)
 
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
