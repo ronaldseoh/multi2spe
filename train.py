@@ -97,7 +97,7 @@ class QuarterMaster(pl.LightningModule):
 
                     self.extra_facet_layers.append(extra_linear)
 
-                if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                if self.hparams.add_extra_facet_layers_initialize_0_with_nsp_weights:
                     self.extra_facet_layers[0].weight.data = self.model.pooler.dense.weight.data.clone()
                     self.extra_facet_layers[0].bias.data = self.model.pooler.dense.bias.data.clone()
         except AttributeError:
@@ -113,7 +113,7 @@ class QuarterMaster(pl.LightningModule):
 
                     self.extra_facet_layers_for_target.append(extra_linear)
 
-                if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                if self.hparams.add_extra_facet_layers_initialize_0_with_nsp_weights:
                     self.extra_facet_layers_for_target[0].weight.data = self.model.pooler.dense.weight.data.clone()
                     self.extra_facet_layers_for_target[0].bias.data = self.model.pooler.dense.bias.data.clone()
         except AttributeError:
@@ -429,7 +429,7 @@ def parse_args():
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
-    parser.add_argument('--add_extra_facet_layers_initialize_with_nsp_weights', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_initialize_0_with_nsp_weights', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_nonlinearity', default=False, action='store_true')
 
     parser.add_argument('--loss_margin', default=1.0, type=float)
