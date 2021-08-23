@@ -85,7 +85,7 @@ class QuarterMaster(pl.LightningModule):
         self.save_hyperparameters()
 
         # NOTE: The exact model class will be transformers.BertModel
-        self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_uncased")
+        self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_cased")
 
         # Extra linear layers on top of each facet embeddings
         self.extra_facet_layers = torch.nn.ModuleList()
