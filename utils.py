@@ -12,7 +12,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
         # Set the options for this datareader object based on
         # the config specified in
         # https://github.com/allenai/specter/blob/master/experiment_configs/simple.jsonnet
-        self.datareaderfp = DataReaderFromPickled(max_sequence_length=512, concat_title_abstract=True)
+        self.datareaderfp = DataReaderFromPickled(max_sequence_length=512, concat_title_abstract=True, lazy=True)
 
         self.data_instances = self.datareaderfp._read(file_path)
         self.tokenizer = tokenizer
