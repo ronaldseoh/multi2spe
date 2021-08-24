@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=2
 
 eval "$(conda shell.bash hook)"
-conda activate quartermaster
+conda activate qm
 
 EXPERIMENT_ID_PREFIX=k-5
 EXPERIMENT_DATE=`date +"%m-%d"`
