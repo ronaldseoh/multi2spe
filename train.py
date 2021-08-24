@@ -85,7 +85,7 @@ class QuarterMaster(pl.LightningModule):
         self.save_hyperparameters()
 
         # NOTE: The exact model class will be transformers.BertModel
-        self.model = transformers.AutoModel.from_pretrained("allenai/scibert_scivocab_uncased")
+        self.model = transformers.AutoModel.from_pretrained(args.pretrained_model_name)
 
         # Extra linear layers on top of each facet embeddings
         self.extra_facet_layers = torch.nn.ModuleList()
@@ -125,7 +125,7 @@ class QuarterMaster(pl.LightningModule):
         except AttributeError:
             pass
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained("allenai/scibert_scivocab_cased")
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(args.pretrained_model_name)
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
 
         self.hparams.seqlen = self.model.config.max_position_embeddings
@@ -425,6 +425,7 @@ def parse_args():
     parser.add_argument('--train_size', type=int)
     parser.add_argument('--val_size', type=int)
 
+    parser.add_argument('--pretrained_model_name', default="allenai/scibert_scivocab_uncased", type=str)
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
