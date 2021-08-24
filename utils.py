@@ -9,7 +9,11 @@ from specter.scripts.pytorch_lightning_training_script.train import (
 
 class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
     def __init__(self, file_path, tokenizer, size, block_size=100, num_facets=1):
-        self.datareaderfp = DataReaderFromPickled(max_sequence_length=512)
+        # Set the options for this datareader object based on
+        # the config specified in
+        # https://github.com/allenai/specter/blob/master/experiment_configs/simple.jsonnet
+        self.datareaderfp = DataReaderFromPickled(max_sequence_length=512, concat_title_abstract=True)
+
         self.data_instances = self.datareaderfp._read(file_path)
         self.tokenizer = tokenizer
         self.size = size
