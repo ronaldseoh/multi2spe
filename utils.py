@@ -101,6 +101,45 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                      'attention_mask': neg_title['attention_mask'][0]}
 
         return source_input, pos_input, neg_input
+
+
+class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertLayer):
+    def __init__(self, config, add_middle_extra_linear=False, num_facets=-1)):
+        super().__init__(config)
+
+        self.add_middle_extra_linear = add_middle_extra_linear
+        self.num_facets = num_facets
+
+        if add_middle_extra_linear:
+            self.extra_facet_layers = torch.nn.ModuleList()
+
+            for _ in range(self.num_facets):
+                extra_linear = torch.nn.Linear(config.hidden_size, config.hidden_size)
+
+                self.extra_facet_layers.append(extra_linear)
+
+    def forward(
+        self,
+        hidden_states,
+        attention_mask=None,
+        head_mask=None,
+        encoder_hidden_states=None,
+        encoder_attention_mask=None,
+        past_key_value=None,
+        output_attentions=False,
+    ):
+        # Forward through with the original implementation of forward()
+        output = super().forward(hidden_states, attention_mask, head_mask, encoder_hidden_states, encoder_attention_mask, past_key_value, output_attentions)
+
+        # pass through the extra linear layers for each facets if enabled
+        if len(self.extra_facet_layers) > 0:
+            for n in range(self.hparams.num_facets):
+                # We just need to modify output[0] == hidden state of this layer
+                output[0][:, n, :] = self.extra_facet_layers[n](output[0][:, n, :])
+
+        return output
+
+
 class BertEncoderWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertEncoder):
     def __init__(self, config, add_middle_extra_linear_after=[], num_facets=-1)):
         super().__init__(config)
