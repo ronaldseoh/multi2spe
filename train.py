@@ -159,8 +159,7 @@ class QuarterMaster(pl.LightningModule):
                 for n in range(self.hparams.num_facets):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
-            return torch.nn.functional.normalize(
-                source_embedding[:, 0:self.hparams.num_facets, :], p=2, dim=-1)
+            return source_embedding[:, 0:self.hparams.num_facets, :]
 
     def train_dataloader(self):
         dataset = torch.utils.data.BufferedShuffleDataset(
