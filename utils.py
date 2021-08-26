@@ -157,8 +157,23 @@ class BertEncoderWithExtraLinearLayersForMultiFacets(transformers.models.bert.mo
 
 
 class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
-    def __init__(self, config, add_pooling_layer=True, add_extra_facet_layers_after=[], num_facets=-1):
+    def __init__(self, config, add_pooling_layer=True, **kwargs):
         super().__init__(config, add_pooling_layer)
+
+        enable_extra_facets = False
+
+        if 'add_extra_facet_layers_after' in kwargs and 'num_facets' in kwargs:
+            add_extra_facet_layers_after = kwargs['add_extra_facet_layers_after']
+            num_facets = kwargs['num_facets']
+            enable_extra_facets = True
+        else:
+            # convert config to dict to check whether multi-facet related entries exist
+            config_dict = config.to_dict()
+
+            if 'add_extra_facet_layers_after' in config_dict.keys() and 'num_facets' in config_dict.keys():
+                add_extra_facet_layers_after = config.add_extra_facet_layers_after
+                num_facets = config.num_facets
+                enable_extra_facets = True
 
         if len(add_extra_facet_layers_after) > 0:
             self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, add_extra_facet_layers_after, num_facets)
