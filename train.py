@@ -492,6 +492,7 @@ def get_lightning_trainer_params(input_args):
     train_params['limit_val_batches'] = input_args.limit_val_batches
     train_params['val_check_interval'] = input_args.val_check_interval
     train_params['max_epochs'] = input_args.num_epochs
+    train_params['reload_dataloaders_every_n_epochs'] = 1
 
     # PyTorch GPU related
     train_params["precision"] = 16 if input_args.fp16 else 32
