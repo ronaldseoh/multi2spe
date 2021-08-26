@@ -3,7 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/k-7_%j.txt
 #SBATCH -e sbatch_logs/stderr/k-7_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=1080ti-long
+#SBATCH --partition=2080ti-long
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2

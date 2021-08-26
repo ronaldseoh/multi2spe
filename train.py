@@ -188,7 +188,22 @@ class QuarterMaster(pl.LightningModule):
 
         effective_batch_size = self.hparams.batch_size * self.hparams.grad_accum * num_devices
 
-        return int(-(-(self.hparams.train_size / effective_batch_size) * self.hparams.num_epochs // 1))
+        return (self.hparams.train_size / effective_batch_size) * self.hparams.num_epochs
+
+    def get_lr_scheduler(self):
+        get_schedule_func = ARG_TO_SCHEDULER[self.hparams.lr_scheduler]
+
+        if self.opt is None:
+            return Exception("get_lr_scheduler() should not be called before the optimizer is configured.")
+
+        scheduler = get_schedule_func(
+            self.opt,
+            num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
+            num_training_steps=self.total_steps)
+
+        scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
+
+        return scheduler
 
     def configure_optimizers(self):
         """Prepare optimizer and schedule (linear warmup and decay)"""
@@ -215,20 +230,11 @@ class QuarterMaster(pl.LightningModule):
 
         get_schedule_func = ARG_TO_SCHEDULER[self.hparams.lr_scheduler]
 
-        scheduler = get_schedule_func(
-            optimizer,
             num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
             num_training_steps=self.total_steps)
+        scheduler = self.get_lr_scheduler()
 
-        # Refer to https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html#configure-optimizers
-        return {
-            "optimizer": optimizer,
-            # It seems that "frequency" needs to be 1:
-            # According to the manual, "If an LR scheduler is specified for an optimizer
-            # using the lr_scheduler key in the above dict,
-            #"the scheduler will only be updated when its optimizer is being used."
-            "lr_scheduler": {"scheduler": scheduler, "interval": "step", "frequency": 1}
-        }
+        return [optimizer], [scheduler]
 
     def training_step(self, batch, batch_idx):
 
