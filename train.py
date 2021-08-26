@@ -228,10 +228,8 @@ class QuarterMaster(pl.LightningModule):
             optimizer = transformers.AdamW(
                 optimizer_grouped_parameters, lr=self.hparams.lr, eps=self.hparams.adam_epsilon)
 
-        get_schedule_func = ARG_TO_SCHEDULER[self.hparams.lr_scheduler]
+        self.opt = optimizer
 
-            num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
-            num_training_steps=self.total_steps)
         scheduler = self.get_lr_scheduler()
 
         return [optimizer], [scheduler]
