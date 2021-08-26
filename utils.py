@@ -1,4 +1,5 @@
 import itertools
+import json
 
 import torch
 import transformers
@@ -160,21 +161,45 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
     def __init__(self, config, add_pooling_layer=True, **kwargs):
         super().__init__(config, add_pooling_layer)
 
-        enable_extra_facets = False
+        self.enable_extra_facets = False
 
         if 'add_extra_facet_layers_after' in kwargs and 'num_facets' in kwargs:
-            add_extra_facet_layers_after = kwargs['add_extra_facet_layers_after']
-            num_facets = kwargs['num_facets']
-            enable_extra_facets = True
+            self.add_extra_facet_layers_after = kwargs['add_extra_facet_layers_after']
+            self.num_facets = kwargs['num_facets']
+            self.enable_extra_facets = True
         else:
             # convert config to dict to check whether multi-facet related entries exist
             config_dict = config.to_dict()
 
             if 'add_extra_facet_layers_after' in config_dict.keys() and 'num_facets' in config_dict.keys():
-                add_extra_facet_layers_after = config.add_extra_facet_layers_after
-                num_facets = config.num_facets
-                enable_extra_facets = True
+                self.add_extra_facet_layers_after = config.add_extra_facet_layers_after
+                self.num_facets = config.num_facets
+                self.enable_extra_facets = True
 
-        if len(add_extra_facet_layers_after) > 0:
-            self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, add_extra_facet_layers_after, num_facets)
-            self.init_weights()
+        if self.enable_extra_facets:
+            if len(add_extra_facet_layers_after) > 0:
+                self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, add_extra_facet_layers_after, num_facets)
+                self.init_weights()
+
+    def save_pretrained(
+        self,
+        save_directory: Union[str, os.PathLike],
+        save_config: bool = True,
+        state_dict: Optional[dict] = None,
+        save_function: Callable = torch.save,
+        push_to_hub: bool = False,
+        **kwargs,
+    ):
+            # Call the original save_pretrained() first
+            super().__init__(save_directory, save_config, state_dict, save_function, push_to_hub, **kwargs)
+
+            # Edit the saved config.json
+            if self.enable_extra_facets and save_config:
+                config_saved = json.load(open(os.path.join(save_directory, "config.json"), "r"))
+
+                # Add in the entries for multi facet properties
+                config_saved["add_extra_facet_layers_after"] = self.add_extra_facet_layers_after
+                config_saved["num_facets"] = self.num_facets
+
+                # Dump the modified config back to disk
+                json.dump(config_saved, open(os.path.join(save_directory, "config.json"), "w"))
