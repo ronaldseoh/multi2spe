@@ -1,6 +1,7 @@
 import itertools
 
 import torch
+import transformers
 
 from specter.scripts.pytorch_lightning_training_script.train import (
     DataReaderFromPickled
@@ -100,3 +101,27 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                      'attention_mask': neg_title['attention_mask'][0]}
 
         return source_input, pos_input, neg_input
+class BertEncoderWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertEncoder):
+    def __init__(self, config, add_middle_extra_linear_after=[], num_facets=-1)):
+        super().__init__(config)
+
+        self.add_middle_extra_linear_after = add_middle_extra_linear_after
+
+        if len(self.add_middle_extra_linear_after) > 0:
+            assert num_facets > 0
+
+            # For layers in self.add_middle_extra_linear_after,
+            # Replace the original BertLayer with the custom BertLayer class with extra linear layers
+            for layer_num in self.add_middle_extra_linear_after:
+                self.layer[layer_num] = BertLayerWithExtraLinearLayersForMultiFacets(
+                    config, add_middle_extra_linear=True, num_facets=num_facets)
+
+
+class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
+
+    def __init__(self, config, add_pooling_layer=True, add_middle_extra_linear_after=[], num_facets=-1):
+        super().__init__(config, add_pooling_layer)
+
+        if len(add_middle_extra_linear_after) > 0:
+            self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(add_middle_extra_linear_after, num_facets)
+            self.init_weights()
