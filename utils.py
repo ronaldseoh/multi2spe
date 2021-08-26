@@ -161,5 +161,5 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
         super().__init__(config, add_pooling_layer)
 
         if len(add_extra_facet_layers_after) > 0:
-            self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(add_extra_facet_layers_after, num_facets)
+            self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, add_extra_facet_layers_after, num_facets)
             self.init_weights()
