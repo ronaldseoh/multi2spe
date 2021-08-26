@@ -19,11 +19,11 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
         self.tokenizer = tokenizer
         self.size = size
         self.block_size = block_size
-        
+
         self.num_facets = num_facets
-        
+
         self.extra_facets_tokens = []
-        
+
         if self.num_facets > 1:
             if self.num_facets > 100:
                 raise Exception("We currently only support up to 100 facets: [CLS] plus all [unused] tokens.")
@@ -34,13 +34,13 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
             # [unused99]
             for i in range(self.num_facets - 1):
                 self.extra_facets_tokens.append('[unused{}]'.format(i+1))
-                
+
             # Let tokenizer recognize our facet tokens in order to prevent it
             # from doing WordPiece stuff on these tokens
             # According to the transformers documentation, special_tokens=True prevents
             # these tokens from being normalized.
             num_added_vocabs = self.tokenizer.add_tokens(self.extra_facets_tokens, special_tokens=True)
-            
+
             if num_added_vocabs > 0:
                 print("{} facet tokens were newly added to the vocabulary.".format(num_added_vocabs))
 
@@ -112,7 +112,7 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
         if self.add_extra_facet_layers:
             assert num_facets > 0
             self.num_facets = num_facets
-            
+
             self.extra_facet_layers = torch.nn.ModuleList()
 
             for _ in range(self.num_facets):
@@ -143,7 +143,7 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
 
 
 class BertEncoderWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertEncoder):
-    def __init__(self, config, add_extra_facet_layers_after=[], num_facets=-1)):
+    def __init__(self, config, add_extra_facet_layers_after=[], num_facets=-1):
         super().__init__(config)
 
         self.add_extra_facet_layers_after = add_extra_facet_layers_after
@@ -157,7 +157,6 @@ class BertEncoderWithExtraLinearLayersForMultiFacets(transformers.models.bert.mo
 
 
 class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
-
     def __init__(self, config, add_pooling_layer=True, add_extra_facet_layers_after=[], num_facets=-1):
         super().__init__(config, add_pooling_layer)
 
