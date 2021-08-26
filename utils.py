@@ -104,13 +104,15 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
 
 
 class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertLayer):
-    def __init__(self, config, add_middle_extra_linear=False, num_facets=-1)):
+    def __init__(self, config, add_extra_facet_layers=False, num_facets=-1)):
         super().__init__(config)
 
-        self.add_middle_extra_linear = add_middle_extra_linear
-        self.num_facets = num_facets
+        self.add_extra_facet_layers = add_extra_facet_layers
 
-        if add_middle_extra_linear:
+        if self.add_extra_facet_layers:
+            assert num_facets > 0
+            self.num_facets = num_facets
+            
             self.extra_facet_layers = torch.nn.ModuleList()
 
             for _ in range(self.num_facets):
@@ -133,7 +135,7 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
 
         # pass through the extra linear layers for each facets if enabled
         if len(self.extra_facet_layers) > 0:
-            for n in range(self.hparams.num_facets):
+            for n in range(self.num_facets):
                 # We just need to modify output[0] == hidden state of this layer
                 output[0][:, n, :] = self.extra_facet_layers[n](output[0][:, n, :])
 
@@ -141,26 +143,24 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
 
 
 class BertEncoderWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertEncoder):
-    def __init__(self, config, add_middle_extra_linear_after=[], num_facets=-1)):
+    def __init__(self, config, add_extra_facet_layers_after=[], num_facets=-1)):
         super().__init__(config)
 
-        self.add_middle_extra_linear_after = add_middle_extra_linear_after
+        self.add_extra_facet_layers_after = add_extra_facet_layers_after
 
-        if len(self.add_middle_extra_linear_after) > 0:
-            assert num_facets > 0
-
+        if len(self.add_extra_facet_layers_after) > 0:
             # For layers in self.add_middle_extra_linear_after,
             # Replace the original BertLayer with the custom BertLayer class with extra linear layers
-            for layer_num in self.add_middle_extra_linear_after:
+            for layer_num in self.add_extra_facet_layers_after:
                 self.layer[layer_num] = BertLayerWithExtraLinearLayersForMultiFacets(
-                    config, add_middle_extra_linear=True, num_facets=num_facets)
+                    config, add_extra_facet_layers=True, num_facets=num_facets)
 
 
 class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
-    def __init__(self, config, add_pooling_layer=True, add_middle_extra_linear_after=[], num_facets=-1):
+    def __init__(self, config, add_pooling_layer=True, add_extra_facet_layers_after=[], num_facets=-1):
         super().__init__(config, add_pooling_layer)
 
-        if len(add_middle_extra_linear_after) > 0:
-            self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(add_middle_extra_linear_after, num_facets)
+        if len(add_extra_facet_layers_after) > 0:
+            self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(add_extra_facet_layers_after, num_facets)
             self.init_weights()
