@@ -104,7 +104,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
 
 
 class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertLayer):
-    def __init__(self, config, add_extra_facet_layers=False, num_facets=-1)):
+    def __init__(self, config, add_extra_facet_layers=False, num_facets=-1):
         super().__init__(config)
 
         self.add_extra_facet_layers = add_extra_facet_layers
