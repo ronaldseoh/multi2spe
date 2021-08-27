@@ -1,7 +1,7 @@
 import os
 import itertools
 import json
-from typing import Any, Dict, Tuple, Union
+import typing
 
 import torch
 import transformers
@@ -185,10 +185,10 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
     def save_pretrained(
         self,
-        save_directory: Union[str, os.PathLike],
+        save_directory: typing.Union[str, os.PathLike],
         save_config: bool = True,
-        state_dict: Optional[dict] = None,
-        save_function: Callable = torch.save,
+        state_dict: typing.Optional[dict] = None,
+        save_function: typing.Callable = torch.save,
         push_to_hub: bool = False,
         **kwargs,
     ):
