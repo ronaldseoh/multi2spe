@@ -84,8 +84,18 @@ class QuarterMaster(pl.LightningModule):
 
         self.save_hyperparameters()
 
-        # NOTE: The exact model class will be transformers.BertModel
-        self.model = transformers.AutoModel.from_pretrained(args.pretrained_model_name)
+
+        if self.hparams.model_behavior == "quartermaster":
+            try:
+                if len(self.hparams.add_extra_facet_layers_after) > 0:
+                    self.model = utils.BertModelWithExtraLinearLayersForMultiFacets(
+                        args.pretrained_model_name,
+                        add_extra_facet_layers_after=self.hparams.add_extra_facet_layers_after,
+                        num_facets=self.hparams.num_facets)
+                else:
+                    self.model = utils.BertModelWithExtraLinearLayersForMultiFacets(args.pretrained_model_name)
+        else:
+            self.model = transformers.BertModel.from_pretrained(args.pretrained_model_name)
 
         # Extra linear layers on top of each facet embeddings
         self.extra_facet_layers = torch.nn.ModuleList()
@@ -433,6 +443,8 @@ def parse_args():
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_after', nargs='*', type=int, help='Add extra facet layers right after the hidden states of specified encoder layers.')
+
     parser.add_argument('--add_extra_facet_layers_initialize_0_with_nsp_weights', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_nonlinearity', default=False, action='store_true')
 
