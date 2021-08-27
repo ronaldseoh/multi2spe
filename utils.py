@@ -180,7 +180,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         if self.enable_extra_facets:
             if len(add_extra_facet_layers_after) > 0:
-                self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, add_extra_facet_layers_after, num_facets)
+                self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, self.add_extra_facet_layers_after, self.num_facets)
                 self.init_weights()
 
     def save_pretrained(
