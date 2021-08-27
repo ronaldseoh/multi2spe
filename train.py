@@ -317,7 +317,6 @@ class QuarterMaster(pl.LightningModule):
             on_step=True, on_epoch=False, prog_bar=False, logger=True)
 
     def training_step(self, batch, batch_idx):
-
         if self.hparams.model_behavior == 'specter':
             # [1] actually contains what's referred to as "pooled output" in the Huggingface docs,
             # which is the [CLS] last hidden state followed by the BERT NSP linear layer
@@ -365,7 +364,6 @@ class QuarterMaster(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-
         if self.hparams.model_behavior == 'specter':
             # [1] actually contains what's referred to as "pooled output" in the Huggingface docs,
             # which is the [CLS] last hidden state followed by the BERT NSP linear layer
