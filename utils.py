@@ -167,16 +167,18 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         if 'add_extra_facet_layers_after' in kwargs and 'num_facets' in kwargs:
             self.add_extra_facet_layers_after = kwargs['add_extra_facet_layers_after']
-            self.num_facets = kwargs['num_facets']
-            self.enable_extra_facets = True
+            if len(self.add_extra_facet_layers_after) > 0:
+                self.num_facets = kwargs['num_facets']
+                self.enable_extra_facets = True
         else:
             # convert config to dict to check whether multi-facet related entries exist
             config_dict = config.to_dict()
 
             if 'add_extra_facet_layers_after' in config_dict.keys() and 'num_facets' in config_dict.keys():
                 self.add_extra_facet_layers_after = config.add_extra_facet_layers_after
-                self.num_facets = config.num_facets
-                self.enable_extra_facets = True
+                if len(self.add_extra_facet_layers_after) > 0:
+                    self.num_facets = config.num_facets
+                    self.enable_extra_facets = True
 
         if self.enable_extra_facets:
             if len(self.add_extra_facet_layers_after) > 0:
