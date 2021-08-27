@@ -330,6 +330,16 @@ class QuarterMaster(pl.LightningModule):
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
+                # Before passing embeddings through extra facet layers,
+                # measure loss_set_reg and facet_distances
+                with torch.no_grad():
+                    # Normalize each facet embeddings for visualization purposes
+                    source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
+
+                    self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=True)
+
+                    self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=True)
+
                 for n in range(self.hparams.num_facets):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
@@ -377,6 +387,15 @@ class QuarterMaster(pl.LightningModule):
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
+                # Before passing embeddings through extra facet layers,
+                # measure loss_set_reg and facet_distances
+                # Normalize each facet embeddings for visualization purposes
+                source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
+
+                self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=True)
+
+                self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=True)
+
                 for n in range(self.hparams.num_facets):
                     source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
