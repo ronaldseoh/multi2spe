@@ -106,11 +106,11 @@ class QuarterMaster(pl.LightningModule):
                 for _ in range(self.hparams.num_facets):
                     extra_linear = torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
 
-                    self.extra_facet_layers.append(extra_linear)
+                    if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                        extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
+                        extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
 
-                if self.hparams.add_extra_facet_layers_initialize_0_with_nsp_weights:
-                    self.extra_facet_layers[0].weight.data = self.model.pooler.dense.weight.data.clone()
-                    self.extra_facet_layers[0].bias.data = self.model.pooler.dense.bias.data.clone()
+                    self.extra_facet_layers.append(extra_linear)
         except AttributeError:
             pass
 
@@ -122,11 +122,11 @@ class QuarterMaster(pl.LightningModule):
                 for _ in range(self.hparams.num_facets):
                     extra_linear = torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
 
-                    self.extra_facet_layers_for_target.append(extra_linear)
+                    if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                        extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
+                        extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
 
-                if self.hparams.add_extra_facet_layers_initialize_0_with_nsp_weights:
-                    self.extra_facet_layers_for_target[0].weight.data = self.model.pooler.dense.weight.data.clone()
-                    self.extra_facet_layers_for_target[0].bias.data = self.model.pooler.dense.bias.data.clone()
+                    self.extra_facet_layers_for_target.append(extra_linear)
         except AttributeError:
             pass
 
@@ -455,7 +455,7 @@ def parse_args():
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_after', nargs='*', type=int, help='Add extra facet layers right after the hidden states of specified encoder layers.')
 
-    parser.add_argument('--add_extra_facet_layers_initialize_0_with_nsp_weights', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_initialize_with_nsp_weights', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_nonlinearity', default=False, action='store_true')
 
     parser.add_argument('--loss_margin', default=1.0, type=float)
