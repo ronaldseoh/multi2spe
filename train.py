@@ -244,7 +244,7 @@ class QuarterMaster(pl.LightningModule):
 
         return [optimizer], [scheduler]
 
-    def _get_normalized_embeddings(self, source_embedding, pos_embedding):
+    def _get_normalized_embeddings(self, source_embedding, pos_embedding, neg_embedding):
         # Normalize each facet embeddings for visualization purposes
         source_embedding_normalized = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
         pos_embedding_normalized = torch.nn.functional.normalize(pos_embedding, p=2, dim=-1)
