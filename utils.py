@@ -179,7 +179,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
                 self.enable_extra_facets = True
 
         if self.enable_extra_facets:
-            if len(add_extra_facet_layers_after) > 0:
+            if len(self.add_extra_facet_layers_after) > 0:
                 self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, self.add_extra_facet_layers_after, self.num_facets)
                 self.init_weights()
 
