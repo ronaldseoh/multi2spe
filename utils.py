@@ -190,16 +190,16 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
         push_to_hub: bool = False,
         **kwargs,
     ):
-            # Call the original save_pretrained() first
-            super().__init__(save_directory, save_config, state_dict, save_function, push_to_hub, **kwargs)
+        # Call the original save_pretrained() first
+        super().save_pretrained(save_directory, save_config, state_dict, save_function, push_to_hub, **kwargs)
 
-            # Edit the saved config.json
-            if self.enable_extra_facets and save_config:
-                config_saved = json.load(open(os.path.join(save_directory, "config.json"), "r"))
+        # Edit the saved config.json
+        if self.enable_extra_facets and save_config:
+            config_saved = json.load(open(os.path.join(save_directory, "config.json"), "r"))
 
-                # Add in the entries for multi facet properties
-                config_saved["add_extra_facet_layers_after"] = self.add_extra_facet_layers_after
-                config_saved["num_facets"] = self.num_facets
+            # Add in the entries for multi facet properties
+            config_saved["add_extra_facet_layers_after"] = self.add_extra_facet_layers_after
+            config_saved["num_facets"] = self.num_facets
 
-                # Dump the modified config back to disk
-                json.dump(config_saved, open(os.path.join(save_directory, "config.json"), "w"))
+            # Dump the modified config back to disk
+            json.dump(config_saved, open(os.path.join(save_directory, "config.json"), "w"))
