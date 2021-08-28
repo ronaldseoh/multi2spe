@@ -88,15 +88,15 @@ class QuarterMaster(pl.LightningModule):
             try:
                 if len(self.hparams.add_extra_facet_layers_after) > 0:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
-                        args.pretrained_model_name,
+                        self.hparams.pretrained_model_name,
                         add_extra_facet_layers_after=self.hparams.add_extra_facet_layers_after,
                         num_facets=self.hparams.num_facets)
                 else:
-                    self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(args.pretrained_model_name)
+                    self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(self.hparams.pretrained_model_name)
             except:
-                self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(args.pretrained_model_name)
+                self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(self.hparams.pretrained_model_name)
         else:
-            self.model = transformers.BertModel.from_pretrained(args.pretrained_model_name)
+            self.model = transformers.BertModel.from_pretrained(self.hparams.pretrained_model_name)
 
         # Extra linear layers on top of each facet embeddings
         self.extra_facet_layers = torch.nn.ModuleList()
