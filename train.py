@@ -85,7 +85,7 @@ class QuarterMaster(pl.LightningModule):
         self.save_hyperparameters()
 
         if self.hparams.model_behavior == "quartermaster":
-            try:
+            if "add_extra_facet_layers_after" in self.hparams:
                 if len(self.hparams.add_extra_facet_layers_after) > 0:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
@@ -93,48 +93,46 @@ class QuarterMaster(pl.LightningModule):
                         num_facets=self.hparams.num_facets)
                 else:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(self.hparams.pretrained_model_name)
-            except:
+            else:
                 self.model = transformers.BertModel.from_pretrained(self.hparams.pretrained_model_name)
         else:
+            # SPECTER
             self.model = transformers.BertModel.from_pretrained(self.hparams.pretrained_model_name)
 
         # Extra linear layers on top of each facet embeddings
         self.extra_facet_layers = torch.nn.ModuleList()
 
-        try:
+        if "add_extra_facet_layers" in self.hparams:
             if self.hparams.add_extra_facet_layers:
                 for _ in range(self.hparams.num_facets):
                     extra_linear = torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
 
-                    if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
-                        extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
-                        extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
+                    if "add_extra_facet_layers_initialize_with_nsp_weights" in self.hparams:
+                        if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                            extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
+                            extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
 
                     self.extra_facet_layers.append(extra_linear)
-        except AttributeError:
-            pass
 
         # Extra linear layers on top of each facet embeddings
         self.extra_facet_layers_for_target = torch.nn.ModuleList()
 
-        try:
+        if "add_extra_facet_layers_for_target" in self.hparams:
             if self.hparams.add_extra_facet_layers_for_target:
                 for _ in range(self.hparams.num_facets):
                     extra_linear = torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
 
-                    if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
-                        extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
-                        extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
+                    if "add_extra_facet_layers_initialize_with_nsp_weights" in self.hparams:
+                        if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                            extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
+                            extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
 
                     self.extra_facet_layers_for_target.append(extra_linear)
-        except AttributeError:
-            pass
 
         try:
-            if self.hparams.add_extra_facet_nonlinearity:
-                self.extra_facet_nonlinearity = torch.nn.Tanh()
-        except AttributeError:
-            pass
+            if "add_extra_facet_nonlinearity" in self.hparams:
+                if self.hparams.add_extra_facet_nonlinearity:
+                    self.extra_facet_nonlinearity = torch.nn.Tanh()
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.hparams.pretrained_model_name)
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
