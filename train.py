@@ -94,7 +94,7 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(self.hparams.pretrained_model_name)
             except:
-                self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(self.hparams.pretrained_model_name)
+                self.model = transformers.BertModel.from_pretrained(self.hparams.pretrained_model_name)
         else:
             self.model = transformers.BertModel.from_pretrained(self.hparams.pretrained_model_name)
 
