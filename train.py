@@ -129,10 +129,9 @@ class QuarterMaster(pl.LightningModule):
 
                     self.extra_facet_layers_for_target.append(extra_linear)
 
-        try:
-            if "add_extra_facet_nonlinearity" in self.hparams:
-                if self.hparams.add_extra_facet_nonlinearity:
-                    self.extra_facet_nonlinearity = torch.nn.Tanh()
+        if "add_extra_facet_nonlinearity" in self.hparams:
+            if self.hparams.add_extra_facet_nonlinearity:
+                self.extra_facet_nonlinearity = torch.nn.Tanh()
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.hparams.pretrained_model_name)
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
