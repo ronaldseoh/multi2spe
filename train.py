@@ -136,7 +136,7 @@ class QuarterMaster(pl.LightningModule):
         except AttributeError:
             pass
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(args.pretrained_model_name)
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.hparams.pretrained_model_name)
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
 
         self.hparams.seqlen = self.model.config.max_position_embeddings
