@@ -105,6 +105,11 @@ if __name__ == '__main__':
 
         emb = model(**batch)
 
+        # If the model is SPECTER, then unsqueeze the second dimension in order to make emb have same dimensions as
+        # quartermaster's emb
+        if model.hparams.model_behavior == "specter":
+            emb = emb.unsqueeze(dim=1)
+
         for paper_id, embedding in zip(batch_ids, emb.unbind()):
 
             if len(embedding.shape) == 1:
