@@ -90,6 +90,7 @@ if __name__ == '__main__':
     parser.add_argument('--pl-checkpoint-path', help='path to the checkpoint saved from train.py.')
     parser.add_argument('--data-path', help='path to a json file containing paper metadata')
 
+    parser.add_argument('--seed', default=1918, type=int)
     parser.add_argument('--batch-size', type=int, default=8, help='batch size for prediction')
     parser.add_argument('--output', help='path to write the output embeddings file. '
                                         'the output format is jsonlines where each line has "paper_id" and "embedding" keys')
