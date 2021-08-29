@@ -86,7 +86,8 @@ class QuarterMaster(pl.LightningModule):
 
         if self.hparams.model_behavior == "quartermaster":
             if "add_extra_facet_layers_after" in self.hparams:
-                if len(self.hparams.add_extra_facet_layers_after) > 0:
+                # self.hparams.add_extra_facet_layers_after could be None too, so check that first
+                if self.hparams.add_extra_facet_layers_after and len(self.hparams.add_extra_facet_layers_after) > 0:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
                         add_extra_facet_layers_after=self.hparams.add_extra_facet_layers_after,
