@@ -2,6 +2,7 @@ import os
 import argparse
 import pathlib
 
+import torch
 import ujson as json
 import tqdm
 
