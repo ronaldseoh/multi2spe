@@ -93,6 +93,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    # Reproducibility
+    os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
+    torch.use_deterministic_algorithms(True)
+    pl.seed_everything(args.seed, workers=True)
+
     # Load the Lightning module from the checkpoint
     model = QuarterMaster.load_from_checkpoint(args.pl_checkpoint_path)
 
