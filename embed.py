@@ -3,6 +3,7 @@ import argparse
 import pathlib
 
 import torch
+import pytorch_lightning as pl
 import ujson as json
 import tqdm
 
