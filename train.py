@@ -105,6 +105,12 @@ class QuarterMaster(pl.LightningModule):
 
         if "add_extra_facet_layers" in self.hparams:
             if self.hparams.add_extra_facet_layers:
+                if "add_extra_facet_layers_initialize_with_identical_random_weights" in self.hparams:
+                    if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                        # These weights will be applied to all extra facet layers
+                        extra_linear_weight = torch.randn_like(self.model.pooler.dense.weight.data)
+                        extra_linear_bias = torch.randn_like(self.model.pooler.dense.bias.data)
+
                 for _ in range(self.hparams.num_facets):
                     extra_linear = torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
 
@@ -112,6 +118,10 @@ class QuarterMaster(pl.LightningModule):
                         if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
                             extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
                             extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
+                    elif "add_extra_facet_layers_initialize_with_identical_random_weights" in self.hparams:
+                        if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                            extra_linear.weight.data = extra_linear_weight
+                            extra_linear.bias.data = extra_linear_bias
 
                     self.extra_facet_layers.append(extra_linear)
 
@@ -120,6 +130,12 @@ class QuarterMaster(pl.LightningModule):
 
         if "add_extra_facet_layers_for_target" in self.hparams:
             if self.hparams.add_extra_facet_layers_for_target:
+                if "add_extra_facet_layers_initialize_differently_for_target" in self.hparams:
+                    if self.hparams.add_extra_facet_layers_initialize_differently_for_target or "extra_linear_weight" not in locals():
+                        # These weights will be applied to all extra facet layers
+                        extra_linear_weight = torch.randn_like(self.model.pooler.dense.weight.data)
+                        extra_linear_bias = torch.randn_like(self.model.pooler.dense.bias.data)
+
                 for _ in range(self.hparams.num_facets):
                     extra_linear = torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
 
@@ -127,6 +143,10 @@ class QuarterMaster(pl.LightningModule):
                         if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
                             extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
                             extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
+                    elif "add_extra_facet_layers_initialize_with_identical_random_weights" in self.hparams:
+                        if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                            extra_linear.weight.data = extra_linear_weight
+                            extra_linear.bias.data = extra_linear_bias
 
                     self.extra_facet_layers_for_target.append(extra_linear)
 
@@ -454,6 +474,8 @@ def parse_args():
     parser.add_argument('--add_extra_facet_layers_after', nargs='*', type=int, help='Add extra facet layers right after the hidden states of specified encoder layers.')
 
     parser.add_argument('--add_extra_facet_layers_initialize_with_nsp_weights', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_initialize_with_identical_random_weights', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_initialize_differently_for_target', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_nonlinearity', default=False, action='store_true')
 
     parser.add_argument('--loss_margin', default=1.0, type=float)
