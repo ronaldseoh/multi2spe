@@ -106,7 +106,7 @@ class QuarterMaster(pl.LightningModule):
         if "add_extra_facet_layers" in self.hparams:
             if self.hparams.add_extra_facet_layers:
                 if "add_extra_facet_layers_initialize_with_identical_random_weights" in self.hparams:
-                    if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                    if self.hparams.add_extra_facet_layers_initialize_with_identical_random_weights:
                         # These weights will be applied to all extra facet layers
                         extra_linear_weight = torch.randn_like(self.model.pooler.dense.weight.data)
                         extra_linear_bias = torch.randn_like(self.model.pooler.dense.bias.data)
@@ -119,7 +119,7 @@ class QuarterMaster(pl.LightningModule):
                             extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
                             extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
                     elif "add_extra_facet_layers_initialize_with_identical_random_weights" in self.hparams:
-                        if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                        if self.hparams.add_extra_facet_layers_initialize_with_identical_random_weights:
                             extra_linear.weight.data = extra_linear_weight
                             extra_linear.bias.data = extra_linear_bias
 
@@ -143,8 +143,9 @@ class QuarterMaster(pl.LightningModule):
                         if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
                             extra_linear.weight.data = self.model.pooler.dense.weight.data.clone()
                             extra_linear.bias.data = self.model.pooler.dense.bias.data.clone()
-                    elif "add_extra_facet_layers_initialize_with_identical_random_weights" in self.hparams:
-                        if self.hparams.add_extra_facet_layers_initialize_with_nsp_weights:
+                    # If instead of elif to allow mixing NSP for source and random for target
+                    if "add_extra_facet_layers_initialize_with_identical_random_weights" in self.hparams:
+                        if "extra_linear_weight" in locals():
                             extra_linear.weight.data = extra_linear_weight
                             extra_linear.bias.data = extra_linear_bias
 
