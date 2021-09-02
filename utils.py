@@ -106,6 +106,63 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
         return source_input, pos_input, neg_input
 
 
+class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertEmbeddings):
+    def __init__(self, config, add_perturb_embeddings=False):
+        super().__init__(config)
+
+        self.add_perturb_embeddings = add_perturb_embeddings
+
+        if self.add_perturb_embeddings:
+            self.perturb_embeddings = torch.nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
+
+            # Initialize the perturb embeddings with zeros
+            torch.nn.init.zeros_(self.perturb_embeddings.weight)
+
+    # Ported from
+    # the original BertEmbedding definition: https://github.com/huggingface/transformers/blob/41981a25cdd028007a7491d68935c8d93f9e8b47/src/transformers/models/bert/modeling_bert.py#L190
+    def forward(
+        self, input_ids=None, token_type_ids=None, position_ids=None, inputs_embeds=None, past_key_values_length=0
+    ):
+        if input_ids is not None:
+            input_shape = input_ids.size()
+        else:
+            input_shape = inputs_embeds.size()[:-1]
+
+        seq_length = input_shape[1]
+
+        if position_ids is None:
+            position_ids = self.position_ids[:, past_key_values_length : seq_length + past_key_values_length]
+
+        # Setting the token_type_ids to the registered buffer in constructor where it is all zeros, which usually occurs
+        # when its auto-generated, registered buffer helps users when tracing the model without passing token_type_ids, solves
+        # issue #5664
+        if token_type_ids is None:
+            if hasattr(self, "token_type_ids"):
+                buffered_token_type_ids = self.token_type_ids[:, :seq_length]
+                buffered_token_type_ids_expanded = buffered_token_type_ids.expand(input_shape[0], seq_length)
+                token_type_ids = buffered_token_type_ids_expanded
+            else:
+                token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=self.position_ids.device)
+
+        if inputs_embeds is None:
+            inputs_embeds = self.word_embeddings(input_ids)
+        token_type_embeddings = self.token_type_embeddings(token_type_ids)
+
+        embeddings = inputs_embeds + token_type_embeddings
+        if self.position_embedding_type == "absolute":
+            position_embeddings = self.position_embeddings(position_ids)
+            embeddings += position_embeddings
+
+        if self.add_perturb_embeddings:
+            perturb_embeddings = self.perturb_embeddings(input_ids)
+            embeddings += perturb_embeddings
+
+        embeddings = self.LayerNorm(embeddings)
+        embeddings = self.dropout(embeddings)
+
+        return embeddings
+
+
 class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertLayer):
     def __init__(self, config, add_extra_facet_layers=False, num_facets=-1):
         super().__init__(config)
@@ -165,15 +222,15 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         self.enable_extra_facets = False
 
+        # convert config to dict to check whether multi-facet related entries exist
+        config_dict = config.to_dict()
+
         if 'add_extra_facet_layers_after' in kwargs and 'num_facets' in kwargs:
             self.add_extra_facet_layers_after = kwargs['add_extra_facet_layers_after']
             if len(self.add_extra_facet_layers_after) > 0:
                 self.num_facets = kwargs['num_facets']
                 self.enable_extra_facets = True
         else:
-            # convert config to dict to check whether multi-facet related entries exist
-            config_dict = config.to_dict()
-
             if 'add_extra_facet_layers_after' in config_dict.keys() and 'num_facets' in config_dict.keys():
                 self.add_extra_facet_layers_after = config.add_extra_facet_layers_after
                 if len(self.add_extra_facet_layers_after) > 0:
@@ -184,6 +241,16 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             if len(self.add_extra_facet_layers_after) > 0:
                 self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, self.add_extra_facet_layers_after, self.num_facets)
                 self.init_weights()
+
+        self.add_perturb_embeddings = False
+
+        if "add_perturb_embeddings" in kwargs:
+            self.add_perturb_embeddings = kwargs["add_perturb_embeddings"]
+        elif "add_perturb_embeddings" in config_dict.keys():
+            self.add_perturb_embeddings = config.add_perturb_embeddings
+
+        if self.add_perturb_embeddings:
+            self.embeddings = BertEmbeddingWithPerturbation(config, add_perturb_embeddings=True)
 
     def save_pretrained(
         self,
@@ -198,12 +265,17 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
         super().save_pretrained(save_directory, save_config, state_dict, save_function, push_to_hub, **kwargs)
 
         # Edit the saved config.json
-        if self.enable_extra_facets and save_config:
+        if save_config:
             config_saved = json.load(open(os.path.join(save_directory, "config.json"), "r"))
 
             # Add in the entries for multi facet properties
-            config_saved["add_extra_facet_layers_after"] = self.add_extra_facet_layers_after
-            config_saved["num_facets"] = self.num_facets
+            if self.enable_extra_facets:
+                config_saved["add_extra_facet_layers_after"] = self.add_extra_facet_layers_after
+                config_saved["num_facets"] = self.num_facets
+
+            # Add in the entries for perturb embeddings
+            if self.add_perturb_embeddings:
+                config_saved["add_perturb_embeddings"] = self.add_perturb_embeddings
 
             # Dump the modified config back to disk
             json.dump(config_saved, open(os.path.join(save_directory, "config.json"), "w"))
