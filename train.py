@@ -85,15 +85,23 @@ class QuarterMaster(pl.LightningModule):
         self.save_hyperparameters()
 
         if self.hparams.model_behavior == "quartermaster":
+            if "add_perturb_embeddings" in self.hparams:
+                add_perturb = self.hparams.add_perturb_embeddings
+            else:
+                add_perturb = False
+
             if "add_extra_facet_layers_after" in self.hparams:
                 # self.hparams.add_extra_facet_layers_after could be None too, so check that first
                 if self.hparams.add_extra_facet_layers_after and len(self.hparams.add_extra_facet_layers_after) > 0:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
                         add_extra_facet_layers_after=self.hparams.add_extra_facet_layers_after,
-                        num_facets=self.hparams.num_facets)
+                        num_facets=self.hparams.num_facets,
+                        add_perturb_embeddings=add_perturb)
                 else:
-                    self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(self.hparams.pretrained_model_name)
+                    self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
+                        self.hparams.pretrained_model_name,
+                        add_perturb_embeddings=add_perturb)
             else:
                 self.model = transformers.BertModel.from_pretrained(self.hparams.pretrained_model_name)
         else:
@@ -478,6 +486,8 @@ def parse_args():
     parser.add_argument('--add_extra_facet_layers_initialize_with_identical_random_weights', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_initialize_differently_for_target', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_nonlinearity', default=False, action='store_true')
+
+    parser.add_argument('--add_perturb_embeddings', default=False, action='store_true')
 
     parser.add_argument('--loss_margin', default=1.0, type=float)
     parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
