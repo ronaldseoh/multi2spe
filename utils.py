@@ -115,9 +115,6 @@ class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertE
         if self.add_perturb_embeddings:
             self.perturb_embeddings = torch.nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
 
-            # Initialize the perturb embeddings with zeros
-            torch.nn.init.zeros_(self.perturb_embeddings.weight)
-
     # Ported from
     # the original BertEmbedding definition: https://github.com/huggingface/transformers/blob/41981a25cdd028007a7491d68935c8d93f9e8b47/src/transformers/models/bert/modeling_bert.py#L190
     def forward(
