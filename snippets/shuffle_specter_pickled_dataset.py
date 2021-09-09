@@ -9,10 +9,11 @@ import tqdm
 # https://stackoverflow.com/questions/45808140/using-tqdm-progress-bar-in-a-while-loop
 # for how to use tqdm with infinite loops
 def unpickle_instances():
-    try:
-        yield unpickler.load()
-    except EOFError:
-        break
+    while True:
+        try:
+            yield unpickler.load()
+        except EOFError:
+            break
 
 
 if __name__ == "__main__":
