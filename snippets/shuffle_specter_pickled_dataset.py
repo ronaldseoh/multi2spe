@@ -47,7 +47,7 @@ if __name__ == "__main__":
     outfile = args.data_file + '_shuffled'
 
     with open(outfile, "wb") as f_out:
-        pickler = pickle.Pickler(f_out, protocol=4)
+        pickler = pickle.Pickler(f_out)
 
         idx = 0
 
