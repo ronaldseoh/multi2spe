@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=k-1_extra_linear_layers_for_target_extra_at_layer_4_initialize_all_extra_linear_layers_with_nsp_weights
-#SBATCH -o sbatch_logs/stdout/k-1_extra_linear_layers_for_target_extra_at_layer_4_initialize_all_extra_linear_layers_with_nsp_weights_%j.txt
-#SBATCH -e sbatch_logs/stderr/k-1_extra_linear_layers_for_target_extra_at_layer_4_initialize_all_extra_linear_layers_with_nsp_weights_%j.err
+#SBATCH --job-name=k-1_separate_layer_4_nsp_weights
+#SBATCH -o sbatch_logs/stdout/k-1_separate_layer_4_nsp_weights_%j.txt
+#SBATCH -e sbatch_logs/stderr/k-1_separate_layer_4_nsp_weights_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=2080ti-long
 #SBATCH --gres=gpu:1
@@ -11,7 +11,7 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=k-1_extra_linear_layers_for_target_extra_at_layer_4_initialize_all_extra_linear_layers_with_nsp_weights
+EXPERIMENT_ID_PREFIX=k-1_separate_layer_4_nsp_weights
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
