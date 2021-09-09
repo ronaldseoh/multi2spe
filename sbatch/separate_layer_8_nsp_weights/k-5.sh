@@ -15,8 +15,8 @@ EXPERIMENT_ID_PREFIX=k-5_separate_layer_8_nsp_weights
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
-                --train_file 0819_shard_0_1/data-train.p --train_size 670470 \
-                --val_file 0819_shard_0_1/data-val.p --val_size 168015 \
+                --train_file ~/original_data/train_shuffled.pkl --train_size 684100 \
+                --val_file ~/original_data/val_shuffled.pkl --val_size 145375 \
                 --model_behavior 'quartermaster' --num_facets 5 \
                 --add_extra_facet_layers --add_extra_facet_layers_for_target --add_extra_facet_layers_initialize_with_nsp_weights \
                 --add_extra_facet_layers_after 7 \
