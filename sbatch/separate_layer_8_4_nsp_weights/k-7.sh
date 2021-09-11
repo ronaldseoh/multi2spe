@@ -46,4 +46,7 @@ python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT
                       --recomm save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/recomm.jsonl \
                       --val_or_test test \
                       --multifacet-behavior extra_linear \
-                      --n-jobs 4 --cuda-device 0
+                      --n-jobs 4 --cuda-device 0 \
+                      --cls-svm \
+                      --data-path ../scidocs/data \
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}
