@@ -45,4 +45,4 @@ python ../scidocs/scripts/run.py --cls ../quartermaster/save_${EXPERIMENT_ID_PRE
                       --n-jobs 4 --cuda-device 0 \
                       --cls-svm \
                       --data-path ../scidocs/data \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results.xlsx
