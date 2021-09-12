@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=k-1_common_8_4_identical_random_weights
-#SBATCH -o sbatch_logs/stdout/k-1_common_8_random_weights_%j.txt
-#SBATCH -e sbatch_logs/stderr/k-1_common_8_random_weights_%j.err
+#SBATCH --job-name=k-1_common_8_4_identical_random
+#SBATCH -o sbatch_logs/stdout/k-1_common_8_4_identical_random_%j.txt
+#SBATCH -e sbatch_logs/stderr/k-1_common_8_4_identical_random_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=2080ti-long
 #SBATCH --gres=gpu:1
@@ -11,7 +11,7 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=k-1_common_8_random_weights
+EXPERIMENT_ID_PREFIX=k-1_common_8_4_identical_random
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
@@ -19,7 +19,7 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --val_file ~/original_data/val_shuffled.pkl --val_size 145375 \
                 --model_behavior 'quartermaster' --num_facets 1 \
                 --add_extra_facet_layers --add_extra_facet_layers_initialize_with_identical_random_weights \
-                --add_extra_facet_layers_after 7 \
+                --add_extra_facet_layers_after 3 7 \
                 --add_extra_facet_nonlinearity \
                 --loss_reduction_multifacet 'min' \
                 --gpus 1 --num_workers 0 --fp16 \
