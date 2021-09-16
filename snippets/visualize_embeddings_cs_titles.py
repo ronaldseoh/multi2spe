@@ -59,17 +59,17 @@ if __name__ == "__main__":
         # Exclude the first ones in each result as that would be the query paper itself.
         search_results_by_facets[f] = search_results_by_facets[f][:, 1:]
 
-    # Print out the titles
-    for i in sample_idxs:
-        print("Query paper title:", mag_titles[i])
-
-        print()
-        
-        for f in range(NUM_FACETS):
-            print("Facet", f)
-
-            # Iterate through top 5 papers from the search results for this facet
-            for j in range(K):
-                print(mag_titles[search_results_by_facets[f][j]])
+    # Write down the titles
+    with open("titles.txt", "w") as titles_file:
+        for i in range(len(sample_idxs)):
+            titles_file.write("Query paper " + str(i) + " title: " + mag_titles[sample_idxs[i]] + "\n" + "\n")
             
-            print()
+            for f in range(NUM_FACETS):
+                titles_file.write("Facet " + str(f) + "\n" + "\n")
+
+                # Iterate through top 5 papers from the search results for this facet
+                for j in range(K):
+                    titles_file.write(mag_titles[search_results_by_facets[f][i][j]])
+                    titles_file.write("\n")
+
+                titles_file.write("\n")
