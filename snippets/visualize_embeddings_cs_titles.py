@@ -39,9 +39,6 @@ if __name__ == "__main__":
     mag_val = pd.read_csv("scidocs/data/mag/val.csv")
     mag_val_pids = set(mag_val.pid)
 
-    # Pick computer science papers only using the label=4
-    mag_val_cs_indexes = mag_val[mag_val.class_label == 4].index.to_list()
-
     # MAG metadata to get the paper titles
     mag_metadata = json.load(open("scidocs/data/paper_metadata_mag_mesh.json", "r"))
 
@@ -54,6 +51,9 @@ if __name__ == "__main__":
     mag_titles = []
     mag_labels = []
 
+    # Pick computer science papers only using the label=4
+    mag_val_cs_indexes = []
+
     with open("quartermaster/save_k-3_common_8_4_identical_random_09-12/cls.jsonl", "r") as mag_embeddings_file:
         for line in tqdm.tqdm(mag_embeddings_file):
             paper = json.loads(line)
@@ -62,7 +62,11 @@ if __name__ == "__main__":
                 for f, emb in enumerate(paper["embedding"]):
                     mag_embeddings_by_facets[f].append(np.array(emb))
                 mag_titles.append(mag_metadata[paper["paper_id"]]["title"])
-                mag_labels.append(mag_val[mag_val.pid == paper["paper_id"]].iloc[0].class_label)
+                class_label = mag_val[mag_val.pid == paper["paper_id"]].iloc[0].class_label
+                mag_labels.append(class_label)
+    
+                if class_label == 4:
+                    mag_val_cs_indexes.append(len(mag_labels) - 1)
 
     for f in range(NUM_FACETS):
         mag_embeddings_by_facets[f] = np.array(mag_embeddings_by_facets[f])
