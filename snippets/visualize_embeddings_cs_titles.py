@@ -50,7 +50,7 @@ if __name__ == "__main__":
     sample_idxs = random.sample(range(len(mag_titles)), k=10)
 
     for f in range(NUM_FACETS):
-        cosine_similarities_by_facets[f] = sklearn.metrics.pairwise.cosine_similarity(
+        cosine_similarities_by_facets[f] = sklearn.metrics.pairwise.euclidean_distances(
             mag_embeddings_by_facets[f][sample_idxs], mag_embeddings_by_facets[f])
 
         # Closest first
@@ -73,3 +73,5 @@ if __name__ == "__main__":
                     titles_file.write("\n")
 
                 titles_file.write("\n")
+
+            titles_file.write("----------------------------------------------------------------------------------\n")
