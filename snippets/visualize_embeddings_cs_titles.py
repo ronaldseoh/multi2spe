@@ -71,18 +71,18 @@ if __name__ == "__main__":
     for f in range(NUM_FACETS):
         mag_embeddings_by_facets[f] = np.array(mag_embeddings_by_facets[f])
 
-    cosine_similarities_by_facets = {}
+    distances_by_facets = {}
     search_results_by_facets = {}
 
     sample_idxs = random.sample(mag_val_cs_indexes, k=10)
 
     for f in range(NUM_FACETS):
-        cosine_similarities_by_facets[f] = sklearn.metrics.pairwise.euclidean_distances(
+        distances_by_facets[f] = sklearn.metrics.pairwise.euclidean_distances(
             mag_embeddings_by_facets[f][sample_idxs], mag_embeddings_by_facets[f])
 
         # Closest first
-        search_results_by_facets[f] = np.flip(np.argsort(cosine_similarities_by_facets[f], axis=-1), axis=-1)
-    
+        search_results_by_facets[f] = np.argsort(distances_by_facets[f], axis=-1)
+
         # Exclude the first ones in each result as that would be the query paper itself.
         search_results_by_facets[f] = search_results_by_facets[f][:, 1:]
 
