@@ -53,15 +53,18 @@ class MultiFacetTripletLoss(torch.nn.Module):
         if self.distance == 'l2-norm':
             distance_positive_all = torch.cdist(query, positive, p=2).flatten(start_dim=1)
             distance_negative_all = torch.cdist(query, negative, p=2).flatten(start_dim=1)
-
-            if self.reduction_multifacet == 'min':
-                distance_positive = torch.min(distance_positive_all, dim=1).values
-                distance_negative = torch.min(distance_negative_all, dim=1).values
-            elif self.reduction_multifacet == 'mean':
-                distance_positive = torch.mean(distance_positive_all, dim=1)
-                distance_negative = torch.mean(distance_negative_all, dim=1)
+        elif self.distance == 'dot':
+            distance_positive_all = torch.cdist(query, positive, p=2).flatten(start_dim=1)
+            distance_negative_all = torch.cdist(query, negative, p=2).flatten(start_dim=1)
         else:
             raise TypeError(f"Unrecognized option for `distance`:{self.distance}")
+
+        if self.reduction_multifacet == 'min':
+            distance_positive = torch.min(distance_positive_all, dim=1).values
+            distance_negative = torch.min(distance_negative_all, dim=1).values
+        elif self.reduction_multifacet == 'mean':
+            distance_positive = torch.mean(distance_positive_all, dim=1)
+            distance_negative = torch.mean(distance_negative_all, dim=1)
 
         if self.loss_type == "bce":
             distances_as_logits = torch.stack([distance_negative, distance_positive], axis=1)
