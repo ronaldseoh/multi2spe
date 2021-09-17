@@ -60,16 +60,16 @@ class MultiFacetTripletLoss(torch.nn.Module):
             elif self.reduction_multifacet == 'mean':
                 distance_positive = torch.mean(distance_positive_all, dim=1)
                 distance_negative = torch.mean(distance_negative_all, dim=1)
-
-            if self.loss_type == "bce":
-                distances_as_logits = torch.stack([distance_negative, distance_positive], axis=1)
-                labels = torch.tensor([1 for _ in range(len(distance_positive))], device=distance_positive.device)
-
-                losses = torch.nn.functional.cross_entropy(distances_as_logits, labels)
-            else:
-                losses = torch.nn.functional.relu(distance_positive - distance_negative + self.margin)
         else:
             raise TypeError(f"Unrecognized option for `distance`:{self.distance}")
+
+        if self.loss_type == "bce":
+            distances_as_logits = torch.stack([distance_negative, distance_positive], axis=1)
+            labels = torch.tensor([1 for _ in range(len(distance_positive))], device=distance_positive.device)
+
+            losses = torch.nn.functional.cross_entropy(distances_as_logits, labels)
+        else:
+            losses = torch.nn.functional.relu(distance_positive - distance_negative + self.margin)
 
         if self.reduction == 'mean':
             return losses.mean()
