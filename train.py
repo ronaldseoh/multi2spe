@@ -29,7 +29,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
     """
     Triplet loss function for multi-facet embeddings: Based on the TripletLoss function from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159
     """
-    def __init__(self, margin=1.0, distance='l2-norm', reduction='mean', reduction_multifacet='mean'):
+    def __init__(self, loss_type="margin", margin=1.0, distance='l2-norm', reduction='mean', reduction_multifacet='mean'):
         """
         Args:
             margin: margin (float, optional): Default: `1`.
@@ -43,6 +43,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
         """
         super().__init__()
 
+        self.loss_type = loss_type
         self.margin = margin
         self.distance = distance
         self.reduction = reduction
@@ -60,7 +61,13 @@ class MultiFacetTripletLoss(torch.nn.Module):
                 distance_positive = torch.mean(distance_positive_all, dim=1)
                 distance_negative = torch.mean(distance_negative_all, dim=1)
 
-            losses = torch.nn.functional.relu(distance_positive - distance_negative + self.margin)
+            if self.loss_type == "bce":
+                distances_as_logits = torch.stack([distance_positive, distance_negative])
+                labels = torch.tensor([[1, 0] for _ in range(len(distance_positive))], device=distance_positive.device)
+
+                losses = torch.nn.functional.cross_entropy(distances_as_logits, labels)
+            else:
+                losses = torch.nn.functional.relu(distance_positive - distance_negative + self.margin)
         else:
             raise TypeError(f"Unrecognized option for `distance`:{self.distance}")
 
@@ -174,7 +181,13 @@ class QuarterMaster(pl.LightningModule):
                 distance=self.hparams.loss_distance,
                 reduction=self.hparams.loss_reduction)
         else:
+            if "loss_type" in self.hparams:
+                loss_type = self.hparams.loss_type
+            else:
+                loss_type = "margin"
+
             self.loss = MultiFacetTripletLoss(
+                loss_type=loss_type,
                 margin=self.hparams.loss_margin,
                 distance=self.hparams.loss_distance,
                 reduction=self.hparams.loss_reduction,
@@ -491,6 +504,7 @@ def parse_args():
 
     parser.add_argument('--add_perturb_embeddings', default=False, action='store_true')
 
+    parser.add_argument('--loss_type', default='margin', choices=['margin', 'bce'], type=str)
     parser.add_argument('--loss_margin', default=1.0, type=float)
     parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
     parser.add_argument('--loss_reduction', default='mean', choices=['mean', 'sum', 'none'], type=str)
