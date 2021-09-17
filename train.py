@@ -54,8 +54,8 @@ class MultiFacetTripletLoss(torch.nn.Module):
             distance_positive_all = torch.cdist(query, positive, p=2).flatten(start_dim=1)
             distance_negative_all = torch.cdist(query, negative, p=2).flatten(start_dim=1)
         elif self.distance == 'dot':
-            distance_positive_all = torch.cdist(query, positive, p=2).flatten(start_dim=1)
-            distance_negative_all = torch.cdist(query, negative, p=2).flatten(start_dim=1)
+            distance_positive_all = torch.bmm(query, torch.transpose(positive, 1, 2)).flatten(start_dim=1)
+            distance_negative_all = torch.bmm(query, torch.transpose(negative, 1, 2)).flatten(start_dim=1)
         else:
             raise TypeError(f"Unrecognized option for `distance`:{self.distance}")
 
