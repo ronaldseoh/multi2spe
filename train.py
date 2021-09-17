@@ -63,7 +63,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
 
             if self.loss_type == "bce":
                 distances_as_logits = torch.stack([distance_positive, distance_negative])
-                labels = torch.tensor([[1, 0] for _ in range(len(distance_positive))], device=distance_positive.device)
+                labels = torch.tensor([1 for _ in range(len(distance_positive))], device=distance_positive.device)
 
                 losses = torch.nn.functional.cross_entropy(distances_as_logits, labels)
             else:
