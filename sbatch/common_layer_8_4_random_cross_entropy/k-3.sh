@@ -23,7 +23,7 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --add_extra_facet_nonlinearity \
                 --loss_type 'bce' \
                 --loss_distance 'dot' \
-                --loss_reduction_multifacet 'min' \
+                --loss_reduction_multifacet 'max' \
                 --gpus 1 --num_workers 0 --fp16 \
                 --batch_size 2 --grad_accum 16  --num_epochs 2 \
                 --wandb
