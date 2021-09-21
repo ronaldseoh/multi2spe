@@ -62,6 +62,9 @@ class MultiFacetTripletLoss(torch.nn.Module):
         if self.reduction_multifacet == 'min':
             distance_positive = torch.min(distance_positive_all, dim=1).values
             distance_negative = torch.min(distance_negative_all, dim=1).values
+        elif self.reduction_multifacet == 'max':
+            distance_positive = torch.max(distance_positive_all, dim=1).values
+            distance_negative = torch.max(distance_negative_all, dim=1).values
         elif self.reduction_multifacet == 'mean':
             distance_positive = torch.mean(distance_positive_all, dim=1)
             distance_negative = torch.mean(distance_negative_all, dim=1)
@@ -511,7 +514,7 @@ def parse_args():
     parser.add_argument('--loss_margin', default=1.0, type=float)
     parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
     parser.add_argument('--loss_reduction', default='mean', choices=['mean', 'sum', 'none'], type=str)
-    parser.add_argument('--loss_reduction_multifacet', default='mean', choices=['mean', 'min'], type=str)
+    parser.add_argument('--loss_reduction_multifacet', default='mean', choices=['mean', 'min', 'max'], type=str)
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
