@@ -256,7 +256,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
         if self.add_perturb_embeddings:
             self.embeddings = BertEmbeddingWithPerturbation(config, add_perturb_embeddings=True)
 
-    def init_weights():
+    def init_weights(self):
         super().init_weights()
 
         if self.enable_extra_facet_layers and not self.init_bert_layer_facet_layers == "default":
