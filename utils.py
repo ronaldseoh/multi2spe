@@ -246,6 +246,13 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
                 self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, self.add_extra_facet_layers_after, self.num_facets)
                 self.init_weights()
 
+                if self.enable_extra_facets and not self.init_bert_layer_facet_layers == "default":
+                    for layer_num in self.encoder.add_extra_facet_layers_after:
+                        for layer in self.encoder.layer[layer_num].extra_facet_layers:
+                            if self.init_bert_layer_facet_layers == "identity":
+                                torch.nn.init.eye_(layer.weight)
+                                torch.nn.init.zeros_(layer.bias)
+
         self.add_perturb_embeddings = False
 
         if "add_perturb_embeddings" in kwargs:
@@ -255,16 +262,6 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         if self.add_perturb_embeddings:
             self.embeddings = BertEmbeddingWithPerturbation(config, add_perturb_embeddings=True)
-
-    def init_weights(self):
-        super().init_weights()
-
-        if self.enable_extra_facets and not self.init_bert_layer_facet_layers == "default":
-            for layer_num in self.encoder.add_extra_facet_layers_after:
-                for layer in self.encoder.layer[layer_num].extra_facet_layers:
-                    if self.init_bert_layer_facet_layers == "identity":
-                        torch.nn.init.eye_(layer.weight)
-                        torch.nn.init.zeros_(layer.bias)
 
     def save_pretrained(
         self,
