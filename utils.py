@@ -218,6 +218,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
         super().__init__(config, add_pooling_layer)
 
         self.enable_extra_facets = False
+        self.init_bert_layer_facet_layers = "default"
 
         # convert config to dict to check whether multi-facet related entries exist
         config_dict = config.to_dict()
@@ -227,12 +228,18 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             if len(self.add_extra_facet_layers_after) > 0:
                 self.num_facets = kwargs['num_facets']
                 self.enable_extra_facets = True
+
+                if "init_bert_layer_facet_layers" in kwargs:
+                    self.init_bert_layer_facet_layers = kwargs["init_bert_layer_facet_layers"]
         else:
             if 'add_extra_facet_layers_after' in config_dict.keys() and 'num_facets' in config_dict.keys():
                 self.add_extra_facet_layers_after = config.add_extra_facet_layers_after
                 if len(self.add_extra_facet_layers_after) > 0:
                     self.num_facets = config.num_facets
                     self.enable_extra_facets = True
+
+                    if "init_bert_layer_facet_layers" in config_dict.keys():
+                        self.init_bert_layer_facet_layers = config.init_bert_layer_facet_layers
 
         if self.enable_extra_facets:
             if len(self.add_extra_facet_layers_after) > 0:
@@ -248,6 +255,16 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         if self.add_perturb_embeddings:
             self.embeddings = BertEmbeddingWithPerturbation(config, add_perturb_embeddings=True)
+
+    def init_weights():
+        super().init_weights()
+
+        if self.enable_extra_facet_layers and not self.init_bert_layer_facet_layers == "default":
+            for layer_num in self.encoder.add_extra_facet_layers_after:
+                for layer in self.encoder.layer[layer_num].extra_facet_layers:
+                    if self.init_bert_layer_facet_layers == "identity":
+                        torch.nn.init.eye_(layer.weight)
+                        torch.nn.init.zeros_(layer.bias)
 
     def save_pretrained(
         self,
