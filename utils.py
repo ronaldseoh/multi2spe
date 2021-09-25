@@ -161,11 +161,10 @@ class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertE
 
 
 class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertLayer):
-    def __init__(self, config, add_extra_facet_layers=False, init_extra_facet_layers="default", num_facets=-1):
+    def __init__(self, config, add_extra_facet_layers=False, num_facets=-1):
         super().__init__(config)
 
         self.add_extra_facet_layers = add_extra_facet_layers
-        self.init_extra_facet_layers = init_extra_facet_layers
 
         if self.add_extra_facet_layers:
             assert num_facets > 0
@@ -175,10 +174,6 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
 
             for _ in range(self.num_facets):
                 extra_linear = torch.nn.Linear(config.hidden_size, config.hidden_size)
-
-                if self.init_extra_facet_layers == "identity":
-                    torch.nn.init.eye_(extra_linear.weight)
-                    torch.nn.init.zeros_(extra_linear.bias)
 
                 self.extra_facet_layers.append(extra_linear)
 
@@ -205,18 +200,17 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
 
 
 class BertEncoderWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertEncoder):
-    def __init__(self, config, add_extra_facet_layers_after=[], init_extra_facet_layers="default", num_facets=-1):
+    def __init__(self, config, add_extra_facet_layers_after=[], num_facets=-1):
         super().__init__(config)
 
         self.add_extra_facet_layers_after = add_extra_facet_layers_after
-        self.init_extra_facet_layers = init_extra_facet_layers
 
         if len(self.add_extra_facet_layers_after) > 0:
             # For layers in self.add_middle_extra_linear_after,
             # Replace the original BertLayer with the custom BertLayer class with extra linear layers
             for layer_num in self.add_extra_facet_layers_after:
                 self.layer[layer_num] = BertLayerWithExtraLinearLayersForMultiFacets(
-                    config, add_extra_facet_layers=True, init_extra_facet_layers=self.init_extra_facet_layers, num_facets=num_facets)
+                    config, add_extra_facet_layers=True, num_facets=num_facets)
 
 
 class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
