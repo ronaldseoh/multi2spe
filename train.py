@@ -502,6 +502,7 @@ def parse_args():
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_after', nargs='*', type=int, help='Add extra facet layers right after the hidden states of specified encoder layers.')
+    parser.add_argument('--init_bert_layer_facet_layers', default="default", choices=["default", "identity"], type=str)
 
     parser.add_argument('--add_extra_facet_layers_initialize_with_nsp_weights', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_initialize_with_identical_random_weights', default=False, action='store_true')
