@@ -259,7 +259,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
     def init_weights(self):
         super().init_weights()
 
-        if self.enable_extra_facet_layers and not self.init_bert_layer_facet_layers == "default":
+        if self.enable_extra_facets and not self.init_bert_layer_facet_layers == "default":
             for layer_num in self.encoder.add_extra_facet_layers_after:
                 for layer in self.encoder.layer[layer_num].extra_facet_layers:
                     if self.init_bert_layer_facet_layers == "identity":
