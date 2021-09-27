@@ -252,10 +252,17 @@ class QuarterMaster(pl.LightningModule):
         if self.opt is None:
             return Exception("get_lr_scheduler() should not be called before the optimizer is configured.")
 
-        scheduler = get_schedule_func(
-            self.opt,
-            num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
-            num_training_steps=self.total_steps)
+        if self.hparams.lr_scheduler == "cosine_w_restarts":
+            scheduler = get_schedule_func(
+                self.opt,
+                num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
+                num_training_steps=self.total_steps,
+                num_cycles=3)
+        else:
+            scheduler = get_schedule_func(
+                self.opt,
+                num_warmup_steps=int(self.hparams.warmup_frac * self.total_steps),
+                num_training_steps=self.total_steps)
 
         scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
 
