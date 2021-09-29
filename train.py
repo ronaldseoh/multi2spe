@@ -146,6 +146,12 @@ class QuarterMaster(pl.LightningModule):
 
                     self.extra_facet_layers.append(extra_linear)
 
+                if "add_extra_facet_layers_initialize_0_with_nsp_weights" in self.hparams:
+                    if self.hparams.add_extra_facet_layers_initialize_0_with_nsp_weights:
+                        # These weights will be applied to all extra facet layers
+                        self.extra_facet_layers[0].weight.data = self.model.pooler.dense.weight.data.clone()
+                        self.extra_facet_layers[0].bias.data = self.model.pooler.dense.bias.data.clone()
+
         # Extra linear layers on top of each facet embeddings
         self.extra_facet_layers_for_target = torch.nn.ModuleList()
 
@@ -171,6 +177,12 @@ class QuarterMaster(pl.LightningModule):
                             extra_linear.bias.data = extra_linear_bias
 
                     self.extra_facet_layers_for_target.append(extra_linear)
+
+                if "add_extra_facet_layers_initialize_0_with_nsp_weights" in self.hparams:
+                    if self.hparams.add_extra_facet_layers_initialize_0_with_nsp_weights:
+                        # These weights will be applied to all extra facet layers
+                        self.extra_facet_layers_for_target[0].weight.data = self.model.pooler.dense.weight.data.clone()
+                        self.extra_facet_layers_for_target[0].bias.data = self.model.pooler.dense.bias.data.clone()
 
         if "add_extra_facet_nonlinearity" in self.hparams:
             if self.hparams.add_extra_facet_nonlinearity:
@@ -512,6 +524,7 @@ def parse_args():
     parser.add_argument('--init_bert_layer_facet_layers', default="default", choices=["default", "identity"], type=str)
 
     parser.add_argument('--add_extra_facet_layers_initialize_with_nsp_weights', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_initialize_0_with_nsp_weights', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_initialize_with_identical_random_weights', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_initialize_differently_for_target', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_nonlinearity', default=False, action='store_true')
