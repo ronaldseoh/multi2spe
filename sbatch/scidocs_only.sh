@@ -9,25 +9,10 @@
 #SBATCH --cpus-per-task=2
 
 eval "$(conda shell.bash hook)"
-conda activate qm
+conda activate scidocs
 
 EXPERIMENT_ID_PREFIX=k-1_common_nsp_cross_entropy
 EXPERIMENT_DATE="09-24"
-
-python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
-                --data-path ../scidocs/data/paper_metadata_mag_mesh.json \
-                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl --batch-size 4
-                
-python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
-                --data-path ../scidocs/data/paper_metadata_recomm.json \
-                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/recomm.jsonl --batch-size 4
-                
-python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
-                --data-path ../scidocs/data/paper_metadata_view_cite_read.json \
-                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl --batch-size 4
-
-conda deactivate
-conda activate scidocs
 
 python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl \
                       --user-citation save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl \
