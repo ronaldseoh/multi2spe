@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=scidocs_only
-#SBATCH -o sbatch_logs/stdout/scidocs_only_%j.txt
-#SBATCH -e sbatch_logs/stderr/scidocs_only_%j.err
+#SBATCH --job-name=scidocs_only_dot
+#SBATCH -o sbatch_logs/stdout/scidocs_only_dot_%j.txt
+#SBATCH -e sbatch_logs/stderr/scidocs_only_dot_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=1080ti-short
 #SBATCH --gres=gpu:1
@@ -21,5 +21,6 @@ python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --cls-svm \
+                      --user-citation-metric "dot" \
                       --data-path ../scidocs/data \
                       --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results.xlsx
