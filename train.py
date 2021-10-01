@@ -110,7 +110,8 @@ class QuarterMaster(pl.LightningModule):
                         self.hparams.pretrained_model_name,
                         add_extra_facet_layers_after=self.hparams.add_extra_facet_layers_after,
                         num_facets=self.hparams.num_facets,
-                        add_perturb_embeddings=add_perturb)
+                        add_perturb_embeddings=add_perturb,
+                        init_bert_layer_facet_layers=self.hparams.init_bert_layer_facet_layers)
                 else:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
