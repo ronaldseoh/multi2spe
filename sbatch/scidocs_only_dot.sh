@@ -23,4 +23,4 @@ python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT
                       --cls-svm \
                       --user-citation-metric "dot" \
                       --data-path ../scidocs/data \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results.xlsx
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_dot.xlsx
