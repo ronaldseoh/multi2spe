@@ -3,7 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/scidocs_only_%j.txt
 #SBATCH -e sbatch_logs/stderr/scidocs_only_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=1080ti-long
+#SBATCH --partition=1080ti-short
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
