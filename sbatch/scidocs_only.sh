@@ -12,7 +12,7 @@ eval "$(conda shell.bash hook)"
 conda activate qm
 
 EXPERIMENT_ID_PREFIX=k-1_common_nsp_cross_entropy
-EXPERIMENT_DATE=`09-24`
+EXPERIMENT_DATE="09-24"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_mag_mesh.json \
