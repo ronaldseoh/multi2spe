@@ -288,9 +288,10 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             config_saved = json.load(open(os.path.join(save_directory, "config.json"), "r"))
 
             # Add in the entries for multi facet properties
+            config_saved["num_facets"] = self.num_facets
+
             if self.enable_extra_facets:
                 config_saved["add_extra_facet_layers_after"] = self.add_extra_facet_layers_after
-                config_saved["num_facets"] = self.num_facets
 
             # Add in the entries for perturb embeddings
             if self.add_perturb_embeddings:
