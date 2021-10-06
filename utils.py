@@ -252,13 +252,6 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             if len(self.add_extra_facet_layers_after) > 0:
                 self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, self.add_extra_facet_layers_after, self.num_facets)
 
-                if self.enable_extra_facets and not self.init_bert_layer_facet_layers == "default":
-                    for layer_num in self.encoder.add_extra_facet_layers_after:
-                        for layer in self.encoder.layer[layer_num].extra_facet_layers:
-                            if self.init_bert_layer_facet_layers == "identity":
-                                torch.nn.init.eye_(layer.weight)
-                                torch.nn.init.zeros_(layer.bias)
-
         self.add_perturb_embeddings = False
 
         if "add_perturb_embeddings" in kwargs:
@@ -270,6 +263,27 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             self.embeddings = BertEmbeddingWithPerturbation(config, add_perturb_embeddings=True)
 
         self.init_weights()
+
+    @classmethod
+    def from_pretrained(cls, pretrained_model_name_or_path: Optional[Union[str, os.PathLike]], *model_args, **kwargs):
+        model, loading_info = super(BertModelWithExtraLinearLayersForMultiFacets, cls).from_pretrained(
+            cls, pretrained_model_name_or_path, output_loading_info=True, *model_args, **kwargs)
+
+        if model.enable_extra_facets and not model.init_bert_layer_facet_layers == "default":
+            layer_nums_without_pretrained_weights = set()
+
+            # Initialize only if the pretrained model does not already have weights for extra_facet_layers.
+            for key in loading_info["missing_keys"]:
+                if key.find("extra_facet_layers") > -1:
+                    layer_nums_without_pretrained_weights.add(key.split("extra_facet_layers.")[-1].split(".weight")[0])
+
+            for layer_num in layer_nums_without_pretrained_weights:
+                for layer in model.encoder.layer[layer_num].extra_facet_layers:
+                    if model.init_bert_layer_facet_layers == "identity":
+                        torch.nn.init.eye_(layer.weight)
+                        torch.nn.init.zeros_(layer.bias)
+
+        return model
 
     def save_pretrained(
         self,
@@ -292,6 +306,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
             if self.enable_extra_facets:
                 config_saved["add_extra_facet_layers_after"] = self.add_extra_facet_layers_after
+                config_saved["init_bert_layer_facet_layers"] = self.init_bert_layer_facet_layers
 
             # Add in the entries for perturb embeddings
             if self.add_perturb_embeddings:
