@@ -271,8 +271,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             original_output_loading_info = kwargs["output_loading_info"]
             kwargs["output_loading_info"] = True # We are forcing this to be True as we need this for the steps below
 
-        model, loading_info = super(BertModelWithExtraLinearLayersForMultiFacets, cls).from_pretrained(
-            cls, pretrained_model_name_or_path, *model_args, **kwargs)
+        model, loading_info = super(BertModelWithExtraLinearLayersForMultiFacets, cls).from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
 
         if model.enable_extra_facets and not model.init_bert_layer_facet_layers == "default":
             layer_nums_without_pretrained_weights = set()
