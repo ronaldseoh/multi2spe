@@ -266,8 +266,13 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
     @classmethod
     def from_pretrained(cls, pretrained_model_name_or_path: typing.Optional[typing.Union[str, os.PathLike]], *model_args, **kwargs):
+
+        if "output_loading_info" in kwargs:
+            original_output_loading_info = kwargs["output_loading_info"]
+            kwargs["output_loading_info"] = True # We are forcing this to be True as we need this for the steps below
+
         model, loading_info = super(BertModelWithExtraLinearLayersForMultiFacets, cls).from_pretrained(
-            cls, pretrained_model_name_or_path, output_loading_info=True, *model_args, **kwargs)
+            cls, pretrained_model_name_or_path, *model_args, **kwargs)
 
         if model.enable_extra_facets and not model.init_bert_layer_facet_layers == "default":
             layer_nums_without_pretrained_weights = set()
@@ -283,7 +288,10 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
                         torch.nn.init.eye_(layer.weight)
                         torch.nn.init.zeros_(layer.bias)
 
-        return model
+        if original_output_loading_info:
+            return model, loading_info
+        else:
+            return model
 
     def save_pretrained(
         self,
