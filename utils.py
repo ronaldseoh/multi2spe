@@ -238,15 +238,14 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
                 if "init_bert_layer_facet_layers" in kwargs:
                     self.init_bert_layer_facet_layers = kwargs["init_bert_layer_facet_layers"]
-        else:
-            if 'add_extra_facet_layers_after' in config_dict.keys():
-                self.add_extra_facet_layers_after = config.add_extra_facet_layers_after
+        elif 'add_extra_facet_layers_after' in config_dict.keys():
+            self.add_extra_facet_layers_after = config.add_extra_facet_layers_after
 
-                if len(self.add_extra_facet_layers_after) > 0:
-                    self.enable_extra_facets = True
+            if len(self.add_extra_facet_layers_after) > 0:
+                self.enable_extra_facets = True
 
-                    if "init_bert_layer_facet_layers" in config_dict.keys():
-                        self.init_bert_layer_facet_layers = config.init_bert_layer_facet_layers
+                if "init_bert_layer_facet_layers" in config_dict.keys():
+                    self.init_bert_layer_facet_layers = config.init_bert_layer_facet_layers
 
         if self.enable_extra_facets:
             if len(self.add_extra_facet_layers_after) > 0:
