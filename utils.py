@@ -251,7 +251,6 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
         if self.enable_extra_facets:
             if len(self.add_extra_facet_layers_after) > 0:
                 self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, self.add_extra_facet_layers_after, self.num_facets)
-                self.init_weights()
 
                 if self.enable_extra_facets and not self.init_bert_layer_facet_layers == "default":
                     for layer_num in self.encoder.add_extra_facet_layers_after:
@@ -269,6 +268,8 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         if self.add_perturb_embeddings:
             self.embeddings = BertEmbeddingWithPerturbation(config, add_perturb_embeddings=True)
+
+        self.init_weights()
 
     def save_pretrained(
         self,
