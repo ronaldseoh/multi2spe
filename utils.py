@@ -281,7 +281,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
             # Initialize only if the pretrained model does not already have weights for extra_facet_layers.
             for key in loading_info["missing_keys"]:
-                if key.find("extra_facet_layers") > -1:
+                if key.find("extra_facet_layers") > -1 and key.endswith(".weight"):
                     layer_nums_without_pretrained_weights.add(key.split("extra_facet_layers.")[-1].split(".weight")[0])
 
             for layer_num in layer_nums_without_pretrained_weights:
