@@ -269,7 +269,8 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         if "output_loading_info" in kwargs:
             original_output_loading_info = kwargs["output_loading_info"]
-            kwargs["output_loading_info"] = True # We are forcing this to be True as we need this for the steps below
+
+        kwargs["output_loading_info"] = True # We are forcing this to be True as we need this for the steps below
 
         model, loading_info = super(BertModelWithExtraLinearLayersForMultiFacets, cls).from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs)
 
