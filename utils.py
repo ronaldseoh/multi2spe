@@ -265,7 +265,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
         self.init_weights()
 
     @classmethod
-    def from_pretrained(cls, pretrained_model_name_or_path: Optional[Union[str, os.PathLike]], *model_args, **kwargs):
+    def from_pretrained(cls, pretrained_model_name_or_path: typing.Optional[typing.Union[str, os.PathLike]], *model_args, **kwargs):
         model, loading_info = super(BertModelWithExtraLinearLayersForMultiFacets, cls).from_pretrained(
             cls, pretrained_model_name_or_path, output_loading_info=True, *model_args, **kwargs)
 
