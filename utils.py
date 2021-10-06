@@ -267,6 +267,8 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
     @classmethod
     def from_pretrained(cls, pretrained_model_name_or_path: typing.Optional[typing.Union[str, os.PathLike]], *model_args, **kwargs):
 
+        original_output_loading_info = False
+
         if "output_loading_info" in kwargs:
             original_output_loading_info = kwargs["output_loading_info"]
 
