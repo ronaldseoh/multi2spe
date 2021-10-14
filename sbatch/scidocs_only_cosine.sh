@@ -5,14 +5,14 @@
 #SBATCH --ntasks=1
 #SBATCH --partition=1080ti-short
 #SBATCH --gres=gpu:1
-#SBATCH --mem=48GB
+#SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
 
 eval "$(conda shell.bash hook)"
 conda activate scidocs
 
-EXPERIMENT_ID_PREFIX=k-5_common_nsp_cross_entropy
-EXPERIMENT_DATE="10-05"
+EXPERIMENT_ID_PREFIX=k-3_common_nsp_cross_entropy
+EXPERIMENT_DATE="09-24"
 
 python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl \
                       --user-citation save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl \
