@@ -2,6 +2,7 @@ import random
 
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import normalize
 import ujson as json
 import sklearn.metrics
 import tqdm
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     # Pick computer science papers only using the label=4
     mag_val_cs_indexes = []
 
-    with open("quartermaster/save_k-3_common_8_4_identical_random_09-12/cls.jsonl", "r") as mag_embeddings_file:
+    with open("quartermaster/save_k-3_common_layer_8_4_identity_nsp_cross_entropy_10-06/cls.jsonl", "r") as mag_embeddings_file:
         for line in tqdm.tqdm(mag_embeddings_file):
             paper = json.loads(line)
 
@@ -70,6 +71,7 @@ if __name__ == "__main__":
 
     for f in range(NUM_FACETS):
         mag_embeddings_by_facets[f] = np.array(mag_embeddings_by_facets[f])
+        mag_embeddings_by_facets[f] = normalize(mag_embeddings_by_facets[f], norm="l2", axis=1)
 
     distances_by_facets = {}
     search_results_by_facets = {}

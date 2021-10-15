@@ -4,6 +4,7 @@ import ujson as json
 import matplotlib
 #matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import normalize
 import umap
 import umap.plot
 import tqdm
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     facet_labels = []
     mag_labels = []
 
-    with open("quartermaster/save_k-3_common_8_4_identical_random_09-12/cls.jsonl", "r") as mag_embeddings_file:
+    with open("quartermaster/save_k-3_common_layer_8_4_nsp_cross_entropy_09-26/cls.jsonl", "r") as mag_embeddings_file:
         for line in tqdm.tqdm(mag_embeddings_file):
             paper = json.loads(line)
             
@@ -32,6 +33,7 @@ if __name__ == "__main__":
 
     # Try reducing all embeddings and color code then by the facet #
     mag_embeddings = np.array(mag_embeddings)
+    mag_embeddings = normalize(mag_embeddings, norm="l2", axis=1)
     facet_labels = np.array(facet_labels)
     mag_labels = np.array(mag_labels)
 
