@@ -1,6 +1,7 @@
 import argparse
 import os
 import pathlib
+import json
 
 import torch
 import pytorch_lightning as pl
@@ -200,17 +201,23 @@ class QuarterMaster(pl.LightningModule):
                 distance=self.hparams.loss_distance,
                 reduction=self.hparams.loss_reduction)
         else:
-            if "loss_type" in self.hparams:
-                loss_type = self.hparams.loss_type
-            else:
-                loss_type = "margin"
+            if "loss_config" in self.hparams:
+                self.loss_list = []
 
-            self.loss = MultiFacetTripletLoss(
-                loss_type=loss_type,
-                margin=self.hparams.loss_margin,
-                distance=self.hparams.loss_distance,
-                reduction=self.hparams.loss_reduction,
-                reduction_multifacet=self.hparams.loss_reduction_multifacet)
+                for loss_config in self.hparams.loss_config:
+                    self.loss_list.append(MultiFacetTripletLoss(**loss_config))
+            else:
+                if "loss_type" in self.hparams:
+                    loss_type = self.hparams.loss_type
+                else:
+                    loss_type = "margin"
+
+                self.loss = MultiFacetTripletLoss(
+                    loss_type=loss_type,
+                    margin=self.hparams.loss_margin,
+                    distance=self.hparams.loss_distance,
+                    reduction=self.hparams.loss_reduction,
+                    reduction_multifacet=self.hparams.loss_reduction_multifacet)
 
         self.opt = None
 
@@ -425,7 +432,17 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
                 neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
 
-        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+        if "loss_config" in self.hparams:
+            loss = 0
+
+            for i, l in enumerate(self.loss_list):
+                this_loss = l(source_embedding, pos_embedding, neg_embedding)
+
+                self.log('train_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
+
+                loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
+        else:
+            loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
         self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -482,7 +499,21 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
                 neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
 
-        loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+        if "loss_config" in self.hparams:
+            loss = 0
+
+            loss_breakdowns = []
+
+            for i, l in enumerate(self.loss_list):
+                this_loss = l(source_embedding, pos_embedding, neg_embedding)
+
+                self.log('val_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
+
+                loss_breakdowns.append(this_loss)
+
+                loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
+        else:
+            loss = self.loss(source_embedding, pos_embedding, neg_embedding)
 
         self.log('val_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
@@ -494,16 +525,32 @@ class QuarterMaster(pl.LightningModule):
         if self.hparams.num_facets > 1:
             self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
 
-        return loss
+        if "loss_config" in self.hparams:
+            return {"loss": loss, "loss_breakdowns": loss_breakdowns}
+        else:
+            return {"loss": loss}
 
     def validation_epoch_end(self, outputs):
         # Refer to
         # https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html
         # Note: Apparently what we get out of self.all_gather(outputs) here is a list, not a tensor
-        avg_loss = torch.mean(torch.Tensor(self.all_gather(outputs)))
+        avg_loss = torch.mean(torch.Tensor(self.all_gather(outputs["loss"])))
 
         if self.trainer.is_global_zero:
             self.log('avg_val_loss', avg_loss, rank_zero_only=True, on_epoch=True, prog_bar=True)
+
+        if "loss_config" in self.hparams:
+            losses_all_batch = [[] for _ in range(len(self.hparams.loss_config))]
+
+            for b in outputs["loss_breakdowns"]:
+                for i, l in enumerate(b):
+                    losses_all_batch[i].append(l)
+
+            for i in range(len(self.hparams.loss_config)):
+                avg_this_loss = torch.mean(torch.Tensor(self.all_gather(losses_all_batch[i])))
+
+                if self.trainer.is_global_zero:
+                    self.log('avg_val_loss_' + self.hparams.loss_config[i]["name"], avg_this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
 
 def parse_args():
@@ -532,6 +579,8 @@ def parse_args():
 
     parser.add_argument('--add_perturb_embeddings', default=False, action='store_true')
 
+
+    parser.add_argument('--loss_config', type=json.loads)
     parser.add_argument('--loss_type', default='margin', choices=['margin', 'bce'], type=str)
     parser.add_argument('--loss_margin', default=1.0, type=float)
     parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
