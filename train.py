@@ -204,7 +204,7 @@ class QuarterMaster(pl.LightningModule):
             self.use_multiple_losses = False
 
             if "loss_config" in self.hparams:
-                if self.loss_config is not None:
+                if self.hparams.loss_config is not None:
                     self.use_multiple_losses = True
                     self.loss_list = []
 
