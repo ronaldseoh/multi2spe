@@ -11,8 +11,8 @@
 eval "$(conda shell.bash hook)"
 conda activate scidocs
 
-EXPERIMENT_ID_PREFIX=k-3_common_nsp_cross_entropy
-EXPERIMENT_DATE="09-24"
+EXPERIMENT_ID_PREFIX=k-3_separate_layer_8_4_identity_nsp_cross_entropy
+EXPERIMENT_DATE="10-14"
 
 python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl \
                       --user-citation save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl \
