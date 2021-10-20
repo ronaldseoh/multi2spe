@@ -203,13 +203,14 @@ class QuarterMaster(pl.LightningModule):
         else:
             self.use_multiple_losses = False
 
-            if "loss_config" in self.hparams:
-                if self.hparams.loss_config is not None:
-                    self.use_multiple_losses = True
-                    self.loss_list = []
+            if "loss_config" in self.hparams and self.hparams.loss_config is not None:
+                self.use_multiple_losses = True
 
-                    for loss_config in self.hparams.loss_config:
-                        self.loss_list.append(MultiFacetTripletLoss(**loss_config))
+            if self.use_multiple_losses:
+                self.loss_list = []
+
+                for loss_config in self.hparams.loss_config:
+                    self.loss_list.append(MultiFacetTripletLoss(**loss_config))
             else:
                 if "loss_type" in self.hparams:
                     loss_type = self.hparams.loss_type
