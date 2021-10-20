@@ -201,11 +201,15 @@ class QuarterMaster(pl.LightningModule):
                 distance=self.hparams.loss_distance,
                 reduction=self.hparams.loss_reduction)
         else:
-            if "loss_config" in self.hparams:
-                self.loss_list = []
+            self.use_multiple_losses = False
 
-                for loss_config in self.hparams.loss_config:
-                    self.loss_list.append(MultiFacetTripletLoss(**loss_config))
+            if "loss_config" in self.hparams:
+                if self.loss_config is not None:
+                    self.use_multiple_losses = True
+                    self.loss_list = []
+
+                    for loss_config in self.hparams.loss_config:
+                        self.loss_list.append(MultiFacetTripletLoss(**loss_config))
             else:
                 if "loss_type" in self.hparams:
                     loss_type = self.hparams.loss_type
@@ -432,7 +436,7 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
                 neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
 
-        if "loss_config" in self.hparams:
+        if self.use_multiple_losses:
             loss = 0
 
             for i, l in enumerate(self.loss_list):
@@ -499,7 +503,7 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
                 neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
 
-        if "loss_config" in self.hparams:
+        if self.use_multiple_losses:
             loss = 0
 
             loss_breakdowns = []
@@ -525,7 +529,7 @@ class QuarterMaster(pl.LightningModule):
         if self.hparams.num_facets > 1:
             self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
 
-        if "loss_config" in self.hparams:
+        if self.use_multiple_losses:
             return {"loss": loss, "loss_breakdowns": loss_breakdowns}
         else:
             return {"loss": loss}
@@ -539,7 +543,7 @@ class QuarterMaster(pl.LightningModule):
         if self.trainer.is_global_zero:
             self.log('avg_val_loss', avg_loss, rank_zero_only=True, on_epoch=True, prog_bar=True)
 
-        if "loss_config" in self.hparams:
+        if self.use_multiple_losses:
             losses_all_batch = [[] for _ in range(len(self.hparams.loss_config))]
 
             for b in outputs["loss_breakdowns"]:
