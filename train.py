@@ -547,8 +547,8 @@ class QuarterMaster(pl.LightningModule):
         if self.use_multiple_losses:
             losses_all_batch = [[] for _ in range(len(self.hparams.loss_config))]
 
-            for b in outputs["loss_breakdowns"]:
-                for i, l in enumerate(b):
+            for o in outputs:
+                for i, l in enumerate(o["loss_breakdowns"]):
                     losses_all_batch[i].append(l)
 
             for i in range(len(self.hparams.loss_config)):
