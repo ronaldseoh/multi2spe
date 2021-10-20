@@ -539,7 +539,7 @@ class QuarterMaster(pl.LightningModule):
         # Refer to
         # https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html
         # Note: Apparently what we get out of self.all_gather(outputs) here is a list, not a tensor
-        avg_loss = torch.mean(torch.Tensor(self.all_gather(outputs["loss"])))
+        avg_loss = torch.mean(torch.Tensor(self.all_gather([o["loss"] for o in outputs])))
 
         if self.trainer.is_global_zero:
             self.log('avg_val_loss', avg_loss, rank_zero_only=True, on_epoch=True, prog_bar=True)
