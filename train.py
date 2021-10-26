@@ -493,9 +493,17 @@ class QuarterMaster(pl.LightningModule):
             pos_embedding = self.model(**batch[1])[1]
             neg_embedding = self.model(**batch[2])[1]
         else:
-            source_embedding = self.model(**batch[0]).last_hidden_state[:, 0:self.hparams.num_facets, :]
-            pos_embedding = self.model(**batch[1]).last_hidden_state[:, 0:self.hparams.num_facets, :]
-            neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :]
+            source_output = self.model(**batch[0])
+            pos_output = self.model(**batch[1])
+            neg_output = self.model(**batch[2])
+
+            source_embedding = source_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
+            pos_embedding = pos_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
+            neg_embedding = neg_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
+
+            if self.use_target_token_embs:
+                pos_embedding_tokens_avg = torch.mean(pos_output.last_hidden_state, axis=1, keepdims=True)
+                neg_embedding_tokens_avg = torch.mean(neg_output.last_hidden_state, axis=1, keepdims=True)
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
@@ -504,7 +512,7 @@ class QuarterMaster(pl.LightningModule):
                 # Normalize each facet embeddings for visualization purposes
                 source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
 
-                self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=True)    
+                self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=True)
 
                 self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=True)
 
