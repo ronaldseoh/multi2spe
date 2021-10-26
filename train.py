@@ -186,8 +186,7 @@ class QuarterMaster(pl.LightningModule):
                         self.extra_facet_layers_for_target[0].weight.data = self.model.pooler.dense.weight.data.clone()
                         self.extra_facet_layers_for_target[0].bias.data = self.model.pooler.dense.bias.data.clone()
 
-        if "add_extra_facet_nonlinearity" in self.hparams:
-            if self.hparams.add_extra_facet_nonlinearity:
+        if "add_extra_facet_nonlinearity" in self.hparams and self.hparams.add_extra_facet_nonlinearity:
                 self.extra_facet_nonlinearity = torch.nn.Tanh()
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.hparams.pretrained_model_name)
