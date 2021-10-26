@@ -500,7 +500,7 @@ class QuarterMaster(pl.LightningModule):
                 # Normalize each facet embeddings for visualization purposes
                 source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
 
-                self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=True)
+                self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=True)    
 
                 self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=True)
 
@@ -529,7 +529,10 @@ class QuarterMaster(pl.LightningModule):
             loss_breakdowns = []
 
             for i, l in enumerate(self.loss_list):
-                this_loss = l(source_embedding, pos_embedding, neg_embedding)
+                if self.hparams.loss_config[i]['use_target_token_embs']:
+                    this_loss = l(source_embedding, pos_embedding_tokens_avg, neg_embedding_tokens_avg)
+                else:
+                    this_loss = l(source_embedding, pos_embedding, neg_embedding)
 
                 self.log('val_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -538,6 +541,7 @@ class QuarterMaster(pl.LightningModule):
                 loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
         else:
             loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+            self.log('val_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
         self.log('val_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
@@ -575,6 +579,8 @@ class QuarterMaster(pl.LightningModule):
 
                 if self.trainer.is_global_zero:
                     self.log('avg_val_loss_' + self.hparams.loss_config[i]["name"], avg_this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
+        else:
+            self.log('avg_val_loss_original', avg_loss, rank_zero_only=True, on_epoch=True, prog_bar=True)
 
 
 def parse_args():
