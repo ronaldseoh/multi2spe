@@ -215,11 +215,11 @@ class QuarterMaster(pl.LightningModule):
 
                     self.loss_list.append(
                         MultiFacetTripletLoss(
-                            loss_type=loss_config.loss_type,
-                            margin=loss_config.margin,
-                            distance=loss_config.distance,
-                            reduction=loss_config.reduction,
-                            reduction_multifacet=loss_config.reduction_multifacet))
+                            loss_type=loss_config["loss_type"],
+                            margin=loss_config["margin"],
+                            distance=loss_config["distance"],
+                            reduction=loss_config["reduction"],
+                            reduction_multifacet=loss_config["reduction_multifacet"]))
             else:
                 if "loss_type" in self.hparams:
                     loss_type = self.hparams.loss_type
