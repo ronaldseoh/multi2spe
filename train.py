@@ -30,7 +30,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
     """
     Triplet loss function for multi-facet embeddings: Based on the TripletLoss function from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159
     """
-    def __init__(self, loss_type="margin", margin=1.0, distance='l2-norm', reduction='mean', reduction_multifacet='mean'):
+    def __init__(self, loss_type="margin", margin=1.0, distance='l2-norm', reduction='mean', reduction_multifacet='mean', use_target_token_embs=False):
         """
         Args:
             margin: margin (float, optional): Default: `1`.
@@ -49,6 +49,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
         self.distance = distance
         self.reduction = reduction
         self.reduction_multifacet = reduction_multifacet
+        self.use_target_token_embs = use_target_token_embs
 
     def forward(self, query, positive, negative):
         if self.distance == 'l2-norm':
@@ -201,6 +202,7 @@ class QuarterMaster(pl.LightningModule):
                 reduction=self.hparams.loss_reduction)
         else:
             self.use_multiple_losses = False
+            self.use_target_token_embs = False
 
             if "loss_config" in self.hparams and self.hparams.loss_config is not None:
                 self.use_multiple_losses = True
@@ -209,6 +211,9 @@ class QuarterMaster(pl.LightningModule):
                 self.loss_list = []
 
                 for loss_config in self.hparams.loss_config:
+                    if 'use_target_token_embs' in loss_config.keys() and loss_config['use_target_token_embs']:
+                        self.use_target_token_embs = True
+
                     self.loss_list.append(MultiFacetTripletLoss(**loss_config))
             else:
                 if "loss_type" in self.hparams:
@@ -216,12 +221,15 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     loss_type = "margin"
 
+                self.use_target_token_embs = self.hparams.loss_use_target_token_embs
+
                 self.loss = MultiFacetTripletLoss(
                     loss_type=loss_type,
                     margin=self.hparams.loss_margin,
                     distance=self.hparams.loss_distance,
                     reduction=self.hparams.loss_reduction,
-                    reduction_multifacet=self.hparams.loss_reduction_multifacet)
+                    reduction_multifacet=self.hparams.loss_reduction_multifacet,
+                    use_target_token_embs=self.hparams.loss_use_target_token_embs)
 
         self.opt = None
 
@@ -401,9 +409,17 @@ class QuarterMaster(pl.LightningModule):
             pos_embedding = self.model(**batch[1])[1]
             neg_embedding = self.model(**batch[2])[1]
         else:
-            source_embedding = self.model(**batch[0]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
-            pos_embedding = self.model(**batch[1]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
-            neg_embedding = self.model(**batch[2]).last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
+            source_output = self.model(**batch[0])
+            pos_output = self.model(**batch[1])
+            neg_output = self.model(**batch[2])
+
+            source_embedding = source_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
+            pos_embedding = pos_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
+            neg_embedding = neg_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
+
+            if self.use_target_token_embs:
+                pos_embedding_tokens_avg = torch.mean(pos_output.last_hidden_state, axis=1, keepdims=True)
+                neg_embedding_tokens_avg = torch.mean(neg_output.last_hidden_state, axis=1, keepdims=True)
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
@@ -440,13 +456,17 @@ class QuarterMaster(pl.LightningModule):
             loss = 0
 
             for i, l in enumerate(self.loss_list):
-                this_loss = l(source_embedding, pos_embedding, neg_embedding)
+                if self.hparams.loss_config[i]['use_target_token_embs']:
+                    this_loss = l(source_embedding, pos_embedding_tokens_avg, neg_embedding_tokens_avg)
+                else:
+                    this_loss = l(source_embedding, pos_embedding, neg_embedding)
 
                 self.log('train_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
                 loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
         else:
             loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+            self.log('train_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
         self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -583,13 +603,13 @@ def parse_args():
 
     parser.add_argument('--add_perturb_embeddings', default=False, action='store_true')
 
-
     parser.add_argument('--loss_config', type=json.loads)
     parser.add_argument('--loss_type', default='margin', choices=['margin', 'bce'], type=str)
     parser.add_argument('--loss_margin', default=1.0, type=float)
     parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
     parser.add_argument('--loss_reduction', default='mean', choices=['mean', 'sum', 'none'], type=str)
     parser.add_argument('--loss_reduction_multifacet', default='mean', choices=['mean', 'min', 'max'], type=str)
+    parser.add_argument('--loss_use_target_token_embs', default=False, action='store_true')
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
