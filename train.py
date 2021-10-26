@@ -30,7 +30,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
     """
     Triplet loss function for multi-facet embeddings: Based on the TripletLoss function from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159
     """
-    def __init__(self, loss_type="margin", margin=1.0, distance='l2-norm', reduction='mean', reduction_multifacet='mean', use_target_token_embs=False):
+    def __init__(self, name="original", loss_type="margin", margin=1.0, distance='l2-norm', reduction='mean', reduction_multifacet='mean', use_target_token_embs=False):
         """
         Args:
             margin: margin (float, optional): Default: `1`.
@@ -44,6 +44,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
         """
         super().__init__()
 
+        self.name = name
         self.loss_type = loss_type
         self.margin = margin
         self.distance = distance
