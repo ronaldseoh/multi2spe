@@ -590,7 +590,7 @@ class QuarterMaster(pl.LightningModule):
                 avg_this_loss = torch.mean(torch.Tensor(self.all_gather(losses_all_batch[i])))
 
                 if self.trainer.is_global_zero:
-                    self.log('avg_val_loss_' + self.hparams.loss_config[i]["name"], avg_this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
+                    self.log('avg_val_loss_' + self.hparams.loss_config[i]["name"], avg_this_loss, rank_zero_only=True, on_epoch=True, prog_bar=True)
         else:
             self.log('avg_val_loss_original', avg_loss, rank_zero_only=True, on_epoch=True, prog_bar=True)
 
