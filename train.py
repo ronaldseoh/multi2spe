@@ -226,7 +226,8 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     loss_type = "margin"
 
-                self.use_target_token_embs = self.hparams.loss_use_target_token_embs
+                if "loss_use_target_token_embs" in self.hparams:
+                    self.use_target_token_embs = self.hparams.loss_use_target_token_embs
 
                 self.loss = MultiFacetTripletLoss(
                     loss_type=loss_type,
