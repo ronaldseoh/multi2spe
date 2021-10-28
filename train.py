@@ -187,7 +187,12 @@ class QuarterMaster(pl.LightningModule):
                         self.extra_facet_layers_for_target[0].bias.data = self.model.pooler.dense.bias.data.clone()
 
         if "add_extra_facet_nonlinearity" in self.hparams and self.hparams.add_extra_facet_nonlinearity:
-                self.extra_facet_nonlinearity = torch.nn.Tanh()
+            self.extra_facet_nonlinearity = torch.nn.Tanh()
+
+        self.add_extra_facet_layers_alternate = False
+
+        if "add_extra_facet_layers_alternate" in self.hparams and self.hparams.num_facets > 1 and self.hparams.add_extra_facet_layers_alternate:
+            self.add_extra_facet_layers_alternate = True
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.hparams.pretrained_model_name)
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
@@ -250,8 +255,18 @@ class QuarterMaster(pl.LightningModule):
             # Extra facet layer
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
+                if self.add_extra_facet_layers_alternate:
+                    extra_facet_layers_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers], dim=0).mean(dim=0)
+                    extra_facet_layers_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers]
+
+                # Pass the source embeddings through extra linear layers
                 for n in range(self.hparams.num_facets):
-                    source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+                    # Instead of passing embeddings through output linear layers independently,
+                    # Make the actual linear weights to be (linear weight of this facet - avg of all output weights)
+                    if self.add_extra_facet_layers_alternate:
+                        source_embedding[:, n, :] = torch.nn.functional.linear(source_embedding[:, n, :], extra_facet_layers_alternate_weights[n], self.extra_facet_layers[n].bias)
+                    else:
+                        source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
             return source_embedding[:, 0:self.hparams.num_facets, :]
 
@@ -438,19 +453,42 @@ class QuarterMaster(pl.LightningModule):
 
                     self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=True)
 
+                if self.add_extra_facet_layers_alternate:
+                    extra_facet_layers_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers], dim=0).mean(dim=0)
+                    extra_facet_layers_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers]
+
                 # Pass the source embeddings through extra linear layers
                 for n in range(self.hparams.num_facets):
-                    source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+                    # Instead of passing embeddings through output linear layers independently,
+                    # Make the actual linear weights to be (linear weight of this facet - avg of all output weights)
+                    if self.add_extra_facet_layers_alternate:
+                        source_embedding[:, n, :] = torch.nn.functional.linear(source_embedding[:, n, :], extra_facet_layers_alternate_weights[n], self.extra_facet_layers[n].bias)
+                    else:
+                        source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
             # For positive and negative papers, we could choose to train separate linear layers from source/pos
             if len(self.extra_facet_layers_for_target) > 0:
+                # Instead of passing embeddings through output linear layers independently,
+                # Make the actual linear weights to be (linear weight of this facet - avg of all output weights)
+                if self.add_extra_facet_layers_alternate:
+                    extra_facet_layers_for_target_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers_for_target], dim=0).mean(dim=0)
+                    extra_facet_layers_for_target_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers_for_target]
+
                 for n in range(self.hparams.num_facets):
-                    pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
-                    neg_embedding[:, n, :] = self.extra_facet_layers_for_target[n](neg_embedding[:, n, :])
+                    if self.add_extra_facet_layers_alternate:
+                        pos_embedding[:, n, :] = torch.nn.functional.linear(pos_embedding[:, n, :], extra_facet_layers_for_target_alternate_weights[n], self.extra_facet_layers_for_target[n].bias)
+                        neg_embedding[:, n, :] = torch.nn.functional.linear(neg_embedding[:, n, :], extra_facet_layers_for_target_alternate_weights[n], self.extra_facet_layers_for_target[n].bias)
+                    else:
+                        pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
+                        neg_embedding[:, n, :] = self.extra_facet_layers_for_target[n](neg_embedding[:, n, :])
             elif len(self.extra_facet_layers) > 0:
                 for n in range(self.hparams.num_facets):
-                    pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
-                    neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
+                    if self.add_extra_facet_layers_alternate:
+                        pos_embedding[:, n, :] = torch.nn.functional.linear(pos_embedding[:, n, :], extra_facet_layers_alternate_weights[n], self.extra_facet_layers[n].bias)
+                        neg_embedding[:, n, :] = torch.nn.functional.linear(neg_embedding[:, n, :], extra_facet_layers_alternate_weights[n], self.extra_facet_layers[n].bias)
+                    else:
+                        pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
+                        neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
             if self.hparams.add_extra_facet_nonlinearity:
                 source_embedding = self.extra_facet_nonlinearity(source_embedding)
@@ -517,19 +555,43 @@ class QuarterMaster(pl.LightningModule):
 
                 self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=True)
 
+                if self.add_extra_facet_layers_alternate:
+                    extra_facet_layers_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers], dim=0).mean(dim=0)
+                    extra_facet_layers_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers]
+
                 # Pass the source embeddings through extra linear layers
                 for n in range(self.hparams.num_facets):
-                    source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+                    # Instead of passing embeddings through output linear layers independently,
+                    # Make the actual linear weights to be (linear weight of this facet - avg of all output weights)
+                    if self.add_extra_facet_layers_alternate:
+                        source_embedding[:, n, :] = torch.nn.functional.linear(source_embedding[:, n, :], extra_facet_layers_alternate_weights[n], self.extra_facet_layers[n].bias)
+                    else:
+                        source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
             # For positive and negative papers, we could choose to train separate linear layers from source/pos
             if len(self.extra_facet_layers_for_target) > 0:
+                # Instead of passing embeddings through output linear layers independently,
+                # Make the actual linear weights to be (linear weight of this facet - avg of all output weights)
+                if self.add_extra_facet_layers_alternate:
+                    extra_facet_layers_for_target_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers_for_target], dim=0).mean(dim=0)
+                    extra_facet_layers_for_target_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers_for_target]
+
                 for n in range(self.hparams.num_facets):
-                    pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
-                    neg_embedding[:, n, :] = self.extra_facet_layers_for_target[n](neg_embedding[:, n, :])
+                    if self.add_extra_facet_layers_alternate:
+                        pos_embedding[:, n, :] = torch.nn.functional.linear(pos_embedding[:, n, :], extra_facet_layers_for_target_alternate_weights[n], self.extra_facet_layers_for_target[n].bias)
+                        neg_embedding[:, n, :] = torch.nn.functional.linear(neg_embedding[:, n, :], extra_facet_layers_for_target_alternate_weights[n], self.extra_facet_layers_for_target[n].bias)
+                    else:
+                        pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
+                        neg_embedding[:, n, :] = self.extra_facet_layers_for_target[n](neg_embedding[:, n, :])
+
             elif len(self.extra_facet_layers) > 0:
                 for n in range(self.hparams.num_facets):
-                    pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
-                    neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
+                    if self.add_extra_facet_layers_alternate:
+                        pos_embedding[:, n, :] = torch.nn.functional.linear(pos_embedding[:, n, :], extra_facet_layers_alternate_weights[n], self.extra_facet_layers[n].bias)
+                        neg_embedding[:, n, :] = torch.nn.functional.linear(neg_embedding[:, n, :], extra_facet_layers_alternate_weights[n], self.extra_facet_layers[n].bias)
+                    else:
+                        pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
+                        neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
 
             if self.hparams.add_extra_facet_nonlinearity:
                 source_embedding = self.extra_facet_nonlinearity(source_embedding)
@@ -611,6 +673,7 @@ def parse_args():
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_alternate', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_after', nargs='*', type=int, help='Add extra facet layers right after the hidden states of specified encoder layers.')
     parser.add_argument('--init_bert_layer_facet_layers', default="default", choices=["default", "identity"], type=str)
 
