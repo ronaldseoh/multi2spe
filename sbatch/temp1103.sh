@@ -14,38 +14,38 @@ conda activate qm
 EXPERIMENT_ID_PREFIX=multilosstest2
 EXPERIMENT_DATE="10-14"
 
-python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}/checkpoints/last.ckpt \
+python embed.py --pl-checkpoint-path ${EXPERIMENT_ID_PREFIX}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_mag_mesh.json \
-                --output save_${EXPERIMENT_ID_PREFIX}/cls.jsonl --batch-size 4
+                --output ${EXPERIMENT_ID_PREFIX}/cls.jsonl --batch-size 4
                 
-python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}/checkpoints/last.ckpt \
+python embed.py --pl-checkpoint-path ${EXPERIMENT_ID_PREFIX}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_recomm.json \
-                --output save_${EXPERIMENT_ID_PREFIX}/recomm.jsonl --batch-size 4
+                --output ${EXPERIMENT_ID_PREFIX}/recomm.jsonl --batch-size 4
                 
-python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}/checkpoints/last.ckpt \
+python embed.py --pl-checkpoint-path ${EXPERIMENT_ID_PREFIX}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_view_cite_read.json \
-                --output save_${EXPERIMENT_ID_PREFIX}/user-citation.jsonl --batch-size 4
+                --output ${EXPERIMENT_ID_PREFIX}/user-citation.jsonl --batch-size 4
 
 conda deactivate
 conda activate scidocs
 
-python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}/cls.jsonl \
-                      --user-citation save_${EXPERIMENT_ID_PREFIX}/user-citation.jsonl \
-                      --recomm save_${EXPERIMENT_ID_PREFIX}/recomm.jsonl \
+python ../scidocs/scripts/run.py --cls ${EXPERIMENT_ID_PREFIX}/cls.jsonl \
+                      --user-citation ${EXPERIMENT_ID_PREFIX}/user-citation.jsonl \
+                      --recomm ${EXPERIMENT_ID_PREFIX}/recomm.jsonl \
                       --val_or_test test \
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --cls-svm \
                       --data-path ../scidocs/data \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}/results.xlsx
+                      --results-save-path ${EXPERIMENT_ID_PREFIX}/results.xlsx
 
-python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}/cls.jsonl \
-                      --user-citation save_${EXPERIMENT_ID_PREFIX}/user-citation.jsonl \
-                      --recomm save_${EXPERIMENT_ID_PREFIX}/recomm.jsonl \
+python ../scidocs/scripts/run.py --cls ${EXPERIMENT_ID_PREFIX}/cls.jsonl \
+                      --user-citation ${EXPERIMENT_ID_PREFIX}/user-citation.jsonl \
+                      --recomm ${EXPERIMENT_ID_PREFIX}/recomm.jsonl \
                       --val_or_test test \
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --cls-svm \
                       --user-citation-metric "cosine" \
                       --data-path ../scidocs/data \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}/results_cosine.xlsx
+                      --results-save-path ${EXPERIMENT_ID_PREFIX}/results_cosine.xlsx
