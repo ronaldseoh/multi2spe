@@ -3,7 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/scidocs_only_cosine_%j.txt
 #SBATCH -e sbatch_logs/stderr/scidocs_only_cosine_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=1080ti-short
+#SBATCH --partition=1080ti-long
 #SBATCH --gres=gpu:1
 #SBATCH --mem=48GB
 #SBATCH --cpus-per-task=2
@@ -11,8 +11,8 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=k-3_separate_layer_8_4_identity_nsp_cross_entropy
-EXPERIMENT_DATE="10-14"
+EXPERIMENT_ID_PREFIX=k-5_extra_facet_alternate_common_random_init_cross_entropy
+EXPERIMENT_DATE="11-03"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_mag_mesh.json \
