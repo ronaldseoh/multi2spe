@@ -430,14 +430,14 @@ class QuarterMaster(pl.LightningModule):
             pos_embedding = self.model(
                 input_ids=batch[1]['input_ids'], token_type_ids=batch[1]['token_type_ids'], attention_mask=batch[1]['attention_mask'])[1]
             neg_embedding = self.model(
-                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask']])[1]
+                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask'])[1]
         else:
             source_output = self.model(
                 input_ids=batch[0]['input_ids'], token_type_ids=batch[0]['token_type_ids'], attention_mask=batch[0]['attention_mask'])
             pos_output = self.model(
                 input_ids=batch[1]['input_ids'], token_type_ids=batch[1]['token_type_ids'], attention_mask=batch[1]['attention_mask'])
             neg_output = self.model(
-                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask']])
+                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask'])
 
             source_embedding = source_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
             pos_embedding = pos_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
@@ -556,14 +556,14 @@ class QuarterMaster(pl.LightningModule):
             pos_embedding = self.model(
                 input_ids=batch[1]['input_ids'], token_type_ids=batch[1]['token_type_ids'], attention_mask=batch[1]['attention_mask'])[1]
             neg_embedding = self.model(
-                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask']])[1]
+                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask'])[1]
         else:
             source_output = self.model(
                 input_ids=batch[0]['input_ids'], token_type_ids=batch[0]['token_type_ids'], attention_mask=batch[0]['attention_mask'])
             pos_output = self.model(
                 input_ids=batch[1]['input_ids'], token_type_ids=batch[1]['token_type_ids'], attention_mask=batch[1]['attention_mask'])
             neg_output = self.model(
-                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask']])
+                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask'])
 
             source_embedding = source_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
             pos_embedding = pos_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
