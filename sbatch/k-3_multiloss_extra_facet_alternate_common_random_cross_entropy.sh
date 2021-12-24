@@ -15,8 +15,8 @@ EXPERIMENT_ID_PREFIX=k-3_multiloss_extra_facet_alternate_common_random_cross_ent
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
-                --train_file ~/original_data/train_shuffled.pkl --train_size 684100 \
-                --val_file ~/original_data/val_shuffled.pkl --val_size 145375 \
+                --train_file ~/my_scratch/original_data/train_shuffled.pkl --train_size 684100 \
+                --val_file ~/my_scratch/original_data/val_shuffled.pkl --val_size 145375 \
                 --model_behavior 'quartermaster' --num_facets 3 \
                 --add_extra_facet_layers \
                 --add_extra_facet_nonlinearity \
