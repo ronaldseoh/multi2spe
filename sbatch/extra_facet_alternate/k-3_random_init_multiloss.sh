@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=k-3_random_init_multiloss_extra_facet_alternate_common_nsp_cross_entropy
-#SBATCH -o sbatch_logs/stdout/k-3_random_init_multiloss_extra_facet_alternate_common_nsp_cross_entropy_%j.txt
-#SBATCH -e sbatch_logs/stderr/k-3_random_init_multiloss_extra_facet_alternate_common_nsp_cross_entropy_%j.err
+#SBATCH --job-name=k-3_multiloss_extra_facet_alternate_common_random_cross_entropy
+#SBATCH -o sbatch_logs/stdout/k-3_multiloss_extra_facet_alternate_common_random_cross_entropy_%j.txt
+#SBATCH -e sbatch_logs/stderr/k-3_multiloss_extra_facet_alternate_common_random_cross_entropy_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=1080ti-long
 #SBATCH --gres=gpu:1
@@ -11,7 +11,7 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=k-3_random_init_multiloss_extra_facet_alternate_common_nsp_cross_entropy
+EXPERIMENT_ID_PREFIX=k-3_multiloss_extra_facet_alternate_common_random_cross_entropy
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
