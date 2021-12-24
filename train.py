@@ -460,9 +460,11 @@ class QuarterMaster(pl.LightningModule):
                 # sum across dimension 1, then divide them by the number of non-zero elements
                 pos_embedding_tokens_avg = pos_output.last_hidden_state * pos_special_tokens_mask_inverted
                 pos_embedding_tokens_avg = pos_embedding_tokens_avg.sum(dim=1) / torch.count_nonzero(pos_embedding_tokens_avg, dim=1)
+                pos_embedding_tokens_avg = pos_embedding_tokens_avg.unsqueeze(1)
 
                 neg_embedding_tokens_avg = neg_output.last_hidden_state * neg_special_tokens_mask_inverted
                 neg_embedding_tokens_avg = neg_embedding_tokens_avg.sum(dim=1) / torch.count_nonzero(neg_embedding_tokens_avg, dim=1)
+                neg_embedding_tokens_avg = neg_embedding_tokens_avg.unsqueeze(1)
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
