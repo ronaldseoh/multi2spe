@@ -438,8 +438,25 @@ class QuarterMaster(pl.LightningModule):
             neg_embedding = neg_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
 
             if self.use_target_token_embs:
-                pos_embedding_tokens_avg = torch.mean(pos_output.last_hidden_state, axis=1, keepdims=True)
-                neg_embedding_tokens_avg = torch.mean(neg_output.last_hidden_state, axis=1, keepdims=True)
+                # Use 'special_tokens_mask' to sum up just the sequence tokens and exclude all special tokens
+                # [CLS], [unused0~k] (for extra facets), [SEP], [PAD]
+                # Note for `special_tokens_mask', 0 for sequence tokens and 1 for special tokens.
+                # Since we want special tokens to be filtered out, we first need to invert this mask tensor.
+                pos_special_tokens_mask_inverted = ~(batch[1]['special_tokens_mask'].type(torch.bool))
+                neg_special_tokens_mask_inverted = ~(batch[2]['special_tokens_mask'].type(torch.bool))
+
+                # Since the masks above would have the dimensions of (batch size, 512), we use unsqueeze() and expand()
+                # to match the shape of last_hidden_state, which would have the shape of (batch size, 512, 768).
+                pos_special_tokens_mask_inverted = pos_special_tokens_mask_inverted.unsqueeze(-1).expand(pos_output.last_hidden_state)
+                neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state)
+
+                # Finally, multiply the last hidden states and corresponding masks elementwise,
+                # sum across dimension 1, then divide them by the number of non-zero elements
+                pos_embedding_tokens_avg = pos_output.last_hidden_state * pos_special_tokens_mask_inverted
+                pos_embedding_tokens_avg = pos_embedding_tokens_avg.sum(dim=1) / torch.count_nonzero(pos_embedding_tokens_avg, dim=1)
+
+                neg_embedding_tokens_avg = neg_output.last_hidden_state * neg_special_tokens_mask_inverted
+                neg_embedding_tokens_avg = neg_embedding_tokens_avg.sum(dim=1) / torch.count_nonzero(neg_embedding_tokens_avg, dim=1)
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
