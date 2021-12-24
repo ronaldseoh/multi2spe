@@ -425,13 +425,19 @@ class QuarterMaster(pl.LightningModule):
         if self.hparams.model_behavior == 'specter':
             # [1] actually contains what's referred to as "pooled output" in the Huggingface docs,
             # which is the [CLS] last hidden state followed by the BERT NSP linear layer
-            source_embedding = self.model(**batch[0])[1]
-            pos_embedding = self.model(**batch[1])[1]
-            neg_embedding = self.model(**batch[2])[1]
+            source_embedding = self.model(
+                input_ids=batch[0]['input_ids'], token_type_ids=batch[0]['token_type_ids'], attention_mask=batch[0]['attention_mask'])[1]
+            pos_embedding = self.model(
+                input_ids=batch[1]['input_ids'], token_type_ids=batch[1]['token_type_ids'], attention_mask=batch[1]['attention_mask'])[1]
+            neg_embedding = self.model(
+                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask']])[1]
         else:
-            source_output = self.model(**batch[0])
-            pos_output = self.model(**batch[1])
-            neg_output = self.model(**batch[2])
+            source_output = self.model(
+                input_ids=batch[0]['input_ids'], token_type_ids=batch[0]['token_type_ids'], attention_mask=batch[0]['attention_mask'])
+            pos_output = self.model(
+                input_ids=batch[1]['input_ids'], token_type_ids=batch[1]['token_type_ids'], attention_mask=batch[1]['attention_mask'])
+            neg_output = self.model(
+                input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask']])
 
             source_embedding = source_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
             pos_embedding = pos_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
