@@ -453,8 +453,8 @@ class QuarterMaster(pl.LightningModule):
 
                 # Since the masks above would have the dimensions of (batch size, 512), we use unsqueeze() and expand()
                 # to match the shape of last_hidden_state, which would have the shape of (batch size, 512, 768).
-                pos_special_tokens_mask_inverted = pos_special_tokens_mask_inverted.unsqueeze(-1).expand(pos_output.last_hidden_state)
-                neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state)
+                pos_special_tokens_mask_inverted = pos_special_tokens_mask_inverted.unsqueeze(-1).expand(pos_output.last_hidden_state.size())
+                neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state.size())
 
                 # Finally, multiply the last hidden states and corresponding masks elementwise,
                 # sum across dimension 1, then divide them by the number of non-zero elements
@@ -579,8 +579,8 @@ class QuarterMaster(pl.LightningModule):
 
                 # Since the masks above would have the dimensions of (batch size, 512), we use unsqueeze() and expand()
                 # to match the shape of last_hidden_state, which would have the shape of (batch size, 512, 768).
-                pos_special_tokens_mask_inverted = pos_special_tokens_mask_inverted.unsqueeze(-1).expand(pos_output.last_hidden_state)
-                neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state)
+                pos_special_tokens_mask_inverted = pos_special_tokens_mask_inverted.unsqueeze(-1).expand(pos_output.last_hidden_state.size())
+                neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state.size())
 
                 # Finally, multiply the last hidden states and corresponding masks elementwise,
                 # sum across dimension 1, then divide them by the number of non-zero elements
