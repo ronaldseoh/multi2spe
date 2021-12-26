@@ -221,6 +221,7 @@ class QuarterMaster(pl.LightningModule):
         else:
             self.use_multiple_losses = False
             self.use_target_token_embs = False
+            self.do_not_use_target_token_embs_mean = False
 
             if "loss_config" in self.hparams and self.hparams.loss_config is not None:
                 self.use_multiple_losses = True
@@ -231,6 +232,9 @@ class QuarterMaster(pl.LightningModule):
                 for loss_config in self.hparams.loss_config:
                     if 'use_target_token_embs' in loss_config.keys() and loss_config['use_target_token_embs']:
                         self.use_target_token_embs = True
+
+                        if 'do_not_use_target_token_embs_mean' in loss_config.keys() and loss_config['do_not_use_target_token_embs_mean']:
+                            self.do_not_use_target_token_embs_mean = True
 
                     self.loss_list.append(
                         MultiFacetTripletLoss(
@@ -250,6 +254,9 @@ class QuarterMaster(pl.LightningModule):
 
                 if "loss_use_target_token_embs" in self.hparams:
                     self.use_target_token_embs = self.hparams.loss_use_target_token_embs
+
+                    if "loss_do_not_use_target_token_embs_mean" in self.hparams:
+                        self.do_not_use_target_token_embs_mean = self.hparams.loss_do_not_use_target_token_embs_mean
 
                 self.loss = MultiFacetTripletLoss(
                     loss_type=loss_type,
@@ -474,15 +481,17 @@ class QuarterMaster(pl.LightningModule):
                 pos_special_tokens_mask_inverted = pos_special_tokens_mask_inverted.unsqueeze(-1).expand(pos_output.last_hidden_state.size())
                 neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state.size())
 
-                # Finally, multiply the last hidden states and corresponding masks elementwise,
-                # sum across dimension 1, then divide them by the number of non-zero elements
-                pos_embedding_tokens_avg = pos_output.last_hidden_state * pos_special_tokens_mask_inverted
-                pos_embedding_tokens_avg = pos_embedding_tokens_avg.sum(dim=1) / torch.count_nonzero(pos_embedding_tokens_avg, dim=1)
-                pos_embedding_tokens_avg = pos_embedding_tokens_avg.unsqueeze(1)
+                # Multiply the last hidden states and corresponding masks elementwise,
+                pos_embedding_tokens = pos_output.last_hidden_state * pos_special_tokens_mask_inverted
+                neg_embedding_tokens = neg_output.last_hidden_state * neg_special_tokens_mask_inverted
 
-                neg_embedding_tokens_avg = neg_output.last_hidden_state * neg_special_tokens_mask_inverted
-                neg_embedding_tokens_avg = neg_embedding_tokens_avg.sum(dim=1) / torch.count_nonzero(neg_embedding_tokens_avg, dim=1)
-                neg_embedding_tokens_avg = neg_embedding_tokens_avg.unsqueeze(1)
+                # sum across dimension 1, then divide them by the number of non-zero elements
+                if not self.do_not_use_target_token_embs_mean:
+                    pos_embedding_tokens_mean = pos_embedding_tokens.sum(dim=1) / torch.count_nonzero(pos_embedding_tokens, dim=1)
+                    pos_embedding_tokens_mean = pos_embedding_tokens_mean.unsqueeze(1)
+
+                    neg_embedding_tokens_mean = neg_embedding_tokens.sum(dim=1) / torch.count_nonzero(neg_embedding_tokens, dim=1)
+                    neg_embedding_tokens_mean = neg_embedding_tokens_mean.unsqueeze(1)
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
@@ -543,7 +552,10 @@ class QuarterMaster(pl.LightningModule):
 
             for i, l in enumerate(self.loss_list):
                 if self.hparams.loss_config[i]['use_target_token_embs']:
-                    this_loss = l(source_embedding, pos_embedding_tokens_avg, neg_embedding_tokens_avg)
+                    if not self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
+                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+                    else:
+                        this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                 else:
                     this_loss = l(source_embedding, pos_embedding, neg_embedding)
 
@@ -602,15 +614,17 @@ class QuarterMaster(pl.LightningModule):
                 pos_special_tokens_mask_inverted = pos_special_tokens_mask_inverted.unsqueeze(-1).expand(pos_output.last_hidden_state.size())
                 neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state.size())
 
-                # Finally, multiply the last hidden states and corresponding masks elementwise,
-                # sum across dimension 1, then divide them by the number of non-zero elements
-                pos_embedding_tokens_avg = pos_output.last_hidden_state * pos_special_tokens_mask_inverted
-                pos_embedding_tokens_avg = pos_embedding_tokens_avg.sum(dim=1) / torch.count_nonzero(pos_embedding_tokens_avg, dim=1)
-                pos_embedding_tokens_avg = pos_embedding_tokens_avg.unsqueeze(1)
+                # Multiply the last hidden states and corresponding masks elementwise,
+                pos_embedding_tokens = pos_output.last_hidden_state * pos_special_tokens_mask_inverted
+                neg_embedding_tokens = neg_output.last_hidden_state * neg_special_tokens_mask_inverted
 
-                neg_embedding_tokens_avg = neg_output.last_hidden_state * neg_special_tokens_mask_inverted
-                neg_embedding_tokens_avg = neg_embedding_tokens_avg.sum(dim=1) / torch.count_nonzero(neg_embedding_tokens_avg, dim=1)
-                neg_embedding_tokens_avg = neg_embedding_tokens_avg.unsqueeze(1)
+                # sum across dimension 1, then divide them by the number of non-zero elements
+                if not self.do_not_use_target_token_embs_mean:
+                    pos_embedding_tokens_mean = pos_embedding_tokens.sum(dim=1) / torch.count_nonzero(pos_embedding_tokens, dim=1)
+                    pos_embedding_tokens_mean = pos_embedding_tokens_mean.unsqueeze(1)
+
+                    neg_embedding_tokens_mean = neg_embedding_tokens.sum(dim=1) / torch.count_nonzero(neg_embedding_tokens, dim=1)
+                    neg_embedding_tokens_mean = neg_embedding_tokens_mean.unsqueeze(1)
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
@@ -673,7 +687,10 @@ class QuarterMaster(pl.LightningModule):
 
             for i, l in enumerate(self.loss_list):
                 if self.hparams.loss_config[i]['use_target_token_embs']:
-                    this_loss = l(source_embedding, pos_embedding_tokens_avg, neg_embedding_tokens_avg)
+                    if not self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
+                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+                    else:
+                        this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                 else:
                     this_loss = l(source_embedding, pos_embedding, neg_embedding)
 
@@ -760,7 +777,9 @@ def parse_args():
     parser.add_argument('--loss_reduction', default='mean', choices=['mean', 'sum', 'none'], type=str)
     parser.add_argument('--loss_reduction_multifacet', default='mean', choices=['mean', 'min', 'max'], type=str)
     parser.add_argument('--loss_reduction_multifacet_target', default='mean', choices=['mean', 'min', 'max'], type=str)
+
     parser.add_argument('--loss_use_target_token_embs', default=False, action='store_true')
+    parser.add_argument('--loss_do_not_use_target_token_embs_mean', default=False, action='store_true')
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
