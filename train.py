@@ -73,18 +73,48 @@ class MultiFacetTripletLoss(torch.nn.Module):
 
         # Calculating the distances with `_masked` matrices above would lead to `nan` distances,
         # which we need to filter for each 'reduction' operation below.
+        distance_positive_all_isnan = torch.isnan(distance_positive_all)
+        distance_negative_all_isnan = torch.isnan(distance_negative_all)
+
         if reduction_multifacet_target is None:
             distance_positive_all = distance_positive_all.flatten(start_dim=1)
             distance_negative_all = distance_negative_all.flatten(start_dim=1)
+
+            # We filter out nan values based on the choice of 'reduction_multifacet', not `_target'
+            if self.reduction_multifacet == 'min':
+                distance_positive_all[distance_positive_all_isnan] = float('inf')
+                distance_negative_all[distance_negative_all_isnan] = float('inf')
+            elif self.reduction_multifacet == 'max':
+                distance_positive_all[distance_positive_all_isnan] = float('-inf')
+                distance_negative_all[distance_negative_all_isnan] = float('-inf')
+            elif self.reduction_multifacet == 'mean':
+                distance_positive_all[distance_positive_all_isnan] = 0.0
+                distance_negative_all[distance_negative_all_isnan] = 0.0
         elif self.reduction_multifacet_target == 'min':
+            # Since we first look for the minimum distance in dim 2, we make invalid distances
+            # to have positive infinity values.
+            distance_positive_all[distance_positive_all_isnan] = float('inf')
+            distance_negative_all[distance_negative_all_isnan] = float('inf')
+
             distance_positive_all = torch.min(distance_positive_all, dim=2).values
             distance_negative_all = torch.min(distance_negative_all, dim=2).values
         elif self.reduction_multifacet_target == 'max':
+            # Since we first look for the maximum distance in dim 2, we make invalid distances
+            # to have **negative** infinity values.
+            distance_positive_all[distance_positive_all_isnan] = float('-inf')
+            distance_negative_all[distance_negative_all_isnan] = float('-inf')
+
             distance_positive_all = torch.max(distance_positive_all, dim=2).values
             distance_negative_all = torch.max(distance_negative_all, dim=2).values
         elif self.reduction_multifacet_target == 'mean':
-            distance_positive_all = torch.mean(distance_positive_all, dim=2)
-            distance_negative_all = torch.mean(distance_negative_all, dim=2)
+            # Since we calculate mean distance across dim 2, we make invalid distances
+            # to be 0.
+            distance_positive_all[distance_positive_all_isnan] = 0.0
+            distance_negative_all[distance_negative_all_isnan] = 0.0
+
+            # We need to calculate mean values with just the non-zero values.
+            distance_positive_all = torch.sum(distance_positive_all, dim=2) / torch.count_nonzero(distance_positive_all, dim=2)
+            distance_negative_all = torch.sum(distance_negative_all, dim=2) / torch.count_nonzero(distance_negative_all, dim=2)
 
         if self.reduction_multifacet == 'min':
             distance_positive = torch.min(distance_positive_all, dim=1).values
@@ -93,8 +123,8 @@ class MultiFacetTripletLoss(torch.nn.Module):
             distance_positive = torch.max(distance_positive_all, dim=1).values
             distance_negative = torch.max(distance_negative_all, dim=1).values
         elif self.reduction_multifacet == 'mean':
-            distance_positive = torch.mean(distance_positive_all, dim=1)
-            distance_negative = torch.mean(distance_negative_all, dim=1)
+            distance_positive = torch.sum(distance_positive_all, dim=1) / torch.count_nonzero(distance_positive_all, dim=1)
+            distance_negative = torch.sum(distance_negative_all, dim=1) / torch.count_nonzero(distance_negative_all, dim=1)
 
         if self.loss_type == "bce":
             distances_as_logits = torch.stack([distance_negative, distance_positive], axis=1)
