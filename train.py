@@ -76,13 +76,13 @@ class MultiFacetTripletLoss(torch.nn.Module):
         if reduction_multifacet_target is None:
             distance_positive_all = distance_positive_all.flatten(start_dim=1)
             distance_negative_all = distance_negative_all.flatten(start_dim=1)
-        elif self.reduction_multifacet == 'min':
+        elif self.reduction_multifacet_target == 'min':
             distance_positive_all = torch.min(distance_positive_all, dim=2).values
             distance_negative_all = torch.min(distance_negative_all, dim=2).values
-        elif self.reduction_multifacet == 'max':
+        elif self.reduction_multifacet_target == 'max':
             distance_positive_all = torch.max(distance_positive_all, dim=2).values
             distance_negative_all = torch.max(distance_negative_all, dim=2).values
-        elif self.reduction_multifacet == 'mean':
+        elif self.reduction_multifacet_target == 'mean':
             distance_positive_all = torch.mean(distance_positive_all, dim=2)
             distance_negative_all = torch.mean(distance_negative_all, dim=2)
 
