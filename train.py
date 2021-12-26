@@ -52,15 +52,27 @@ class MultiFacetTripletLoss(torch.nn.Module):
         self.reduction_multifacet = reduction_multifacet
 
     def forward(self, query, positive, negative):
+        # Are there any zero vectors in `query`, `positive`, and `negative`?
+        # We need to introduce masks to filter them out.
+        query_mask = torch.nan_to_num((query.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf')) 
+        positive_mask = torch.nan_to_num((positive.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf')) 
+        negative_mask = torch.nan_to_num((negative.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf'))
+
+        query_masked = query * query_mask
+        positive_masked = positive * positive_mask
+        negative_masked = negative * negative_mask
+
         if self.distance == 'l2-norm':
-            distance_positive_all = torch.cdist(query, positive, p=2)
-            distance_negative_all = torch.cdist(query, negative, p=2)
+            distance_positive_all = torch.cdist(query_masked, positive_masked, p=2)
+            distance_negative_all = torch.cdist(query_masked, negative_masked, p=2)
         elif self.distance == 'dot':
-            distance_positive_all = torch.bmm(query, torch.transpose(positive, 1, 2))
-            distance_negative_all = torch.bmm(query, torch.transpose(negative, 1, 2))
+            distance_positive_all = torch.bmm(query_masked, torch.transpose(positive_masked, 1, 2))
+            distance_negative_all = torch.bmm(query_masked, torch.transpose(negative_masked, 1, 2))
         else:
             raise TypeError(f"Unrecognized option for `distance`:{self.distance}")
 
+        # Calculating the distances with `_masked` matrices above would lead to `nan` distances,
+        # which we need to filter for each 'reduction' operation below.
         if reduction_multifacet_target is None:
             distance_positive_all = distance_positive_all.flatten(start_dim=1)
             distance_negative_all = distance_negative_all.flatten(start_dim=1)
