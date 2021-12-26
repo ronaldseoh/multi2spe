@@ -30,7 +30,8 @@ class MultiFacetTripletLoss(torch.nn.Module):
     """
     Triplet loss function for multi-facet embeddings: Based on the TripletLoss function from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159
     """
-    def __init__(self, loss_type="margin", margin=1.0, distance='l2-norm', reduction='mean', reduction_multifacet='mean'):
+    def __init__(self, loss_type="margin", margin=1.0, distance='l2-norm',
+                 reduction='mean', reduction_multifacet='mean', reduction_multifacet_target=None):
         """
         Args:
             margin: margin (float, optional): Default: `1`.
@@ -52,13 +53,26 @@ class MultiFacetTripletLoss(torch.nn.Module):
 
     def forward(self, query, positive, negative):
         if self.distance == 'l2-norm':
-            distance_positive_all = torch.cdist(query, positive, p=2).flatten(start_dim=1)
-            distance_negative_all = torch.cdist(query, negative, p=2).flatten(start_dim=1)
+            distance_positive_all = torch.cdist(query, positive, p=2)
+            distance_negative_all = torch.cdist(query, negative, p=2)
         elif self.distance == 'dot':
-            distance_positive_all = torch.bmm(query, torch.transpose(positive, 1, 2)).flatten(start_dim=1)
-            distance_negative_all = torch.bmm(query, torch.transpose(negative, 1, 2)).flatten(start_dim=1)
+            distance_positive_all = torch.bmm(query, torch.transpose(positive, 1, 2))
+            distance_negative_all = torch.bmm(query, torch.transpose(negative, 1, 2))
         else:
             raise TypeError(f"Unrecognized option for `distance`:{self.distance}")
+
+        if reduction_multifacet_target is None:
+            distance_positive_all = distance_positive_all.flatten(start_dim=1)
+            distance_negative_all = distance_negative_all.flatten(start_dim=1)
+        elif self.reduction_multifacet == 'min':
+            distance_positive_all = torch.min(distance_positive_all, dim=2).values
+            distance_negative_all = torch.min(distance_negative_all, dim=2).values
+        elif self.reduction_multifacet == 'max':
+            distance_positive_all = torch.max(distance_positive_all, dim=2).values
+            distance_negative_all = torch.max(distance_negative_all, dim=2).values
+        elif self.reduction_multifacet == 'mean':
+            distance_positive_all = torch.mean(distance_positive_all, dim=2)
+            distance_negative_all = torch.mean(distance_negative_all, dim=2)
 
         if self.reduction_multifacet == 'min':
             distance_positive = torch.min(distance_positive_all, dim=1).values
@@ -224,7 +238,10 @@ class QuarterMaster(pl.LightningModule):
                             margin=loss_config["margin"],
                             distance=loss_config["distance"],
                             reduction=loss_config["reduction"],
-                            reduction_multifacet=loss_config["reduction_multifacet"]))
+                            reduction_multifacet=loss_config["reduction_multifacet"],
+                            reduction_multifacet_target=None if "reduction_multifacet_target" not in loss_config.keys() else loss_config["reduction_multifacet_target"],
+                        )
+                    )
             else:
                 if "loss_type" in self.hparams:
                     loss_type = self.hparams.loss_type
@@ -239,7 +256,8 @@ class QuarterMaster(pl.LightningModule):
                     margin=self.hparams.loss_margin,
                     distance=self.hparams.loss_distance,
                     reduction=self.hparams.loss_reduction,
-                    reduction_multifacet=self.hparams.loss_reduction_multifacet)
+                    reduction_multifacet=self.hparams.loss_reduction_multifacet,
+                    reduction_multifacet_target=self.hparams.loss_reduction_multifacet_target)
 
         self.opt = None
 
@@ -741,6 +759,7 @@ def parse_args():
     parser.add_argument('--loss_distance', default='l2-norm', choices=['l2-norm', 'cosine', 'dot'], type=str)
     parser.add_argument('--loss_reduction', default='mean', choices=['mean', 'sum', 'none'], type=str)
     parser.add_argument('--loss_reduction_multifacet', default='mean', choices=['mean', 'min', 'max'], type=str)
+    parser.add_argument('--loss_reduction_multifacet_target', default='mean', choices=['mean', 'min', 'max'], type=str)
     parser.add_argument('--loss_use_target_token_embs', default=False, action='store_true')
 
     parser.add_argument('--batch_size', default=1, type=int)
