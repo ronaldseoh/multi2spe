@@ -62,6 +62,8 @@ class MultiFacetTripletLoss(torch.nn.Module):
         positive_mask = positive_mask.unsqueeze(-1).expand(positive.size())
         negative_mask = negative_mask.unsqueeze(-1).expand(negative.size())
 
+        # Since 0 * float('inf') == nan, zero vectors in _masked matrices would be now
+        # the vectors of 'nan'
         query_masked = query * query_mask
         positive_masked = positive * positive_mask
         negative_masked = negative * negative_mask
