@@ -50,6 +50,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
         self.distance = distance
         self.reduction = reduction
         self.reduction_multifacet = reduction_multifacet
+        self.reduction_multifacet_target = reduction_multifacet_target
 
     def forward(self, query, positive, negative):
         # Are there any zero vectors in `query`, `positive`, and `negative`?
