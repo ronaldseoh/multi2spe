@@ -82,7 +82,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
         distance_positive_all_isnan = torch.isnan(distance_positive_all)
         distance_negative_all_isnan = torch.isnan(distance_negative_all)
 
-        if reduction_multifacet_target is None:
+        if self.reduction_multifacet_target is None:
             distance_positive_all = distance_positive_all.flatten(start_dim=1)
             distance_negative_all = distance_negative_all.flatten(start_dim=1)
 
