@@ -58,6 +58,10 @@ class MultiFacetTripletLoss(torch.nn.Module):
         positive_mask = torch.nan_to_num((positive.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf')) 
         negative_mask = torch.nan_to_num((negative.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf'))
 
+        query_mask = query_mask.unsqueeze(-1).expand(query.size())
+        positive_mask = positive_mask.unsqueeze(-1).expand(positive.size())
+        negative_mask = negative_mask.unsqueeze(-1).expand(negative.size())
+
         query_masked = query * query_mask
         positive_masked = positive * positive_mask
         negative_masked = negative * negative_mask
