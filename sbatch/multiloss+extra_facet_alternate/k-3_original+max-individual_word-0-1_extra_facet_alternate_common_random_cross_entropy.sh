@@ -21,7 +21,7 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --add_extra_facet_layers \
                 --add_extra_facet_nonlinearity \
                 --add_extra_facet_layers_alternate \
-                --loss_config '[{"name": "original", "weight": 1, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false}, {"name": "max_and_individual_word_emb", "weight": 0.1, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "reduction_multifacet_target": "mean", "use_target_token_embs": true}]' \
+                --loss_config '[{"name": "original", "weight": 1, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false}, {"name": "max_and_individual_word_emb", "weight": 0.1, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "reduction_multifacet_target": "mean", "use_target_token_embs": true, "do_not_use_target_token_embs_mean": true}]' \
                 --gpus 1 --num_workers 0 --fp16 \
                 --batch_size 2 --grad_accum 16  --num_epochs 2 \
                 --wandb
