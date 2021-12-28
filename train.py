@@ -31,7 +31,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
     Triplet loss function for multi-facet embeddings: Based on the TripletLoss function from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159
     """
     def __init__(self, loss_type="margin", margin=1.0, distance='l2-norm',
-                 reduction='mean', reduction_multifacet='mean', reduction_multifacet_target=None, reduction_multifacet_query_first=False):
+                 reduction='mean', reduction_multifacet='mean', reduction_multifacet_target=None):
         """
         Args:
             margin: margin (float, optional): Default: `1`.
@@ -49,21 +49,8 @@ class MultiFacetTripletLoss(torch.nn.Module):
         self.margin = margin
         self.distance = distance
         self.reduction = reduction
-
         self.reduction_multifacet = reduction_multifacet
         self.reduction_multifacet_target = reduction_multifacet_target
-        self.reduction_multifacet_query_first = reduction_multifacet_query_first
-        self.reduction_operation_order = []
-
-        if self.reduction_multifacet_target is not None:
-            if self.reduction_multifacet_query_first:
-                self.reduction_operation_order.append(("query", reduction_multifacet))
-                self.reduction_operation_order.append(("target", reduction_multifacet_target))
-            else:
-                self.reduction_operation_order.append(("target", reduction_multifacet_target))
-                self.reduction_operation_order.append(("query", reduction_multifacet))
-        else:
-            self.reduction_operation_order.append(("all", reduction_multifacet))
 
     def forward(self, query, positive, negative):
         # Are there any zero vectors in `query`, `positive`, and `negative`?
