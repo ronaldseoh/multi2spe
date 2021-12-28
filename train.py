@@ -601,10 +601,10 @@ class QuarterMaster(pl.LightningModule):
 
             for i, l in enumerate(self.loss_list):
                 if self.hparams.loss_config[i]['use_target_token_embs']:
-                    if not self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
-                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
-                    else:
+                    if 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
                         this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                    else:
+                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
                 else:
                     this_loss = l(source_embedding, pos_embedding, neg_embedding)
 
@@ -736,10 +736,10 @@ class QuarterMaster(pl.LightningModule):
 
             for i, l in enumerate(self.loss_list):
                 if self.hparams.loss_config[i]['use_target_token_embs']:
-                    if not self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
-                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
-                    else:
+                    if 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
                         this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                    else:
+                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
                 else:
                     this_loss = l(source_embedding, pos_embedding, neg_embedding)
 
