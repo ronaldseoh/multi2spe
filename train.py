@@ -84,9 +84,6 @@ class MultiFacetTripletLoss(torch.nn.Module):
         distance_negative_all_isnan = torch.isnan(distance_negative_all)
 
         if self.reduction_multifacet_target is None:
-            distance_positive_all = distance_positive_all.flatten(start_dim=1)
-            distance_negative_all = distance_negative_all.flatten(start_dim=1)
-
             # We filter out nan values based on the choice of 'reduction_multifacet', not `_target'
             if self.reduction_multifacet == 'min':
                 distance_positive_all[distance_positive_all_isnan] = float('inf')
@@ -97,6 +94,9 @@ class MultiFacetTripletLoss(torch.nn.Module):
             elif self.reduction_multifacet == 'mean':
                 distance_positive_all[distance_positive_all_isnan] = 0.0
                 distance_negative_all[distance_negative_all_isnan] = 0.0
+
+            distance_positive_all = distance_positive_all.flatten(start_dim=1)
+            distance_negative_all = distance_negative_all.flatten(start_dim=1)
         elif self.reduction_multifacet_target == 'min':
             # Since we first look for the minimum distance in dim 2, we make invalid distances
             # to have positive infinity values.
