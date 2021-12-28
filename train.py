@@ -345,7 +345,11 @@ class QuarterMaster(pl.LightningModule):
             if self.hparams.add_extra_facet_nonlinearity:
                 source_embedding = self.extra_facet_nonlinearity(source_embedding)
 
-            return source_embedding
+            if "sum_into_single_embeddings" in self.hparams \
+            and self.hparams.sum_into_single_embeddings in ("training_and_inference", "inference_only"):
+                return torch.sum(source_embedding, dim=1).unsqueeze(1)
+            else:
+                return source_embedding
 
     def train_dataloader(self):
         dataset = torch.utils.data.BufferedShuffleDataset(
@@ -599,6 +603,12 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
                 neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
 
+            if "sum_into_single_embeddings" in self.hparams \
+            and self.hparams.sum_into_single_embeddings in ("training_and_inference", "training_only"):
+                source_embedding = torch.sum(source_embedding, dim=1).unsqueeze(1)
+                pos_embedding = torch.sum(pos_embedding, dim=1).unsqueeze(1)
+                neg_embedding = torch.sum(neg_embedding, dim=1).unsqueeze(1)
+
         if self.use_multiple_losses:
             loss = 0
 
@@ -732,6 +742,12 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
                 neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
 
+            if "sum_into_single_embeddings" in self.hparams \
+            and self.hparams.sum_into_single_embeddings in ("training_and_inference", "training_only"):
+                source_embedding = torch.sum(source_embedding, dim=1).unsqueeze(1)
+                pos_embedding = torch.sum(pos_embedding, dim=1).unsqueeze(1)
+                neg_embedding = torch.sum(neg_embedding, dim=1).unsqueeze(1)
+
         if self.use_multiple_losses:
             loss = 0
 
@@ -808,6 +824,8 @@ def parse_args():
     parser.add_argument('--pretrained_model_name', default="allenai/scibert_scivocab_uncased", type=str)
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
+    parser.add_argument('--sum_into_single_embeddings', default='training_and_inference', choices=['training_and_inference', 'training_only', 'inference_only'], type=str)
+
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_alternate', default=False, action='store_true')
