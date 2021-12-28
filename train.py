@@ -824,7 +824,7 @@ def parse_args():
     parser.add_argument('--pretrained_model_name', default="allenai/scibert_scivocab_uncased", type=str)
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
-    parser.add_argument('--sum_into_single_embeddings', default='training_and_inference', choices=['training_and_inference', 'training_only', 'inference_only'], type=str)
+    parser.add_argument('--sum_into_single_embeddings', choices=['training_and_inference', 'training_only', 'inference_only'], type=str)
 
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
