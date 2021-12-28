@@ -342,6 +342,9 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
+            if self.hparams.add_extra_facet_nonlinearity:
+                source_embedding = self.extra_facet_nonlinearity(source_embedding)
+
             return source_embedding[:, 0:self.hparams.num_facets, :]
 
     def train_dataloader(self):
