@@ -319,12 +319,12 @@ class QuarterMaster(pl.LightningModule):
 
     def forward(self, input_ids, token_type_ids, attention_mask):
         # in lightning, forward defines the prediction/inference actions
-        source_embedding = self.model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        source_output = self.model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
 
         if self.hparams.model_behavior == 'specter':
-            return source_embedding[1]
+            return source_output[1]
         else:
-            source_embedding = source_embedding.last_hidden_state
+            source_embedding = source_output.last_hidden_state[:, 0:self.hparams.num_facets, :]
 
             # Extra facet layer
             # pass through the extra linear layers for each facets if enabled
@@ -345,7 +345,7 @@ class QuarterMaster(pl.LightningModule):
             if self.hparams.add_extra_facet_nonlinearity:
                 source_embedding = self.extra_facet_nonlinearity(source_embedding)
 
-            return source_embedding[:, 0:self.hparams.num_facets, :]
+            return source_embedding
 
     def train_dataloader(self):
         dataset = torch.utils.data.BufferedShuffleDataset(
