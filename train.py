@@ -512,6 +512,12 @@ class QuarterMaster(pl.LightningModule):
                 input_ids=batch[1]['input_ids'], token_type_ids=batch[1]['token_type_ids'], attention_mask=batch[1]['attention_mask'])[1]
             neg_embedding = self.model(
                 input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask'])[1]
+
+            with torch.no_grad():
+                # Normalize each facet embeddings for visualization purposes
+                source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
+
+                self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=False)
         else:
             source_output = self.model(
                 input_ids=batch[0]['input_ids'], token_type_ids=batch[0]['token_type_ids'], attention_mask=batch[0]['attention_mask'])
@@ -603,6 +609,15 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
                 neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
 
+            with torch.no_grad():
+                # Normalize each facet embeddings for visualization purposes
+                source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
+
+                self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=False)
+
+                if self.hparams.num_facets > 1:
+                    self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=False)
+
             if "sum_into_single_embeddings" in self.hparams \
             and self.hparams.sum_into_single_embeddings in ("training_and_inference", "training_only"):
                 source_embedding = torch.sum(source_embedding, dim=1).unsqueeze(1)
@@ -630,15 +645,6 @@ class QuarterMaster(pl.LightningModule):
 
         self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
-        with torch.no_grad():
-            # Normalize each facet embeddings for visualization purposes
-            source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
-
-            self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=False)
-
-            if self.hparams.num_facets > 1:
-                self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=False)
-
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -651,6 +657,11 @@ class QuarterMaster(pl.LightningModule):
                 input_ids=batch[1]['input_ids'], token_type_ids=batch[1]['token_type_ids'], attention_mask=batch[1]['attention_mask'])[1]
             neg_embedding = self.model(
                 input_ids=batch[2]['input_ids'], token_type_ids=batch[2]['token_type_ids'], attention_mask=batch[2]['attention_mask'])[1]
+
+            # Normalize each facet embeddings for visualization purposes
+            source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
+
+            self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
         else:
             source_output = self.model(
                 input_ids=batch[0]['input_ids'], token_type_ids=batch[0]['token_type_ids'], attention_mask=batch[0]['attention_mask'])
@@ -742,6 +753,14 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
                 neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
 
+            # Normalize each facet embeddings for visualization purposes
+            source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
+
+            self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
+
+            if self.hparams.num_facets > 1:
+                self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
+
             if "sum_into_single_embeddings" in self.hparams \
             and self.hparams.sum_into_single_embeddings in ("training_and_inference", "training_only"):
                 source_embedding = torch.sum(source_embedding, dim=1).unsqueeze(1)
@@ -772,14 +791,6 @@ class QuarterMaster(pl.LightningModule):
             self.log('val_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
         self.log('val_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
-
-        # Normalize each facet embeddings for visualization purposes
-        source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
-
-        self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
-
-        if self.hparams.num_facets > 1:
-            self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
 
         if self.use_multiple_losses:
             return {"loss": loss, "loss_breakdowns": loss_breakdowns}
