@@ -62,6 +62,9 @@ class MultiFacetTripletLoss(torch.nn.Module):
             self.reduction_multifacet_option_2 = self.reduction_multifacet
             self.reduction_mutlficaet_dimension_1 = 2
 
+        if self.reduction_multifacet_option_2 is None:
+            raise Exception("reduction_multifacet_option_2 should not be None.")
+
     def forward(self, query, positive, negative):
         # Are there any zero vectors in `query`, `positive`, and `negative`?
         # We need to introduce masks to filter them out.
