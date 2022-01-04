@@ -31,7 +31,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
     Triplet loss function for multi-facet embeddings: Based on the TripletLoss function from  https://github.com/allenai/specter/blob/673346f9f76bcf422b38e0d1b448ef4414bcd4df/specter/model.py#L159
     """
     def __init__(self, loss_type="margin", margin=1.0, distance='l2-norm',
-                 reduction='mean', reduction_multifacet='mean', reduction_multifacet_target=None):
+                 reduction='mean', reduction_multifacet='mean', reduction_multifacet_target=None, reduction_multifacet_query_first=False):
         """
         Args:
             margin: margin (float, optional): Default: `1`.
@@ -51,6 +51,16 @@ class MultiFacetTripletLoss(torch.nn.Module):
         self.reduction = reduction
         self.reduction_multifacet = reduction_multifacet
         self.reduction_multifacet_target = reduction_multifacet_target
+        self.reduction_multifacet_query_first = reduction_multifacet_query_first
+
+        if self.reduction_multifacet_query_first:
+            self.reduction_multifacet_option_1 = self.reduction_multifacet
+            self.reduction_multifacet_option_2 = self.reduction_multifacet_target
+            self.reduction_mutlficaet_dimension_1 = 1
+        else:
+            self.reduction_multifacet_option_1 = self.reduction_multifacet_target
+            self.reduction_multifacet_option_2 = self.reduction_multifacet
+            self.reduction_mutlficaet_dimension_1 = 2
 
     def forward(self, query, positive, negative):
         # Are there any zero vectors in `query`, `positive`, and `negative`?
@@ -83,53 +93,53 @@ class MultiFacetTripletLoss(torch.nn.Module):
         distance_positive_all_isnan = torch.isnan(distance_positive_all)
         distance_negative_all_isnan = torch.isnan(distance_negative_all)
 
-        if self.reduction_multifacet_target is None:
+        if self.reduction_multifacet_option_1 is None:
             # We filter out nan values based on the choice of 'reduction_multifacet', not `_target'
-            if self.reduction_multifacet == 'min':
+            if self.reduction_multifacet_option_2 == 'min':
                 distance_positive_all[distance_positive_all_isnan] = float('inf')
                 distance_negative_all[distance_negative_all_isnan] = float('inf')
-            elif self.reduction_multifacet == 'max':
+            elif self.reduction_multifacet_option_2 == 'max':
                 distance_positive_all[distance_positive_all_isnan] = float('-inf')
                 distance_negative_all[distance_negative_all_isnan] = float('-inf')
-            elif self.reduction_multifacet == 'mean':
+            elif self.reduction_multifacet_option_2 == 'mean':
                 distance_positive_all[distance_positive_all_isnan] = 0.0
                 distance_negative_all[distance_negative_all_isnan] = 0.0
 
             distance_positive_all = distance_positive_all.flatten(start_dim=1)
             distance_negative_all = distance_negative_all.flatten(start_dim=1)
-        elif self.reduction_multifacet_target == 'min':
+        elif self.reduction_multifacet_option_1 == 'min':
             # Since we first look for the minimum distance in dim 2, we make invalid distances
             # to have positive infinity values.
             distance_positive_all[distance_positive_all_isnan] = float('inf')
             distance_negative_all[distance_negative_all_isnan] = float('inf')
 
-            distance_positive_all = torch.min(distance_positive_all, dim=2).values
-            distance_negative_all = torch.min(distance_negative_all, dim=2).values
-        elif self.reduction_multifacet_target == 'max':
+            distance_positive_all = torch.min(distance_positive_all, dim=self.reduction_mutlficaet_dimension_1).values
+            distance_negative_all = torch.min(distance_negative_all, dim=self.reduction_mutlficaet_dimension_1).values
+        elif self.reduction_multifacet_option_1 == 'max':
             # Since we first look for the maximum distance in dim 2, we make invalid distances
             # to have **negative** infinity values.
             distance_positive_all[distance_positive_all_isnan] = float('-inf')
             distance_negative_all[distance_negative_all_isnan] = float('-inf')
 
-            distance_positive_all = torch.max(distance_positive_all, dim=2).values
-            distance_negative_all = torch.max(distance_negative_all, dim=2).values
-        elif self.reduction_multifacet_target == 'mean':
+            distance_positive_all = torch.max(distance_positive_all, dim=self.reduction_mutlficaet_dimension_1).values
+            distance_negative_all = torch.max(distance_negative_all, dim=self.reduction_mutlficaet_dimension_1).values
+        elif self.reduction_multifacet_option_1 == 'mean':
             # Since we calculate mean distance across dim 2, we make invalid distances
             # to be 0.
             distance_positive_all[distance_positive_all_isnan] = 0.0
             distance_negative_all[distance_negative_all_isnan] = 0.0
 
             # We need to calculate mean values with just the non-zero values.
-            distance_positive_all = torch.sum(distance_positive_all, dim=2) / torch.count_nonzero(distance_positive_all, dim=2)
-            distance_negative_all = torch.sum(distance_negative_all, dim=2) / torch.count_nonzero(distance_negative_all, dim=2)
+            distance_positive_all = torch.sum(distance_positive_all, dim=self.reduction_mutlficaet_dimension_1) / torch.count_nonzero(distance_positive_all, dim=self.reduction_mutlficaet_dimension_1)
+            distance_negative_all = torch.sum(distance_negative_all, dim=self.reduction_mutlficaet_dimension_1) / torch.count_nonzero(distance_negative_all, dim=self.reduction_mutlficaet_dimension_1)
 
-        if self.reduction_multifacet == 'min':
+        if self.reduction_multifacet_option_2 == 'min':
             distance_positive = torch.min(distance_positive_all, dim=1).values
             distance_negative = torch.min(distance_negative_all, dim=1).values
-        elif self.reduction_multifacet == 'max':
+        elif self.reduction_multifacet_option_2 == 'max':
             distance_positive = torch.max(distance_positive_all, dim=1).values
             distance_negative = torch.max(distance_negative_all, dim=1).values
-        elif self.reduction_multifacet == 'mean':
+        elif self.reduction_multifacet_option_2 == 'mean':
             distance_positive = torch.sum(distance_positive_all, dim=1) / torch.count_nonzero(distance_positive_all, dim=1)
             distance_negative = torch.sum(distance_negative_all, dim=1) / torch.count_nonzero(distance_negative_all, dim=1)
 
@@ -293,6 +303,7 @@ class QuarterMaster(pl.LightningModule):
                             reduction=loss_config["reduction"],
                             reduction_multifacet=loss_config["reduction_multifacet"],
                             reduction_multifacet_target=None if "reduction_multifacet_target" not in loss_config.keys() else loss_config["reduction_multifacet_target"],
+                            reduction_multifacet_query_first=False if "reduction_multifacet_query_first" not in loss_config.keys() else loss_config["reduction_multifacet_query_first"],
                         )
                     )
             else:
@@ -313,7 +324,9 @@ class QuarterMaster(pl.LightningModule):
                     distance=self.hparams.loss_distance,
                     reduction=self.hparams.loss_reduction,
                     reduction_multifacet=self.hparams.loss_reduction_multifacet,
-                    reduction_multifacet_target=self.hparams.loss_reduction_multifacet_target)
+                    reduction_multifacet_target=self.hparams.loss_reduction_multifacet_target,
+                    reduction_multifacet_query_first=self.hparams.loss_reduction_multifacet_query_first,
+                )
 
         self.opt = None
 
@@ -858,6 +871,7 @@ def parse_args():
     parser.add_argument('--loss_reduction', default='mean', choices=['mean', 'sum', 'none'], type=str)
     parser.add_argument('--loss_reduction_multifacet', default='mean', choices=['mean', 'min', 'max'], type=str)
     parser.add_argument('--loss_reduction_multifacet_target', default='mean', choices=['mean', 'min', 'max'], type=str)
+    parser.add_argument('--loss_reduction_multifacet_query_first', default=False, action='store_true')
 
     parser.add_argument('--loss_use_target_token_embs', default=False, action='store_true')
     parser.add_argument('--loss_do_not_use_target_token_embs_mean', default=False, action='store_true')
