@@ -136,13 +136,29 @@ class MultiFacetTripletLoss(torch.nn.Module):
             distance_positive_all = torch.sum(distance_positive_all, dim=self.reduction_multifacet_dimension_1) / torch.count_nonzero(distance_positive_all, dim=self.reduction_multifacet_dimension_1)
             distance_negative_all = torch.sum(distance_negative_all, dim=self.reduction_multifacet_dimension_1) / torch.count_nonzero(distance_negative_all, dim=self.reduction_multifacet_dimension_1)
 
+        # At this point, all the invalid values are not completely eliminated at this point
+        # as it could be the zero vectors in the dimension associated with `option_2`.
+        # Since these invalid values would be 'inf', we filter them out using
+        # torch.isinf()
+        distance_positive_all_isinf = torch.isinf(distance_positive_all)
+        distance_negative_all_isinf = torch.isinf(distance_negative_all)
+
         if self.reduction_multifacet_option_2 == 'min':
+            distance_positive_all[distance_positive_all_isinf] = float('inf')
+            distance_negative_all[distance_negative_all_isinf] = float('inf')
+
             distance_positive = torch.min(distance_positive_all, dim=1).values
             distance_negative = torch.min(distance_negative_all, dim=1).values
         elif self.reduction_multifacet_option_2 == 'max':
+            distance_positive_all[distance_positive_all_isinf] = float('-inf')
+            distance_negative_all[distance_negative_all_isinf] = float('-inf')
+
             distance_positive = torch.max(distance_positive_all, dim=1).values
             distance_negative = torch.max(distance_negative_all, dim=1).values
         elif self.reduction_multifacet_option_2 == 'mean':
+            distance_positive_all[distance_positive_all_isinf] = 0.0
+            distance_negative_all[distance_negative_all_isinf] = 0.0
+
             distance_positive = torch.sum(distance_positive_all, dim=1) / torch.count_nonzero(distance_positive_all, dim=1)
             distance_negative = torch.sum(distance_negative_all, dim=1) / torch.count_nonzero(distance_negative_all, dim=1)
 
