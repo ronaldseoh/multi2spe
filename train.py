@@ -56,11 +56,11 @@ class MultiFacetTripletLoss(torch.nn.Module):
         if self.reduction_multifacet_query_first:
             self.reduction_multifacet_option_1 = self.reduction_multifacet
             self.reduction_multifacet_option_2 = self.reduction_multifacet_target
-            self.reduction_mutlficaet_dimension_1 = 1
+            self.reduction_multifacet_dimension_1 = 1
         else:
             self.reduction_multifacet_option_1 = self.reduction_multifacet_target
             self.reduction_multifacet_option_2 = self.reduction_multifacet
-            self.reduction_mutlficaet_dimension_1 = 2
+            self.reduction_multifacet_dimension_1 = 2
 
         if self.reduction_multifacet_option_2 is None:
             raise Exception("reduction_multifacet_option_2 should not be None.")
@@ -97,7 +97,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
         distance_negative_all_isnan = torch.isnan(distance_negative_all)
 
         if self.reduction_multifacet_option_1 is None:
-            # We filter out nan values based on the choice of 'reduction_multifacet', not `_target'
+            # We filter out nan values based on the choice of 'reduction_multifacet_option_2'
             if self.reduction_multifacet_option_2 == 'min':
                 distance_positive_all[distance_positive_all_isnan] = float('inf')
                 distance_negative_all[distance_negative_all_isnan] = float('inf')
@@ -116,16 +116,16 @@ class MultiFacetTripletLoss(torch.nn.Module):
             distance_positive_all[distance_positive_all_isnan] = float('inf')
             distance_negative_all[distance_negative_all_isnan] = float('inf')
 
-            distance_positive_all = torch.min(distance_positive_all, dim=self.reduction_mutlficaet_dimension_1).values
-            distance_negative_all = torch.min(distance_negative_all, dim=self.reduction_mutlficaet_dimension_1).values
+            distance_positive_all = torch.min(distance_positive_all, dim=self.reduction_multifacet_dimension_1).values
+            distance_negative_all = torch.min(distance_negative_all, dim=self.reduction_multifacet_dimension_1).values
         elif self.reduction_multifacet_option_1 == 'max':
             # Since we first look for the maximum distance in dim 2, we make invalid distances
             # to have **negative** infinity values.
             distance_positive_all[distance_positive_all_isnan] = float('-inf')
             distance_negative_all[distance_negative_all_isnan] = float('-inf')
 
-            distance_positive_all = torch.max(distance_positive_all, dim=self.reduction_mutlficaet_dimension_1).values
-            distance_negative_all = torch.max(distance_negative_all, dim=self.reduction_mutlficaet_dimension_1).values
+            distance_positive_all = torch.max(distance_positive_all, dim=self.reduction_multifacet_dimension_1).values
+            distance_negative_all = torch.max(distance_negative_all, dim=self.reduction_multifacet_dimension_1).values
         elif self.reduction_multifacet_option_1 == 'mean':
             # Since we calculate mean distance across dim 2, we make invalid distances
             # to be 0.
@@ -133,8 +133,8 @@ class MultiFacetTripletLoss(torch.nn.Module):
             distance_negative_all[distance_negative_all_isnan] = 0.0
 
             # We need to calculate mean values with just the non-zero values.
-            distance_positive_all = torch.sum(distance_positive_all, dim=self.reduction_mutlficaet_dimension_1) / torch.count_nonzero(distance_positive_all, dim=self.reduction_mutlficaet_dimension_1)
-            distance_negative_all = torch.sum(distance_negative_all, dim=self.reduction_mutlficaet_dimension_1) / torch.count_nonzero(distance_negative_all, dim=self.reduction_mutlficaet_dimension_1)
+            distance_positive_all = torch.sum(distance_positive_all, dim=self.reduction_multifacet_dimension_1) / torch.count_nonzero(distance_positive_all, dim=self.reduction_multifacet_dimension_1)
+            distance_negative_all = torch.sum(distance_negative_all, dim=self.reduction_multifacet_dimension_1) / torch.count_nonzero(distance_negative_all, dim=self.reduction_multifacet_dimension_1)
 
         if self.reduction_multifacet_option_2 == 'min':
             distance_positive = torch.min(distance_positive_all, dim=1).values
