@@ -822,10 +822,10 @@ class QuarterMaster(pl.LightningModule):
                 if self.hparams.loss_config[i]['use_target_token_embs']:
                     if 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
                         this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
-                    elif self.hparams.loss_config[i]['sum_into_single_embeddings']:
-                        this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
                     else:
                         this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+                elif self.hparams.loss_config[i]['sum_into_single_embeddings']:
+                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
                 else:
                     this_loss = l(source_embedding, pos_embedding, neg_embedding)
 
