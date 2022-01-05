@@ -300,6 +300,7 @@ class QuarterMaster(pl.LightningModule):
             self.use_multiple_losses = False
             self.use_target_token_embs = False
             self.do_not_use_target_token_embs_mean = False
+            self.sum_into_single_embeddings = None
 
             if "loss_config" in self.hparams and self.hparams.loss_config is not None:
                 self.use_multiple_losses = True
@@ -313,6 +314,9 @@ class QuarterMaster(pl.LightningModule):
 
                         if 'do_not_use_target_token_embs_mean' in loss_config.keys() and loss_config['do_not_use_target_token_embs_mean']:
                             self.do_not_use_target_token_embs_mean = True
+
+                    if "sum_into_single_embeddings" in loss_config.keys() and loss_config["sum_into_single_embeddings"]:
+                        self.sum_into_single_embeddings = "training_only"
 
                     self.loss_list.append(
                         MultiFacetTripletLoss(
@@ -347,6 +351,14 @@ class QuarterMaster(pl.LightningModule):
                     reduction_multifacet_query_first=self.hparams.loss_reduction_multifacet_query_first,
                 )
 
+            if "sum_into_single_embeddings" in self.hparams:
+                # What if self.sum_into_single_embeddings was set in the previous lines
+                # and collide with the value given in self.hparams?
+                if self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings.startswith('training') and not self.hparams.sum_into_single_embeddings.startswith("training"):
+                    self.sum_into_single_embeddings = "training_and_inference"
+                else:
+                    self.sum_into_single_embeddings = self.hparams.sum_into_single_embeddings
+
         self.opt = None
 
     def forward(self, input_ids, token_type_ids, attention_mask):
@@ -377,8 +389,8 @@ class QuarterMaster(pl.LightningModule):
             if self.hparams.add_extra_facet_nonlinearity:
                 source_embedding = self.extra_facet_nonlinearity(source_embedding)
 
-            if "sum_into_single_embeddings" in self.hparams \
-            and self.hparams.sum_into_single_embeddings in ("training_and_inference", "inference_only"):
+            if self.sum_into_single_embeddings is not None \
+            and self.sum_into_single_embeddings in ("training_and_inference", "inference_only"):
                 return torch.sum(source_embedding, dim=1).unsqueeze(1)
             else:
                 return source_embedding
@@ -650,11 +662,11 @@ class QuarterMaster(pl.LightningModule):
                 if self.hparams.num_facets > 1:
                     self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=False)
 
-            if "sum_into_single_embeddings" in self.hparams \
-            and self.hparams.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                source_embedding = torch.sum(source_embedding, dim=1).unsqueeze(1)
-                pos_embedding = torch.sum(pos_embedding, dim=1).unsqueeze(1)
-                neg_embedding = torch.sum(neg_embedding, dim=1).unsqueeze(1)
+            if self.sum_into_single_embeddings is not None \
+            and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
+                source_embedding_summed = torch.sum(source_embedding, dim=1).unsqueeze(1)
+                pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
+                neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
 
         if self.use_multiple_losses:
             loss = 0
@@ -665,6 +677,8 @@ class QuarterMaster(pl.LightningModule):
                         this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                     else:
                         this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+                elif self.hparams.loss_config[i]['sum_into_single_embeddings']:
+                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
                 else:
                     this_loss = l(source_embedding, pos_embedding, neg_embedding)
 
@@ -793,11 +807,11 @@ class QuarterMaster(pl.LightningModule):
             if self.hparams.num_facets > 1:
                 self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
 
-            if "sum_into_single_embeddings" in self.hparams \
-            and self.hparams.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                source_embedding = torch.sum(source_embedding, dim=1).unsqueeze(1)
-                pos_embedding = torch.sum(pos_embedding, dim=1).unsqueeze(1)
-                neg_embedding = torch.sum(neg_embedding, dim=1).unsqueeze(1)
+            if self.sum_into_single_embeddings is not None \
+            and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
+                source_embedding_summed = torch.sum(source_embedding, dim=1).unsqueeze(1)
+                pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
+                neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
 
         if self.use_multiple_losses:
             loss = 0
@@ -808,6 +822,8 @@ class QuarterMaster(pl.LightningModule):
                 if self.hparams.loss_config[i]['use_target_token_embs']:
                     if 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
                         this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                    elif self.hparams.loss_config[i]['sum_into_single_embeddings']:
+                        this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
                     else:
                         this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
                 else:
