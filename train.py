@@ -686,7 +686,16 @@ class QuarterMaster(pl.LightningModule):
 
                 loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
         else:
-            loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+            if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
+                if "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
+                    loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                else:
+                    loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+            elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
+                loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+            else:
+                loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+
             self.log('train_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
         self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
@@ -835,7 +844,16 @@ class QuarterMaster(pl.LightningModule):
 
                 loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
         else:
-            loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+            if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
+                if "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
+                    loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                else:
+                    loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+            elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
+                loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+            else:
+                loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+
             self.log('val_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
         self.log('val_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
