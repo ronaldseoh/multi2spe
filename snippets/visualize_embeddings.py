@@ -21,7 +21,7 @@ if __name__ == "__main__":
     facet_labels = []
     mag_labels = []
 
-    with open("quartermaster/save_k-3_common_layer_8_4_nsp_cross_entropy_09-26/cls.jsonl", "r") as mag_embeddings_file:
+    with open("quartermaster/save_k-3_sum_embs_original+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy_12-31/cls.jsonl", "r") as mag_embeddings_file:
         for line in tqdm.tqdm(mag_embeddings_file):
             paper = json.loads(line)
             
