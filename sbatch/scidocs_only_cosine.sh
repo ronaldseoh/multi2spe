@@ -3,7 +3,8 @@
 #SBATCH -o sbatch_logs/stdout/scidocs_only_cosine_%j.txt
 #SBATCH -e sbatch_logs/stderr/scidocs_only_cosine_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=1080ti-short
+#SBATCH --partition=gpu-long
+#SBATCH --constraint=ials_gigabyte_gpu_2020
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
@@ -11,8 +12,8 @@
 eval "$(conda shell.bash hook)"
 conda activate scidocs
 
-EXPERIMENT_ID_PREFIX=k-3_separate_layer_8_4_identity_nsp_cross_entropy
-EXPERIMENT_DATE="10-14"
+EXPERIMENT_ID_PREFIX=k-3_sum_embs_original+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_separate_random_cross_entropy
+EXPERIMENT_DATE="01-05"
 
 python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl \
                       --user-citation save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl \
