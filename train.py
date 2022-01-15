@@ -668,7 +668,7 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
                 neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
 
-        if self.use_multiple_losses:
+        if self.hparams.model_behavior != 'specter' and self.use_multiple_losses:
             loss = 0
 
             for i, l in enumerate(self.loss_list):
@@ -822,7 +822,7 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
                 neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
 
-        if self.use_multiple_losses:
+        if self.hparams.model_behavior != 'specter' and self.use_multiple_losses:
             loss = 0
 
             loss_breakdowns = []
@@ -858,7 +858,7 @@ class QuarterMaster(pl.LightningModule):
 
         self.log('val_loss', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
-        if self.use_multiple_losses:
+        if self.hparams.model_behavior != 'specter' and self.use_multiple_losses:
             return {"loss": loss, "loss_breakdowns": loss_breakdowns}
         else:
             return {"loss": loss}
@@ -872,7 +872,7 @@ class QuarterMaster(pl.LightningModule):
         if self.trainer.is_global_zero:
             self.log('avg_val_loss', avg_loss, rank_zero_only=True, on_epoch=True, prog_bar=True)
 
-        if self.use_multiple_losses:
+        if self.hparams.model_behavior != 'specter' and self.use_multiple_losses:
             losses_all_batch = [[] for _ in range(len(self.hparams.loss_config))]
 
             for o in outputs:
