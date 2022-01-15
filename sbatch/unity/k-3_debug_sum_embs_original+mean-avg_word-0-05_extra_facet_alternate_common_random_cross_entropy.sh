@@ -16,8 +16,8 @@ EXPERIMENT_ID_PREFIX=U_k-3_debug_sum_embs_original+mean-avg_word-0-05_extra_face
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
-                --train_file ~/my_scratch/original_data/train_shuffled.pkl --train_size 684100 \
-                --val_file ~/my_scratch/original_data/val_shuffled.pkl --val_size 145375 \
+                --train_file /gypsum/scratch1/bseoh/original_data/train_shuffled.pkl --train_size 684100 \
+                --val_file /gypsum/scratch1/bseoh/original_data/val_shuffled.pkl --val_size 145375 \
                 --model_behavior 'quartermaster' --num_facets 3 \
                 --sum_into_single_embeddings 'training_and_inference' \
                 --add_extra_facet_layers \
