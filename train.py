@@ -291,17 +291,17 @@ class QuarterMaster(pl.LightningModule):
 
         self.hparams.seqlen = self.model.config.max_position_embeddings
 
+        self.use_multiple_losses = False
+        self.use_target_token_embs = False
+        self.do_not_use_target_token_embs_mean = False
+        self.sum_into_single_embeddings = None
+
         if self.hparams.model_behavior == 'specter':
             self.loss = TripletLoss(
                 margin=self.hparams.loss_margin,
                 distance=self.hparams.loss_distance,
                 reduction=self.hparams.loss_reduction)
         else:
-            self.use_multiple_losses = False
-            self.use_target_token_embs = False
-            self.do_not_use_target_token_embs_mean = False
-            self.sum_into_single_embeddings = None
-
             if "loss_config" in self.hparams and self.hparams.loss_config is not None:
                 self.use_multiple_losses = True
 
