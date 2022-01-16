@@ -354,7 +354,7 @@ class QuarterMaster(pl.LightningModule):
             if "sum_into_single_embeddings" in self.hparams:
                 # What if self.sum_into_single_embeddings was set in the previous lines
                 # and collide with the value given in self.hparams?
-                if self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings.startswith('training') and not self.hparams.sum_into_single_embeddings.startswith("training"):
+                if self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings.startswith('training') and not (self.hparams.sum_into_single_embeddings is not None and self.hparams.sum_into_single_embeddings.startswith("training")):
                     self.sum_into_single_embeddings = "training_and_inference"
                 else:
                     self.sum_into_single_embeddings = self.hparams.sum_into_single_embeddings
