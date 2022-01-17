@@ -5,6 +5,7 @@ import typing
 
 import torch
 import transformers
+from pykeops.torch import LazyTensor
 
 from specter.scripts.pytorch_lightning_training_script.train import (
     DataReaderFromPickled
@@ -328,3 +329,41 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
             # Dump the modified config back to disk
             json.dump(config_saved, open(os.path.join(save_directory, "config.json"), "w"))
+
+
+def batch_k_means_cosine(batch, k, n_iter=50):
+    # Adapted the code listed in the KeOps documentation
+    # https://www.kernel-operations.io/keops/_auto_tutorials/kmeans/plot_kmeans_torch.html
+    """Implements Lloyd's algorithm for the Cosine similarity metric."""
+
+    clusters = []
+    
+    for b_i in len(batch):
+        N, D = batch[b_i].shape  # Number of samples, dimension of the ambient space
+
+        c = batch[b_i][:k, :].clone()  # Simplistic initialization for the centroids
+
+        # Normalize the centroids for the cosine similarity:
+        c = torch.nn.functional.normalize(c, dim=1, p=2)
+
+        x_i = LazyTensor(x.view(N, 1, D))  # (N, 1, D) samples
+        c_j = LazyTensor(c.view(1, K, D))  # (1, K, D) centroids
+
+        # K-means loop:
+        # - x  is the (N, D) point cloud,
+        # - cl is the (N,) vector of class labels
+        # - c  is the (K, D) cloud of cluster centroids
+        for i in range(n_iter):
+            # E step: assign points to the closest cluster -------------------------
+            S_ij = x_i | c_j  # (N, K) symbolic Gram matrix of dot products
+            cl = S_ij.argmax(dim=1).long().view(-1)  # Points -> Nearest cluster
+
+            # M step: update the centroids to the normalized cluster average: ------
+            # Compute the sum of points per cluster:
+            c.zero_()
+            c.scatter_add_(0, cl[:, None].repeat(1, D), x)
+
+            # Normalize the centroids, in place:
+            c[:] = torch.nn.functional.normalize(c, dim=1, p=2)
+
+    return clusters
