@@ -12,7 +12,7 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=U_k-5_sum_embs_original+mean-avg_word-0-05_extra_facet_alternate_common_random_cross_entropy
+EXPERIMENT_ID_PREFIX=U_k-5_debug_sum_embs_original+mean-avg_word-0-05_extra_facet_alternate_common_random_cross_entropy
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
