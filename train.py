@@ -294,6 +294,7 @@ class QuarterMaster(pl.LightningModule):
         self.use_multiple_losses = False
         self.use_target_token_embs = False
         self.do_not_use_target_token_embs_mean = False
+        self.use_target_token_embs_kmeans = False
         self.sum_into_single_embeddings = None
 
         if self.hparams.model_behavior == 'specter':
@@ -314,6 +315,9 @@ class QuarterMaster(pl.LightningModule):
 
                         if 'do_not_use_target_token_embs_mean' in loss_config.keys() and loss_config['do_not_use_target_token_embs_mean']:
                             self.do_not_use_target_token_embs_mean = True
+
+                        if "use_target_token_embs_kmeans" in loss_config.keys() and loss_config["loss_use_target_token_embs_kmeans"]:
+                            self.use_target_token_embs_kmeans = True
 
                     if "sum_into_single_embeddings" in loss_config.keys() and loss_config["sum_into_single_embeddings"]:
                         self.sum_into_single_embeddings = "training_only"
@@ -340,6 +344,9 @@ class QuarterMaster(pl.LightningModule):
 
                     if "loss_do_not_use_target_token_embs_mean" in self.hparams:
                         self.do_not_use_target_token_embs_mean = self.hparams.loss_do_not_use_target_token_embs_mean
+                    
+                    if "loss_use_target_token_embs_kmeans" in self.hparams:
+                        self.use_target_token_embs_kmeans = self.hparams.loss_use_target_token_embs_kmeans
 
                 self.loss = MultiFacetTripletLoss(
                     loss_type=loss_type,
@@ -599,6 +606,10 @@ class QuarterMaster(pl.LightningModule):
                     neg_embedding_tokens_mean = neg_embedding_tokens.sum(dim=1) / torch.count_nonzero(neg_embedding_tokens, dim=1)
                     neg_embedding_tokens_mean = neg_embedding_tokens_mean.unsqueeze(1)
 
+                if self.use_target_token_embs_kmeans:
+                    pos_embedding_tokens_kmeans = utils.batch_k_means_cosine(pos_output.last_hidden_state, self.hparams.num_facets, 50, pos_special_tokens_mask_inverted)
+                    neg_embedding_tokens_kmeans = utils.batch_k_means_cosine(neg_output.last_hidden_state, self.hparams.num_facets, 50, neg_special_tokens_mask_inverted)
+
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
                 # Before passing embeddings through extra facet layers,
@@ -673,7 +684,9 @@ class QuarterMaster(pl.LightningModule):
 
             for i, l in enumerate(self.loss_list):
                 if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
-                    if 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
+                    if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
+                        this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
+                    elif 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
                         this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                     else:
                         this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
@@ -687,7 +700,9 @@ class QuarterMaster(pl.LightningModule):
                 loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
         else:
             if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
-                if "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
+                if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
+                    loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
+                elif "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
                     loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                 else:
                     loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
@@ -928,6 +943,7 @@ def parse_args():
 
     parser.add_argument('--loss_use_target_token_embs', default=False, action='store_true')
     parser.add_argument('--loss_do_not_use_target_token_embs_mean', default=False, action='store_true')
+    parser.add_argument('--loss_use_target_token_embs_kmeans', default=False, action='store_true')
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
