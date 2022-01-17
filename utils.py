@@ -331,26 +331,31 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             json.dump(config_saved, open(os.path.join(save_directory, "config.json"), "w"))
 
 
-def batch_k_means_cosine(batch, k, n_iter=50):
+def batch_k_means_cosine(batch, k, n_iter=50, whitelist_masks=None):
     # Adapted the code listed in the KeOps documentation
     # https://www.kernel-operations.io/keops/_auto_tutorials/kmeans/plot_kmeans_torch.html
     """Implements Lloyd's algorithm for the Cosine similarity metric."""
 
-    clusters = []
+    clusters_list = []
     
-    for b_i in len(batch):
-        N, D = batch[b_i].shape  # Number of samples, dimension of the ambient space
+    for b_i in range(len(batch)):
+        this_example = batch[b_i]
 
-        c = batch[b_i][:k, :].clone()  # Simplistic initialization for the centroids
+        if whitelist_masks is not None:
+            this_example = this_example[whitelist_masks[b_i].nonzero().flatten()]
+
+        N, D = this_example.shape  # Number of samples, dimension of the ambient space
+
+        c = this_example[:k, :].clone()  # Simplistic initialization for the centroids
 
         # Normalize the centroids for the cosine similarity:
         c = torch.nn.functional.normalize(c, dim=1, p=2)
 
-        x_i = LazyTensor(x.view(N, 1, D))  # (N, 1, D) samples
-        c_j = LazyTensor(c.view(1, K, D))  # (1, K, D) centroids
+        x_i = LazyTensor(this_example.view(N, 1, D))  # (N, 1, D) samples
+        c_j = LazyTensor(c.view(1, k, D))  # (1, K, D) centroids
 
         # K-means loop:
-        # - x  is the (N, D) point cloud,
+        # - this_example is the (N, D) point cloud,
         # - cl is the (N,) vector of class labels
         # - c  is the (K, D) cloud of cluster centroids
         for i in range(n_iter):
@@ -361,9 +366,13 @@ def batch_k_means_cosine(batch, k, n_iter=50):
             # M step: update the centroids to the normalized cluster average: ------
             # Compute the sum of points per cluster:
             c.zero_()
-            c.scatter_add_(0, cl[:, None].repeat(1, D), x)
+            c.scatter_add_(0, cl[:, None].repeat(1, D), this_example)
 
             # Normalize the centroids, in place:
             c[:] = torch.nn.functional.normalize(c, dim=1, p=2)
+
+        clusters_list.append(c)
+
+    clusters = torch.stack(clusters_list, dim=0)
 
     return clusters
