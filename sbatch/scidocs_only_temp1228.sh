@@ -3,7 +3,8 @@
 #SBATCH -o sbatch_logs/stdout/scidocs_only_cosine_%j.txt
 #SBATCH -e sbatch_logs/stderr/scidocs_only_cosine_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=1080ti-short
+#SBATCH --partition=gpu-long
+#SBATCH --constraint=ials_gigabyte_gpu_2020
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
