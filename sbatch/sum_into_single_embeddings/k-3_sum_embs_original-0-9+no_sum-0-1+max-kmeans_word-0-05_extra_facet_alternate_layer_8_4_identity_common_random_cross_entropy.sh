@@ -44,6 +44,8 @@ python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_D
                 --data-path ../scidocs/data/paper_metadata_view_cite_read.json \
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl --batch-size 4
 
+module unload cuda11/11.4.1
+module unload gcc7/7.5.0
 conda deactivate
 conda activate scidocs
 
