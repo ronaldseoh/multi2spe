@@ -11,8 +11,8 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=k-1_original+mean-avg_word-0-05+mean-mean-0-1_common_random_cross_entropy
-EXPERIMENT_DATE="12-24"
+EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0-9+no_sum-0-1+max-kmeans_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
+EXPERIMENT_DATE="01-17"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_mag_mesh.json \
