@@ -12,7 +12,7 @@
 eval "$(conda shell.bash hook)"
 
 
-EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0-9+no_sum-0-1+max-kmeans_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
+EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0-9+no_sum-0-1+max-kmeans_word-0-025+mean_avg_word-0-025_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
 EXPERIMENT_DATE="01-17"
 
 
