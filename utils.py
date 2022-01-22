@@ -283,17 +283,25 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         if model.enable_extra_facets and not model.init_bert_layer_facet_layers == "default":
             layer_nums_without_pretrained_weights = set()
+            init_perturb_embeddings = False
 
-            # Initialize only if the pretrained model does not already have weights for extra_facet_layers.
+            # Initialize only if the pretrained model does not already have weights for extra_facet_layers and/or perturb_embeddings.
             for key in loading_info["missing_keys"]:
                 if key.find("extra_facet_layers") > -1 and key.endswith(".weight"):
                     layer_nums_without_pretrained_weights.add(int(key.split("extra_facet_layers.")[0].split("layer")[-1].replace(".", "")))
+                elif key.find("perturb_embeddings") > -1 and key.endswith(".weight"):
+                    init_perturb_embeddings = True
 
             for layer_num in layer_nums_without_pretrained_weights:
                 for layer in model.encoder.layer[layer_num].extra_facet_layers:
                     if model.init_bert_layer_facet_layers == "identity":
                         torch.nn.init.eye_(layer.weight)
                         torch.nn.init.zeros_(layer.bias)
+
+            # initialize perturb embeddings in BertEmbeddings
+            if init_perturb_embeddings:
+                # Initialize the perturb embeddings with zeros
+                torch.nn.init.zeros_(model.embeddings.perturb_embeddings.weight)
 
         if original_output_loading_info:
             return model, loading_info
