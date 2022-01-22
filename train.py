@@ -602,8 +602,15 @@ class QuarterMaster(pl.LightningModule):
                 neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state.size())
 
                 # Multiply the last hidden states and corresponding masks elementwise,
-                pos_embedding_tokens = pos_output.last_hidden_state * pos_special_tokens_mask_inverted
-                neg_embedding_tokens = neg_output.last_hidden_state * neg_special_tokens_mask_inverted
+                if self.use_target_token_embs_input:
+                    pos_embedding_tokens = model.get_input_embeddings()(batch[1]['input_ids'])
+                    neg_embedding_tokens = model.get_input_embeddings()(batch[2]['input_ids'])
+                else:
+                    pos_embedding_tokens = pos_output.last_hidden_state
+                    neg_embedding_tokens = neg_output.last_hidden_state
+                    
+                pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted
+                neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted
 
                 # sum across dimension 1, then divide them by the number of non-zero elements
                 if not self.do_not_use_target_token_embs_mean:
@@ -616,10 +623,6 @@ class QuarterMaster(pl.LightningModule):
                 if self.use_target_token_embs_kmeans:
                     pos_embedding_tokens_kmeans = utils.batch_k_means_cosine(pos_output.last_hidden_state, self.hparams.num_facets, 50, pos_special_tokens_mask_inverted)
                     neg_embedding_tokens_kmeans = utils.batch_k_means_cosine(neg_output.last_hidden_state, self.hparams.num_facets, 50, neg_special_tokens_mask_inverted)
-
-                if self.use_target_token_embs_input:
-                    pos_embedding_tokens_input = model.get_input_embeddings()(batch[1]['input_ids']) * pos_special_tokens_mask_inverted
-                    neg_embedding_tokens_input = model.get_input_embeddings()(batch[2]['input_ids']) * neg_special_tokens_mask_inverted
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
@@ -697,8 +700,6 @@ class QuarterMaster(pl.LightningModule):
                 if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                     if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
                         this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
-                    elif "use_target_token_embs_input" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_input"]:
-                        this_loss = l(source_embedding, pos_embedding_tokens_input, neg_embedding_tokens_input)
                     elif 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
                         this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                     else:
@@ -715,8 +716,6 @@ class QuarterMaster(pl.LightningModule):
             if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                 if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
                     loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
-                elif "loss_use_target_token_embs_input" in self.hparams and self.hparams.loss_use_target_token_embs_input:
-                    loss = self.loss(source_embedding, pos_embedding_tokens_input, neg_embedding_tokens_input)
                 elif "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
                     loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                 else:
@@ -773,8 +772,15 @@ class QuarterMaster(pl.LightningModule):
                 neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state.size())
 
                 # Multiply the last hidden states and corresponding masks elementwise,
-                pos_embedding_tokens = pos_output.last_hidden_state * pos_special_tokens_mask_inverted
-                neg_embedding_tokens = neg_output.last_hidden_state * neg_special_tokens_mask_inverted
+                if self.use_target_token_embs_input:
+                    pos_embedding_tokens = model.get_input_embeddings()(batch[1]['input_ids'])
+                    neg_embedding_tokens = model.get_input_embeddings()(batch[2]['input_ids'])
+                else:
+                    pos_embedding_tokens = pos_output.last_hidden_state
+                    neg_embedding_tokens = neg_output.last_hidden_state
+                    
+                pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted
+                neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted
 
                 # sum across dimension 1, then divide them by the number of non-zero elements
                 if not self.do_not_use_target_token_embs_mean:
@@ -787,10 +793,6 @@ class QuarterMaster(pl.LightningModule):
                 if self.use_target_token_embs_kmeans:
                     pos_embedding_tokens_kmeans = utils.batch_k_means_cosine(pos_output.last_hidden_state, self.hparams.num_facets, 50, pos_special_tokens_mask_inverted)
                     neg_embedding_tokens_kmeans = utils.batch_k_means_cosine(neg_output.last_hidden_state, self.hparams.num_facets, 50, neg_special_tokens_mask_inverted)
-
-                if self.use_target_token_embs_input:
-                    pos_embedding_tokens_input = model.get_input_embeddings()(batch[1]['input_ids']) * pos_special_tokens_mask_inverted
-                    neg_embedding_tokens_input = model.get_input_embeddings()(batch[2]['input_ids']) * neg_special_tokens_mask_inverted
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
@@ -869,8 +871,6 @@ class QuarterMaster(pl.LightningModule):
                 if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                     if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
                         this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
-                    elif "use_target_token_embs_input" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_input"]:
-                        this_loss = l(source_embedding, pos_embedding_tokens_input, neg_embedding_tokens_input)
                     elif 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
                         this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                     else:
@@ -889,8 +889,6 @@ class QuarterMaster(pl.LightningModule):
             if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                 if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
                     loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
-                elif "loss_use_target_token_embs_input" in self.hparams and self.hparams.loss_use_target_token_embs_input:
-                    loss = self.loss(source_embedding, pos_embedding_tokens_input, neg_embedding_tokens_input)
                 elif "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
                     loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                 else:
