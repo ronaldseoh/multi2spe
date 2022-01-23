@@ -167,7 +167,7 @@ class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertE
 
 
 class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertLayer):
-    def __init__(self, config, add_extra_facet_layers=False, num_facets=-1):
+    def __init__(self, config, add_extra_facet_layers=False, num_facets=-1, add_bert_layer_facet_layers_alternate=False):
         super().__init__(config)
 
         self.add_extra_facet_layers = add_extra_facet_layers
@@ -175,6 +175,8 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
         if self.add_extra_facet_layers:
             assert num_facets > 0
             self.num_facets = num_facets
+
+            self.add_bert_layer_facet_layers_alternate = add_bert_layer_facet_layers_alternate
 
             self.extra_facet_layers = torch.nn.ModuleList()
 
@@ -198,9 +200,18 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
 
         # pass through the extra linear layers for each facets if enabled
         if len(self.extra_facet_layers) > 0:
+            if self.add_extra_facet_layers_alternate:
+                extra_facet_layers_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers], dim=0).mean(dim=0)
+                extra_facet_layers_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers]
+
             for n in range(self.num_facets):
                 # We just need to modify output[0] == hidden state of this layer
-                output[0][:, n, :] = self.extra_facet_layers[n](output[0][:, n, :])
+                if self.add_bert_layer_facet_layers_alternate:
+                    # Instead of passing embeddings through output linear layers independently,
+                    # Make the actual linear weights to be (linear weight of this facet - avg of all output weights)
+                    output[0][:, n, :] = torch.nn.functional.linear(output[0][:, n, :], extra_facet_layers_alternate_weights[n], self.extra_facet_layers[n].bias)
+                else:
+                    output[0][:, n, :] = self.extra_facet_layers[n](output[0][:, n, :])
 
         return output
 
@@ -241,21 +252,31 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
             if len(self.add_extra_facet_layers_after) > 0:
                 self.enable_extra_facets = True
+                self.add_bert_layer_facet_layers_alternate = False
 
                 if "init_bert_layer_facet_layers" in kwargs:
                     self.init_bert_layer_facet_layers = kwargs["init_bert_layer_facet_layers"]
+
+                if "add_bert_layer_facet_layers_alternate" in kwargs:
+                    self.add_bert_layer_facet_layers_alternate = kwargs["add_bert_layer_facet_layers_alternate"]
+
         elif 'add_extra_facet_layers_after' in config_dict.keys():
             self.add_extra_facet_layers_after = config.add_extra_facet_layers_after
 
             if len(self.add_extra_facet_layers_after) > 0:
                 self.enable_extra_facets = True
+                self.add_bert_layer_facet_layers_alternate = False
 
                 if "init_bert_layer_facet_layers" in config_dict.keys():
                     self.init_bert_layer_facet_layers = config.init_bert_layer_facet_layers
 
+                if "add_bert_layer_facet_layers_alternate" in config_dict.keys():
+                    self.add_bert_layer_facet_layers_alternate = config.add_bert_layer_facet_layers_alternate
+
         if self.enable_extra_facets:
             if len(self.add_extra_facet_layers_after) > 0:
-                self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(config, self.add_extra_facet_layers_after, self.num_facets)
+                self.encoder = BertEncoderWithExtraLinearLayersForMultiFacets(
+                    config, self.add_extra_facet_layers_after, self.num_facets, self.add_bert_layer_facet_layers_alternate)
 
         self.add_perturb_embeddings = False
 
