@@ -598,8 +598,8 @@ class QuarterMaster(pl.LightningModule):
 
                 # Since the masks above would have the dimensions of (batch size, 512), we use unsqueeze() and expand()
                 # to match the shape of last_hidden_state, which would have the shape of (batch size, 512, 768).
-                pos_special_tokens_mask_inverted = pos_special_tokens_mask_inverted.unsqueeze(-1).expand(pos_output.last_hidden_state.size())
-                neg_special_tokens_mask_inverted = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state.size())
+                pos_special_tokens_mask_inverted_expanded = pos_special_tokens_mask_inverted.unsqueeze(-1).expand(pos_output.last_hidden_state.size())
+                neg_special_tokens_mask_inverted_expanded = neg_special_tokens_mask_inverted.unsqueeze(-1).expand(neg_output.last_hidden_state.size())
 
                 # Multiply the last hidden states and corresponding masks elementwise,
                 if self.use_target_token_embs_input:
@@ -609,8 +609,8 @@ class QuarterMaster(pl.LightningModule):
                     pos_embedding_tokens = pos_output.last_hidden_state
                     neg_embedding_tokens = neg_output.last_hidden_state
                     
-                pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted
-                neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted
+                pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted_expanded
+                neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted_expanded
 
                 # sum across dimension 1, then divide them by the number of non-zero elements
                 if not self.do_not_use_target_token_embs_mean:
