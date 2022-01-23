@@ -317,10 +317,10 @@ class QuarterMaster(pl.LightningModule):
                         if 'do_not_use_target_token_embs_mean' in loss_config.keys() and loss_config['do_not_use_target_token_embs_mean']:
                             self.do_not_use_target_token_embs_mean = True
 
-                        if "use_target_token_embs_kmeans" in loss_config.keys() and loss_config["loss_use_target_token_embs_kmeans"]:
+                        if "use_target_token_embs_kmeans" in loss_config.keys() and loss_config["use_target_token_embs_kmeans"]:
                             self.use_target_token_embs_kmeans = True
 
-                        if "use_target_token_embs_input" in loss_config.keys() and loss_config["loss_use_target_token_embs_input"]:
+                        if "use_target_token_embs_input" in loss_config.keys() and loss_config["use_target_token_embs_input"]:
                             self.use_target_token_embs_input = True
 
                     if "sum_into_single_embeddings" in loss_config.keys() and loss_config["sum_into_single_embeddings"]:
