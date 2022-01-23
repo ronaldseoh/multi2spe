@@ -373,16 +373,16 @@ def batch_k_means_cosine(batch, k, n_iter=50, whitelist_masks=None):
 
             # M step: update the centroids to the normalized cluster average: ------
             # Compute the sum of points per cluster:
-            c.zero_()
-            
+            new_c = torch.zeros_like(c)
+
             # This is originally done with scatter_add_(), but that operation is not deterministic.
             # Since cl is expected to be fairly small (< 100) most of the time for our use case,
             # let's just replace this... with a loop.
             for e_i, c_i in enumerate(cl):
-                c[c_i] += this_example[e_i]
+                new_c[c_i] += this_example[e_i]
 
             # Normalize the centroids, in place:
-            c[:] = torch.nn.functional.normalize(c, dim=1, p=2)
+            c = torch.nn.functional.normalize(new_c, dim=1, p=2)
 
         clusters_list.append(c)
 
