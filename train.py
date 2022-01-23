@@ -204,7 +204,8 @@ class QuarterMaster(pl.LightningModule):
                         add_extra_facet_layers_after=self.hparams.add_extra_facet_layers_after,
                         num_facets=self.hparams.num_facets,
                         add_perturb_embeddings=add_perturb,
-                        init_bert_layer_facet_layers=self.hparams.init_bert_layer_facet_layers)
+                        init_bert_layer_facet_layers=self.hparams.init_bert_layer_facet_layers,
+                        add_bert_layer_facet_layers_alternate=self.hparams.add_bert_layer_facet_layers_alternate)
                 else:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
@@ -952,6 +953,7 @@ def parse_args():
     parser.add_argument('--add_extra_facet_layers_alternate', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_after', nargs='*', type=int, help='Add extra facet layers right after the hidden states of specified encoder layers.')
     parser.add_argument('--init_bert_layer_facet_layers', default="default", choices=["default", "identity"], type=str)
+    parser.add_argument('--add_bert_layer_facet_layers_alternate', default=False, action='store_true')
 
     parser.add_argument('--add_extra_facet_layers_initialize_with_nsp_weights', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_initialize_0_with_nsp_weights', default=False, action='store_true')
