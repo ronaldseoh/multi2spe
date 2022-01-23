@@ -603,8 +603,8 @@ class QuarterMaster(pl.LightningModule):
 
                 # Multiply the last hidden states and corresponding masks elementwise,
                 if self.use_target_token_embs_input:
-                    pos_embedding_tokens = model.get_input_embeddings()(batch[1]['input_ids'])
-                    neg_embedding_tokens = model.get_input_embeddings()(batch[2]['input_ids'])
+                    pos_embedding_tokens = self.model.get_input_embeddings()(batch[1]['input_ids'])
+                    neg_embedding_tokens = self.model.get_input_embeddings()(batch[2]['input_ids'])
                 else:
                     pos_embedding_tokens = pos_output.last_hidden_state
                     neg_embedding_tokens = neg_output.last_hidden_state
@@ -773,8 +773,8 @@ class QuarterMaster(pl.LightningModule):
 
                 # Multiply the last hidden states and corresponding masks elementwise,
                 if self.use_target_token_embs_input:
-                    pos_embedding_tokens = model.get_input_embeddings()(batch[1]['input_ids'])
-                    neg_embedding_tokens = model.get_input_embeddings()(batch[2]['input_ids'])
+                    pos_embedding_tokens = self.model.get_input_embeddings()(batch[1]['input_ids'])
+                    neg_embedding_tokens = self.model.get_input_embeddings()(batch[2]['input_ids'])
                 else:
                     pos_embedding_tokens = pos_output.last_hidden_state
                     neg_embedding_tokens = neg_output.last_hidden_state
