@@ -217,7 +217,7 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
 
 
 class BertEncoderWithExtraLinearLayersForMultiFacets(transformers.models.bert.modeling_bert.BertEncoder):
-    def __init__(self, config, add_extra_facet_layers_after=[], num_facets=-1):
+    def __init__(self, config, add_extra_facet_layers_after=[], num_facets=-1, add_bert_layer_facet_layers_alternate=False):
         super().__init__(config)
 
         self.add_extra_facet_layers_after = add_extra_facet_layers_after
@@ -227,7 +227,7 @@ class BertEncoderWithExtraLinearLayersForMultiFacets(transformers.models.bert.mo
             # Replace the original BertLayer with the custom BertLayer class with extra linear layers
             for layer_num in self.add_extra_facet_layers_after:
                 self.layer[layer_num] = BertLayerWithExtraLinearLayersForMultiFacets(
-                    config, add_extra_facet_layers=True, num_facets=num_facets)
+                    config, add_extra_facet_layers=True, num_facets=num_facets, add_bert_layer_facet_layers_alternate=add_bert_layer_facet_layers_alternate)
 
 
 class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
