@@ -200,7 +200,7 @@ class BertLayerWithExtraLinearLayersForMultiFacets(transformers.models.bert.mode
 
         # pass through the extra linear layers for each facets if enabled
         if len(self.extra_facet_layers) > 0:
-            if self.add_extra_facet_layers_alternate:
+            if self.add_bert_layer_facet_layers_alternate:
                 extra_facet_layers_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers], dim=0).mean(dim=0)
                 extra_facet_layers_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers]
 
