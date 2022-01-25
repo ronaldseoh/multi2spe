@@ -210,7 +210,7 @@ class QuarterMaster(pl.LightningModule):
                 init_bert_layer_facet_layers = False
 
             if "add_bert_layer_facet_layers_alternate" in self.hparams:
-                init_bert_layer_facet_layers = self.hparams.add_bert_layer_facet_layers_alternate
+                add_bert_layer_facet_layers_alternate = self.hparams.add_bert_layer_facet_layers_alternate
             else:
                 add_bert_layer_facet_layers_alternate = False
 
