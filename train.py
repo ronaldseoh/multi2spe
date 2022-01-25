@@ -204,6 +204,16 @@ class QuarterMaster(pl.LightningModule):
             else:
                 add_perturb = False
 
+            if "init_bert_layer_facet_layers" in self.hparams:
+                init_bert_layer_facet_layers = self.hparams.init_bert_layer_facet_layers
+            else:
+                init_bert_layer_facet_layers = False
+
+            if "add_bert_layer_facet_layers_alternate" in self.hparams:
+                init_bert_layer_facet_layers = self.hparams.add_bert_layer_facet_layers_alternate
+            else:
+                add_bert_layer_facet_layers_alternate = False
+
             if "add_extra_facet_layers_after" in self.hparams:
                 # self.hparams.add_extra_facet_layers_after could be None too, so check that first
                 if self.hparams.add_extra_facet_layers_after and len(self.hparams.add_extra_facet_layers_after) > 0:
@@ -212,8 +222,8 @@ class QuarterMaster(pl.LightningModule):
                         add_extra_facet_layers_after=self.hparams.add_extra_facet_layers_after,
                         num_facets=self.hparams.num_facets,
                         add_perturb_embeddings=add_perturb,
-                        init_bert_layer_facet_layers=self.hparams.init_bert_layer_facet_layers,
-                        add_bert_layer_facet_layers_alternate=self.hparams.add_bert_layer_facet_layers_alternate)
+                        init_bert_layer_facet_layers=init_bert_layer_facet_layers,
+                        add_bert_layer_facet_layers_alternate=add_bert_layer_facet_layers_alternate)
                 else:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
