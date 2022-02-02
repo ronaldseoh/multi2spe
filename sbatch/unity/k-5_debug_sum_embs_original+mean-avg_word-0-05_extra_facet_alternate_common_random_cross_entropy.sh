@@ -26,7 +26,7 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --loss_config '[{"name": "original", "weight": 1, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false}, {"name": "mean_and_word_emb", "weight": 0.05, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "mean", "use_target_token_embs": true}]' \
                 --gpus 1 --num_workers 0 --fp16 \
                 --batch_size 2 --grad_accum 16  --num_epochs 2 \
-                --seed 1945 \
+                --seed 1783 \
                 --wandb
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
