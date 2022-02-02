@@ -3,7 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05-input_emb_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy_%j.txt
 #SBATCH -e sbatch_logs/stderr/k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05-input_emb_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=1080ti-long
+#SBATCH --partition=2080ti-long
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
@@ -27,6 +27,7 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --loss_config '[{"name": "original", "weight": 0.9, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false, "sum_into_single_embeddings": true}, {"name": "no_sum", "weight": 0.1, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false, "sum_into_single_embeddings": false}, {"name": "mean_and_word_emb", "weight": 0.05, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "mean", "use_target_token_embs": true, "use_target_token_embs_input": true}]' \
                 --gpus 1 --num_workers 0 --fp16 \
                 --batch_size 2 --grad_accum 16  --num_epochs 2 \
+                --seed 1991 \
                 --wandb
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
