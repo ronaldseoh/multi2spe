@@ -3,7 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/specter_%j.txt
 #SBATCH -e sbatch_logs/stderr/specter_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=1080ti-long
+#SBATCH --partition=2080ti-long
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
@@ -20,6 +20,7 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --model_behavior 'specter' \
                 --gpus 1 --num_workers 0 --fp16 \
                 --batch_size 2 --grad_accum 16  --num_epochs 2 \
+                --seed 1991 \
                 --wandb
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
