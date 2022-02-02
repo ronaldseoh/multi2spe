@@ -4,7 +4,7 @@
 #SBATCH -e sbatch_logs/stderr/U_debug_specter_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu-long
-#SBATCH --constraint=ials_gigabyte_gpu_2020
+#SBATCH --constraint=gypsum-titanx-ms
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
