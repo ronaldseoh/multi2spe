@@ -3,8 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/U_k-3_debug_sum_embs_original+mean-avg_word-0-05_extra_facet_alternate_common_random_cross_entropy_%j.txt
 #SBATCH -e sbatch_logs/stderr/U_k-3_debug_sum_embs_original+mean-avg_word-0-05_extra_facet_alternate_common_random_cross_entropy_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=gpu-long
-#SBATCH --constraint=ials_gigabyte_gpu_2020
+#SBATCH --partition=gypsum-titanx-ms
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
