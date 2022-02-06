@@ -105,6 +105,9 @@ if __name__ == '__main__':
     # Load the Lightning module from the checkpoint
     model = QuarterMaster.load_from_checkpoint(args.pl_checkpoint_path)
 
+    # Explicitly load the model into the CUDA GPU memory
+    model = model.to("cuda")
+
     # Put model in the eval mode
     model.eval()
 
