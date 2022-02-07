@@ -83,8 +83,13 @@ class MultiFacetTripletLoss(torch.nn.Module):
         negative_masked = negative * negative_mask
 
         if self.distance == 'l2-norm':
-            distance_positive_all = torch.cdist(query_masked, positive_masked, p=2)
-            distance_negative_all = torch.cdist(query_masked, negative_masked, p=2)
+            distance_positive_all_temp = torch.cdist(query_masked, positive_masked, p=2)
+            distance_negative_all_temp = torch.cdist(query_masked, negative_masked, p=2)
+
+            # Unlike bmm() below, cdist() outputs would have in-place operation autograd anomalies
+            # without having the separate tensors created with clone()
+            distance_positive_all = torch.clone(distance_positive_all_temp)
+            distance_negative_all = torch.clone(distance_negative_all_temp)
         elif self.distance == 'dot':
             distance_positive_all = torch.bmm(query_masked, torch.transpose(positive_masked, 1, 2))
             distance_negative_all = torch.bmm(query_masked, torch.transpose(negative_masked, 1, 2))
