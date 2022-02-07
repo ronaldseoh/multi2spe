@@ -68,8 +68,8 @@ class MultiFacetTripletLoss(torch.nn.Module):
     def forward(self, query, positive, negative):
         # Are there any zero vectors in `query`, `positive`, and `negative`?
         # We need to introduce masks to filter them out.
-        query_mask = torch.nan_to_num((query.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf')) 
-        positive_mask = torch.nan_to_num((positive.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf')) 
+        query_mask = torch.nan_to_num((query.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf'))
+        positive_mask = torch.nan_to_num((positive.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf'))
         negative_mask = torch.nan_to_num((negative.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf'))
 
         query_mask = query_mask.unsqueeze(-1).expand(query.size())
@@ -367,7 +367,7 @@ class QuarterMaster(pl.LightningModule):
 
                     if "loss_do_not_use_target_token_embs_mean" in self.hparams:
                         self.do_not_use_target_token_embs_mean = self.hparams.loss_do_not_use_target_token_embs_mean
-                    
+
                     if "loss_use_target_token_embs_kmeans" in self.hparams:
                         self.use_target_token_embs_kmeans = self.hparams.loss_use_target_token_embs_kmeans
 
@@ -627,7 +627,7 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     pos_embedding_tokens = pos_output.last_hidden_state
                     neg_embedding_tokens = neg_output.last_hidden_state
-                    
+
                 pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted_expanded
                 neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted_expanded
 
@@ -797,7 +797,7 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     pos_embedding_tokens = pos_output.last_hidden_state
                     neg_embedding_tokens = neg_output.last_hidden_state
-                    
+
                 pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted_expanded
                 neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted_expanded
 
