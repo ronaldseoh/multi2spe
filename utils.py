@@ -373,7 +373,7 @@ def batch_k_means_cosine(batch, k, n_iter=50, whitelist_masks=None):
     """Implements Lloyd's algorithm for the Cosine similarity metric."""
 
     clusters_list = []
-    
+
     for b_i in range(len(batch)):
         this_example = batch[b_i]
 
