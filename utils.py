@@ -80,27 +80,36 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                                       truncation=True, padding="max_length", return_special_tokens_mask=True,
                                       return_tensors="pt", max_length=512)
 
-        source_input = {'input_ids': source_title['input_ids'][0],
-                        'token_type_ids': source_title['token_type_ids'][0],
-                        'attention_mask': source_title['attention_mask'][0],
-                        'special_tokens_mask': source_title['special_tokens_mask'][0]}
-
         pos_tokens = self.extra_facets_tokens + data_instance["pos_title"].tokens
 
         pos_title = self.tokenizer(' '.join([str(token) for token in pos_tokens]),
                                    truncation=True, padding="max_length", return_special_tokens_mask=True,
                                    return_tensors="pt", max_length=512)
 
-        pos_input = {'input_ids': pos_title['input_ids'][0],
-                     'token_type_ids': pos_title['token_type_ids'][0],
-                     'attention_mask': pos_title['attention_mask'][0],
-                     'special_tokens_mask': pos_title['special_tokens_mask'][0]}
-
         neg_tokens = self.extra_facets_tokens + data_instance["neg_title"].tokens
 
         neg_title = self.tokenizer(' '.join([str(token) for token in neg_tokens]),
                                    truncation=True, padding="max_length", return_special_tokens_mask=True,
                                    return_tensors="pt", max_length=512)
+
+        # As of transformers 4.9.2, adding additional special tokens do not make special_tokens_mask to make notes of them.
+        # So we are masking our facet tokens manually here.
+        for i in range(self.num_facets - 1):
+            source_title['special_tokens_mask'][0][i+1] = 1
+            pos_title['special_tokens_mask'][0][i+1] = 1
+            neg_title['special_tokens_mask'][0][i+1] = 1
+
+        source_input = {'input_ids': source_title['input_ids'][0],
+                        'token_type_ids': source_title['token_type_ids'][0],
+                        'attention_mask': source_title['attention_mask'][0],
+                        'special_tokens_mask': source_title['special_tokens_mask'][0]}
+
+        pos_input = {'input_ids': pos_title['input_ids'][0],
+                     'token_type_ids': pos_title['token_type_ids'][0],
+                     'attention_mask': pos_title['attention_mask'][0],
+                     'special_tokens_mask': pos_title['special_tokens_mask'][0]}
+
+
 
         neg_input = {'input_ids': neg_title['input_ids'][0],
                      'token_type_ids': neg_title['token_type_ids'][0],
