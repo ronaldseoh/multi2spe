@@ -712,10 +712,10 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding = self.extra_facet_nonlinearity(pos_embedding)
                 neg_embedding = self.extra_facet_nonlinearity(neg_embedding)
 
-            with torch.no_grad():
-                # Normalize each facet embeddings for visualization purposes
-                source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
+            # Normalize each facet embeddings
+            source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized = self._get_normalized_embeddings(source_embedding, pos_embedding, neg_embedding)
 
+            with torch.no_grad():
                 self._calculate_loss_set_reg(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=False)
 
                 if self.hparams.num_facets > 1:
