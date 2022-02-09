@@ -320,6 +320,7 @@ class QuarterMaster(pl.LightningModule):
         self.do_not_use_target_token_embs_mean = False
         self.use_target_token_embs_kmeans = False
         self.use_target_token_embs_input = False
+        self.use_target_token_embs_normalize = False
         self.sum_into_single_embeddings = None
 
         if self.hparams.model_behavior == 'specter':
@@ -346,6 +347,9 @@ class QuarterMaster(pl.LightningModule):
 
                         if "use_target_token_embs_input" in loss_config.keys() and loss_config["use_target_token_embs_input"]:
                             self.use_target_token_embs_input = True
+
+                        if "use_target_token_embs_normalize" in loss_config.keys() and loss_config["use_target_token_embs_normalize"]:
+                            self.use_target_token_embs_normalize = True
 
                     if "sum_into_single_embeddings" in loss_config.keys() and loss_config["sum_into_single_embeddings"]:
                         self.sum_into_single_embeddings = "training_only"
@@ -378,6 +382,9 @@ class QuarterMaster(pl.LightningModule):
 
                     if "loss_use_target_token_embs_input" in self.hparams:
                         self.use_target_token_embs_input = self.hparams.loss_use_target_token_embs_input
+
+                    if "loss_use_target_token_embs_normalize" in self.hparams:
+                        self.use_target_token_embs_normalize = self.hparams.loss_use_target_token_embs_normalize
 
                 self.loss = MultiFacetTripletLoss(
                     loss_type=loss_type,
@@ -646,6 +653,10 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted_expanded
                 neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted_expanded
 
+                if self.use_target_token_embs_normalize:
+                    pos_embedding_tokens_normalized = torch.nn.functional.normalize(pos_embedding_tokens, p=2, dim=-1)
+                    neg_embedding_tokens_normalized = torch.nn.functional.normalize(neg_embedding_tokens, p=2, dim=-1)
+
                 # sum across dimension 1, then divide them by the number of non-zero elements
                 if not self.do_not_use_target_token_embs_mean:
                     pos_embedding_tokens_mean = pos_embedding_tokens.sum(dim=1) / torch.count_nonzero(pos_embedding_tokens, dim=1)
@@ -734,6 +745,9 @@ class QuarterMaster(pl.LightningModule):
                 for n in range(self.hparams.num_facets):
                     source_embedding_scaled[:, n, :] = self.scaling_layers_for_input_embs[n](source_embedding_scaled[:, n, :])
 
+                if self.use_target_token_embs_normalize:
+                    source_embedding_scaled_normalized = torch.nn.functional.normalize(source_embedding_scaled, p=2, dim=-1)
+
         if self.use_multiple_losses:
             loss = 0
 
@@ -742,10 +756,16 @@ class QuarterMaster(pl.LightningModule):
                     if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
                         this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
                     elif 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
-                        if self.use_target_token_embs_input:
-                            this_loss = l(source_embedding_scaled, pos_embedding_tokens, neg_embedding_tokens)
+                        if self.use_target_token_embs_normalize:
+                            if self.use_target_token_embs_input:
+                                this_loss = l(source_embedding_scaled_normalized, pos_embedding_tokens_normalized, neg_embedding_tokens_normalized)
+                            else:
+                                this_loss = l(source_embedding_normalized, pos_embedding_tokens_normalized, neg_embedding_tokens_normalized)
                         else:
-                            this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                            if self.use_target_token_embs_input:
+                                this_loss = l(source_embedding_scaled, pos_embedding_tokens, neg_embedding_tokens)
+                            else:
+                                this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                     else:
                         this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
                 elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
@@ -761,10 +781,16 @@ class QuarterMaster(pl.LightningModule):
                 if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
                     loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
                 elif "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
-                    if self.use_target_token_embs_input:
-                        loss = self.loss(source_embedding_scaled, pos_embedding_tokens, neg_embedding_tokens)
+                    if self.use_target_token_embs_normalize:
+                        if self.use_target_token_embs_input:
+                            loss = self.loss(source_embedding_scaled_normalized, pos_embedding_tokens_normalized, neg_embedding_tokens_normalized)
+                        else:
+                            loss = self.loss(source_embedding_normalized, pos_embedding_tokens_normalized, neg_embedding_tokens_normalized)
                     else:
-                        loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                        if self.use_target_token_embs_input:
+                            loss = self.loss(source_embedding_scaled, pos_embedding_tokens, neg_embedding_tokens)
+                        else:
+                            loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                 else:
                     loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
             elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
@@ -828,6 +854,10 @@ class QuarterMaster(pl.LightningModule):
 
                 pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted_expanded
                 neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted_expanded
+
+                if self.use_target_token_embs_normalize:
+                    pos_embedding_tokens_normalized = torch.nn.functional.normalize(pos_embedding_tokens, p=2, dim=-1)
+                    neg_embedding_tokens_normalized = torch.nn.functional.normalize(neg_embedding_tokens, p=2, dim=-1)
 
                 # sum across dimension 1, then divide them by the number of non-zero elements
                 if not self.do_not_use_target_token_embs_mean:
@@ -916,6 +946,9 @@ class QuarterMaster(pl.LightningModule):
                 for n in range(self.hparams.num_facets):
                     source_embedding_scaled[:, n, :] = self.scaling_layers_for_input_embs[n](source_embedding_scaled[:, n, :])
 
+                if self.use_target_token_embs_normalize:
+                    source_embedding_scaled_normalized = torch.nn.functional.normalize(source_embedding_scaled, p=2, dim=-1)
+
         if self.use_multiple_losses:
             loss = 0
 
@@ -926,10 +959,16 @@ class QuarterMaster(pl.LightningModule):
                     if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
                         this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
                     elif 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
-                        if self.use_target_token_embs_input:
-                            this_loss = l(source_embedding_scaled, pos_embedding_tokens, neg_embedding_tokens)
+                        if self.use_target_token_embs_normalize:
+                            if self.use_target_token_embs_input:
+                                this_loss = l(source_embedding_scaled_normalized, pos_embedding_tokens_normalized, neg_embedding_tokens_normalized)
+                            else:
+                                this_loss = l(source_embedding_normalized, pos_embedding_tokens_normalized, neg_embedding_tokens_normalized)
                         else:
-                            this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                            if self.use_target_token_embs_input:
+                                this_loss = l(source_embedding_scaled, pos_embedding_tokens, neg_embedding_tokens)
+                            else:
+                                this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                     else:
                         this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
                 elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
@@ -947,10 +986,16 @@ class QuarterMaster(pl.LightningModule):
                 if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
                     loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
                 elif "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
-                    if self.use_target_token_embs_input:
-                        loss = self.loss(source_embedding_scaled, pos_embedding_tokens, neg_embedding_tokens)
+                    if self.use_target_token_embs_normalize:
+                        if self.use_target_token_embs_input:
+                            loss = self.loss(source_embedding_scaled_normalized, pos_embedding_tokens_normalized, neg_embedding_tokens_normalized)
+                        else:
+                            loss = self.loss(source_embedding_normalized, pos_embedding_tokens_normalized, neg_embedding_tokens_normalized)
                     else:
-                        loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                        if self.use_target_token_embs_input:
+                            loss = self.loss(source_embedding_scaled, pos_embedding_tokens, neg_embedding_tokens)
+                        else:
+                            loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
                 else:
                     loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
             elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
