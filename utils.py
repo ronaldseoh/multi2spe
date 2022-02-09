@@ -41,9 +41,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
 
             # Let tokenizer recognize our facet tokens in order to prevent it
             # from doing WordPiece stuff on these tokens
-            # According to the transformers documentation, special_tokens=True prevents
-            # these tokens from being normalized.
-            num_added_vocabs = self.tokenizer.add_tokens(self.extra_facets_tokens, special_tokens=True)
+            num_added_vocabs = self.tokenizer.add_special_tokens({"additional_special_tokens": self.extra_facets_tokens})
 
             if num_added_vocabs > 0:
                 print("{} facet tokens were newly added to the vocabulary.".format(num_added_vocabs))
