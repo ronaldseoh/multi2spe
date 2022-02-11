@@ -12,8 +12,8 @@
 eval "$(conda shell.bash hook)"
 conda activate scidocs
 
-EXPERIMENT_ID_PREFIX=k-3_sum_embs_original+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_separate_random_cross_entropy
-EXPERIMENT_DATE="01-05"
+EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
+EXPERIMENT_DATE="02-09"
 
 python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl \
                       --user-citation save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl \
