@@ -1,3 +1,6 @@
+from train import QuarterMaster
+import utils
+
 import argparse
 import collections
 import json
@@ -5,9 +8,6 @@ import json
 import torch
 import transformers
 import tqdm
-
-from train import QuarterMaster
-import utils
 
 
 if __name__ == '__main__':
