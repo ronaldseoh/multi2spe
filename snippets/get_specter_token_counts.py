@@ -6,7 +6,6 @@ import torch
 import transformers
 import tqdm
 
-from train import QuarterMaster
 import utils
 
 
