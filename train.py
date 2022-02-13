@@ -321,6 +321,8 @@ class QuarterMaster(pl.LightningModule):
         self.use_target_token_embs_kmeans = False
         self.use_target_token_embs_input = False
         self.use_target_token_embs_normalize = False
+        self.use_target_token_embs_weighted = False
+        self.use_target_token_embs_weighted_mu = -1
         self.sum_into_single_embeddings = None
 
         if self.hparams.model_behavior == 'specter':
@@ -350,6 +352,10 @@ class QuarterMaster(pl.LightningModule):
 
                         if "use_target_token_embs_normalize" in loss_config.keys() and loss_config["use_target_token_embs_normalize"]:
                             self.use_target_token_embs_normalize = True
+
+                        if "use_target_token_embs_weighted" in loss_config.keys() and loss_config["use_target_token_embs_weighted"]:
+                            self.use_target_token_embs_weighted = True
+                            self.use_target_token_embs_weighted_mu = float(loss_config["use_target_token_embs_weighted_mu"])
 
                     if "sum_into_single_embeddings" in loss_config.keys() and loss_config["sum_into_single_embeddings"]:
                         self.sum_into_single_embeddings = "training_only"
@@ -386,6 +392,10 @@ class QuarterMaster(pl.LightningModule):
                     if "loss_use_target_token_embs_normalize" in self.hparams:
                         self.use_target_token_embs_normalize = self.hparams.loss_use_target_token_embs_normalize
 
+                    if "loss_use_target_token_embs_weighted" in self.hparams:
+                        self.use_target_token_embs_weighted = self.hparams.loss_use_target_token_embs_weighted
+                        self.use_target_token_embs_weighted_mu = self.hparams.loss_use_target_token_embs_weighted_mu
+
                 self.loss = MultiFacetTripletLoss(
                     loss_type=loss_type,
                     margin=self.hparams.loss_margin,
@@ -405,6 +415,19 @@ class QuarterMaster(pl.LightningModule):
                     scaler = torch.nn.Linear(self.model.config.hidden_size, self.model.config.hidden_size)
 
                     self.scaling_layers_for_input_embs.append(scaler)
+
+            if self.use_target_token_embs_weighted:
+                self.target_token_embs_weights_train = torch.nn.Embedding(tokenizer.vocab_size, 1)
+                torch.nn.init.zeros_(self.target_token_embs_weights_train.weight)
+
+                self.target_token_embs_weights_validation = torch.nn.Embedding(tokenizer.vocab_size, 1)
+                torch.nn.init.zeros_(self.target_token_embs_weights_validation.weight)
+
+                for key in self.hparams.train_file_weights.keys():
+                    self.target_token_embs_weights_train.weight[int(key)].data[0] = self.use_target_token_embs_weighted_mu / (self.use_target_token_embs_weighted_mu + self.hparams.train_file_weights[key])
+
+                for key in self.hparams.val_file_weights.keys():
+                    self.target_token_embs_weights_validation.weight[int(key)].data[0] = self.use_target_token_embs_weighted_mu / (self.use_target_token_embs_weighted_mu + self.hparams.val_file_weights[key])
 
             if "sum_into_single_embeddings" in self.hparams:
                 # What if self.sum_into_single_embeddings was set in the previous lines
@@ -650,6 +673,13 @@ class QuarterMaster(pl.LightningModule):
                     pos_embedding_tokens = pos_output.last_hidden_state
                     neg_embedding_tokens = neg_output.last_hidden_state
 
+                if self.use_target_token_embs_weighted:
+                    pos_token_weights_expanded = self.target_token_embs_weights_train(batch[1]['input_ids']).expand(pos_output.last_hidden_state.size())
+                    neg_token_weights_expanded = self.target_token_embs_weights_train(batch[2]['input_ids']).expand(neg_output.last_hidden_state.size())
+
+                    pos_embedding_tokens = pos_embedding_tokens * pos_token_weights_expanded
+                    neg_embedding_tokens = neg_embedding_tokens * neg_token_weights_expanded
+
                 pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted_expanded
                 neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted_expanded
 
@@ -852,6 +882,13 @@ class QuarterMaster(pl.LightningModule):
                     pos_embedding_tokens = pos_output.last_hidden_state
                     neg_embedding_tokens = neg_output.last_hidden_state
 
+                if self.use_target_token_embs_weighted:
+                    pos_token_weights_expanded = self.target_token_embs_weights_validation(batch[1]['input_ids']).expand(pos_output.last_hidden_state.size())
+                    neg_token_weights_expanded = self.target_token_embs_weights_validation(batch[2]['input_ids']).expand(neg_output.last_hidden_state.size())
+
+                    pos_embedding_tokens = pos_embedding_tokens * pos_token_weights_expanded
+                    neg_embedding_tokens = neg_embedding_tokens * neg_token_weights_expanded
+
                 pos_embedding_tokens = pos_embedding_tokens * pos_special_tokens_mask_inverted_expanded
                 neg_embedding_tokens = neg_embedding_tokens * neg_special_tokens_mask_inverted_expanded
 
@@ -1047,6 +1084,9 @@ def parse_args():
     parser.add_argument('--train_size', type=int)
     parser.add_argument('--val_size', type=int)
 
+    parser.add_argument('--train_token_weights_file')
+    parser.add_argument('--val_token_weights_file')
+
     parser.add_argument('--pretrained_model_name', default="allenai/scibert_scivocab_uncased", type=str)
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
@@ -1081,6 +1121,8 @@ def parse_args():
     parser.add_argument('--loss_use_target_token_embs_kmeans', default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_input',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_normalize',  default=False, action='store_true')
+    parser.add_argument('--loss_use_target_token_embs_weighted',  default=False, action='store_true')
+    parser.add_argument('--loss_use_target_token_embs_weighted_mu',  default=1e-4, type=float)
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
@@ -1119,6 +1161,14 @@ def parse_args():
     else:
         parsed_args.gpus = int(parsed_args.gpus)
         parsed_args.total_gpus = parsed_args.gpus
+
+    if parsed_args.train_token_weights_file:
+        with open(parsed_args.train_token_weights_file, "r") as train_token_weights_file:
+            parsed_args.train_token_weights = json.load(train_token_weights_file)
+
+    if parsed_args.val_token_weights_file:
+        with open(parsed_args.val_token_weights_file, "r") as val_token_weights_file:
+            parsed_args.val_token_weights = json.load(val_token_weights_file)
 
     return parsed_args
 
