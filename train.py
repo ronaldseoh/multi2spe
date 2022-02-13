@@ -322,6 +322,7 @@ class QuarterMaster(pl.LightningModule):
         self.use_target_token_embs_input = False
         self.use_target_token_embs_normalize = False
         self.use_target_token_embs_weighted = False
+        self.use_target_token_embs_weighted_trainable = False
         self.use_target_token_embs_weighted_mu = -1
         self.sum_into_single_embeddings = None
 
@@ -356,6 +357,9 @@ class QuarterMaster(pl.LightningModule):
                         if "use_target_token_embs_weighted" in loss_config.keys() and loss_config["use_target_token_embs_weighted"]:
                             self.use_target_token_embs_weighted = True
                             self.use_target_token_embs_weighted_mu = float(loss_config["use_target_token_embs_weighted_mu"])
+    
+                            if "use_target_token_embs_weighted_trainable" in loss_config.keys() and loss_config["use_target_token_embs_weighted_trainable"]:
+                                self.use_target_token_embs_weighted_trainable = True
 
                     if "sum_into_single_embeddings" in loss_config.keys() and loss_config["sum_into_single_embeddings"]:
                         self.sum_into_single_embeddings = "training_only"
@@ -396,6 +400,9 @@ class QuarterMaster(pl.LightningModule):
                         self.use_target_token_embs_weighted = self.hparams.loss_use_target_token_embs_weighted
                         self.use_target_token_embs_weighted_mu = self.hparams.loss_use_target_token_embs_weighted_mu
 
+                        if "loss_use_target_token_embs_weighted_trainable" in self.hparams:
+                            self.use_target_token_embs_weighted_trainable = self.hparams.loss_use_target_token_embs_weighted_trainable
+
                 self.loss = MultiFacetTripletLoss(
                     loss_type=loss_type,
                     margin=self.hparams.loss_margin,
@@ -428,6 +435,11 @@ class QuarterMaster(pl.LightningModule):
 
                 for key in self.hparams.val_file_weights.keys():
                     self.target_token_embs_weights_validation.weight[int(key)].data[0] = self.use_target_token_embs_weighted_mu / (self.use_target_token_embs_weighted_mu + self.hparams.val_file_weights[key])
+
+                # target_token_embs_weights should **not** be trainable unless explicitly requested.
+                if not self.use_target_token_embs_weighted_trainable:
+                    self.target_token_embs_weights_train.weight.requires_grad = False
+                    self.target_token_embs_weights_validation.weight_requires_grad = False
 
             if "sum_into_single_embeddings" in self.hparams:
                 # What if self.sum_into_single_embeddings was set in the previous lines
@@ -1122,6 +1134,7 @@ def parse_args():
     parser.add_argument('--loss_use_target_token_embs_input',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_normalize',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted',  default=False, action='store_true')
+    parser.add_argument('--loss_use_target_token_embs_weighted_trainable',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted_mu',  default=1e-4, type=float)
 
     parser.add_argument('--batch_size', default=1, type=int)
