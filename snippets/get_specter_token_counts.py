@@ -4,6 +4,7 @@ import json
 
 import torch
 import transformers
+import tqdm
 
 import utils
 
@@ -27,7 +28,7 @@ if __name__ == '__main__':
 
     main_counter = collections.Counter()
 
-    for d in dataset:
+    for d in tqdm.tqdm(dataset):
         # Source paper
         source_input_ids = d[0]["input_ids"]
         source_special_tokens_mask = d[0]['special_tokens_mask']
@@ -70,7 +71,7 @@ if __name__ == '__main__':
     # Divide each count with total_count
     main_counter = dict(main_counter)
 
-    for key in main_counter.keys()
+    for key in main_counter.keys():
         main_counter[key] /= total_count
 
     # Dump to args.output
