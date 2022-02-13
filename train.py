@@ -1080,6 +1080,7 @@ def parse_args():
     parser.add_argument('--loss_do_not_use_target_token_embs_mean', default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_kmeans', default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_input',  default=False, action='store_true')
+    parser.add_argument('--loss_use_target_token_embs_normalize',  default=False, action='store_true')
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
