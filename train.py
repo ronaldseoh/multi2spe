@@ -1134,7 +1134,7 @@ def parse_args():
     parser.add_argument('--loss_use_target_token_embs_input',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_normalize',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted',  default=False, action='store_true')
-    parser.add_argument('--loss_use_target_token_embs_weighted_trainable',  default=False, action='store_true')
+    parser.add_argument('--loss_use_target_token_embs_weighted_trainable', default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted_mu',  default=1e-4, type=float)
 
     parser.add_argument('--batch_size', default=1, type=int)
