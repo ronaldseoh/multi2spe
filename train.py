@@ -437,11 +437,11 @@ class QuarterMaster(pl.LightningModule):
                 self.target_token_embs_weights_validation = torch.nn.Embedding(self.tokenizer.vocab_size, 1)
                 torch.nn.init.zeros_(self.target_token_embs_weights_validation.weight)
 
-                for key in self.hparams.train_file_weights.keys():
-                    self.target_token_embs_weights_train.weight[int(key)].data[0] = self.use_target_token_embs_weighted_mu / (self.use_target_token_embs_weighted_mu + self.hparams.train_file_weights[key])
+                for key in self.hparams.train_token_weights.keys():
+                    self.target_token_embs_weights_train.weight[int(key)].data[0] = self.use_target_token_embs_weighted_mu / (self.use_target_token_embs_weighted_mu + self.hparams.train_token_weights[key])
 
-                for key in self.hparams.val_file_weights.keys():
-                    self.target_token_embs_weights_validation.weight[int(key)].data[0] = self.use_target_token_embs_weighted_mu / (self.use_target_token_embs_weighted_mu + self.hparams.val_file_weights[key])
+                for key in self.hparams.val_token_weights.keys():
+                    self.target_token_embs_weights_validation.weight[int(key)].data[0] = self.use_target_token_embs_weighted_mu / (self.use_target_token_embs_weighted_mu + self.hparams.val_token_weights[key])
 
                 # target_token_embs_weights should **not** be trainable unless explicitly requested.
                 if not self.use_target_token_embs_weighted_trainable:
