@@ -431,10 +431,10 @@ class QuarterMaster(pl.LightningModule):
                     self.scaling_layers_for_input_embs.append(scaler)
 
             if self.use_target_token_embs_weighted:
-                self.target_token_embs_weights_train = torch.nn.Embedding(tokenizer.vocab_size, 1)
+                self.target_token_embs_weights_train = torch.nn.Embedding(self.tokenizer.vocab_size, 1)
                 torch.nn.init.zeros_(self.target_token_embs_weights_train.weight)
 
-                self.target_token_embs_weights_validation = torch.nn.Embedding(tokenizer.vocab_size, 1)
+                self.target_token_embs_weights_validation = torch.nn.Embedding(self.tokenizer.vocab_size, 1)
                 torch.nn.init.zeros_(self.target_token_embs_weights_validation.weight)
 
                 for key in self.hparams.train_file_weights.keys():
