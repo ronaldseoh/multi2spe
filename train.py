@@ -321,6 +321,7 @@ class QuarterMaster(pl.LightningModule):
         self.use_target_token_embs_kmeans = False
         self.use_target_token_embs_input = False
         self.use_target_token_embs_normalize = False
+        self.use_target_token_embs_detached = False
         self.use_target_token_embs_weighted = False
         self.use_target_token_embs_weighted_trainable = False
         self.use_target_token_embs_weighted_mu = -1
@@ -353,6 +354,9 @@ class QuarterMaster(pl.LightningModule):
 
                         if "use_target_token_embs_normalize" in loss_config.keys() and loss_config["use_target_token_embs_normalize"]:
                             self.use_target_token_embs_normalize = True
+
+                        if "use_target_token_embs_detached" in loss_config.keys() and loss_config["use_target_token_embs_detached"]:
+                            self.use_target_token_embs_detached = True
 
                         if "use_target_token_embs_weighted" in loss_config.keys() and loss_config["use_target_token_embs_weighted"]:
                             self.use_target_token_embs_weighted = True
@@ -395,6 +399,9 @@ class QuarterMaster(pl.LightningModule):
 
                     if "loss_use_target_token_embs_normalize" in self.hparams:
                         self.use_target_token_embs_normalize = self.hparams.loss_use_target_token_embs_normalize
+
+                    if "loss_use_target_token_embs_detached" in self.hparams:
+                        self.use_target_token_embs_detached = self.hparams.loss_use_target_token_embs_detached
 
                     if "loss_use_target_token_embs_weighted" in self.hparams:
                         self.use_target_token_embs_weighted = self.hparams.loss_use_target_token_embs_weighted
@@ -685,6 +692,10 @@ class QuarterMaster(pl.LightningModule):
                     pos_embedding_tokens = pos_output.last_hidden_state
                     neg_embedding_tokens = neg_output.last_hidden_state
 
+                if self.use_target_token_embs_detached:
+                    pos_embedding_tokens = pos_embedding_tokens.detach()
+                    neg_embedding_tokens = neg_embedding_tokens.detach()
+
                 if self.use_target_token_embs_weighted:
                     pos_token_weights_expanded = self.target_token_embs_weights_train(batch[1]['input_ids']).expand(pos_output.last_hidden_state.size())
                     neg_token_weights_expanded = self.target_token_embs_weights_train(batch[2]['input_ids']).expand(neg_output.last_hidden_state.size())
@@ -893,6 +904,10 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     pos_embedding_tokens = pos_output.last_hidden_state
                     neg_embedding_tokens = neg_output.last_hidden_state
+
+                if self.use_target_token_embs_detached:
+                    pos_embedding_tokens = pos_embedding_tokens.detach()
+                    neg_embedding_tokens = neg_embedding_tokens.detach()
 
                 if self.use_target_token_embs_weighted:
                     pos_token_weights_expanded = self.target_token_embs_weights_validation(batch[1]['input_ids']).expand(pos_output.last_hidden_state.size())
@@ -1133,6 +1148,7 @@ def parse_args():
     parser.add_argument('--loss_use_target_token_embs_kmeans', default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_input',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_normalize',  default=False, action='store_true')
+    parser.add_argument('--loss_use_target_token_embs_detached',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted_trainable', default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted_mu',  default=1e-4, type=float)
