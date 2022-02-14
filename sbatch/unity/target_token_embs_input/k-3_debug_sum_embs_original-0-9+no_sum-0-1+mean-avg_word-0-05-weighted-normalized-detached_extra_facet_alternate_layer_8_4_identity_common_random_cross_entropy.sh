@@ -17,6 +17,8 @@ EXPERIMENT_DATE=`date +"%m-%d"`
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --train_file /gypsum/scratch1/bseoh/original_data/train_shuffled.pkl --train_size 684100 \
                 --val_file /gypsum/scratch1/bseoh/original_data/val_shuffled.pkl --val_size 145375 \
+                --train_token_weights_file /gypsum/scratch1/bseoh/original_data/train_word_probs.json \
+                --val_token_weights_file /gypsum/scratch1/bseoh/original_data/val_word_probs.json \
                 --model_behavior 'quartermaster' --num_facets 3 \
                 --add_extra_facet_layers_after 3 7 \
                 --init_bert_layer_facet_layers 'identity' \
