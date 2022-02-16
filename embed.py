@@ -12,13 +12,14 @@ from train import QuarterMaster
 
 class Dataset:
 
-    def __init__(self, pl_model, data_path, max_length=512, batch_size=32):
+    def __init__(self, pl_model, data_path, max_length=512, batch_size=32, ignore_num_facets=False):
 
         self.pl_model = pl_model
         self.pl_model.to('cuda')
 
         self.max_length = max_length
         self.batch_size = batch_size
+        self.ignore_num_facets = ignore_num_facets
 
         # data is assumed to be a json file
         with open(data_path) as f:
@@ -30,7 +31,7 @@ class Dataset:
 
         self.batch_string_prefix = ''
 
-        if self.pl_model.hparams.num_facets > 1:
+        if not self.ignore_num_facets and self.pl_model.hparams.num_facets > 1:
             # If more than one facet is requested, then determine the ids
             # of "unused" tokens from the tokenizer
             # For BERT, [unused1] has the id of 1, and so on until
@@ -95,6 +96,8 @@ if __name__ == '__main__':
     parser.add_argument('--output', help='path to write the output embeddings file. '
                                         'the output format is jsonlines where each line has "paper_id" and "embedding" keys')
 
+    parser.add_argument('--debug_ignore_num_facets', default=False, action='store_true')
+
     args = parser.parse_args()
 
     # Reproducibility
@@ -109,7 +112,7 @@ if __name__ == '__main__':
     model.eval()
 
     # Create a Dataset using the tokenizer and other settings in the lightning model
-    dataset = Dataset(pl_model=model, data_path=args.data_path, batch_size=args.batch_size)
+    dataset = Dataset(pl_model=model, data_path=args.data_path, batch_size=args.batch_size, ignore_num_facets=args.debug_ignore_num_facets)
 
     results = {}
 
