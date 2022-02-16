@@ -12,7 +12,7 @@ from train import QuarterMaster
 
 class Dataset:
 
-    def __init__(self, pl_model, data_path, max_length=512, batch_size=32, ignore_num_facets=False):
+    def __init__(self, pl_model, data_path, max_length=512, batch_size=32, ignore_num_facets=False, use_cls_for_all_facets=False):
 
         self.pl_model = pl_model
         self.pl_model.to('cuda')
@@ -20,6 +20,7 @@ class Dataset:
         self.max_length = max_length
         self.batch_size = batch_size
         self.ignore_num_facets = ignore_num_facets
+        self.use_cls_for_all_facets = use_cls_for_all_facets
 
         # data is assumed to be a json file
         with open(data_path) as f:
@@ -37,7 +38,10 @@ class Dataset:
             # For BERT, [unused1] has the id of 1, and so on until
             # [unused99]
             for i in range(self.pl_model.hparams.num_facets - 1):
-                self.extra_facets_tokens.append('[unused{}]'.format(i+1))
+                if self.use_cls_for_all_facets:
+                    self.extra_facets_tokens.append('[CLS]')
+                else:
+                    self.extra_facets_tokens.append('[unused{}]'.format(i+1))
 
             # Let tokenizer recognize our facet tokens in order to prevent it
             # from doing WordPiece stuff on these tokens
@@ -97,6 +101,7 @@ if __name__ == '__main__':
                                         'the output format is jsonlines where each line has "paper_id" and "embedding" keys')
 
     parser.add_argument('--debug_ignore_num_facets', default=False, action='store_true')
+    parser.add_argument('--debug_use_cls_for_all_facets', default=False, action='store_true')
 
     args = parser.parse_args()
 
@@ -112,7 +117,8 @@ if __name__ == '__main__':
     model.eval()
 
     # Create a Dataset using the tokenizer and other settings in the lightning model
-    dataset = Dataset(pl_model=model, data_path=args.data_path, batch_size=args.batch_size, ignore_num_facets=args.debug_ignore_num_facets)
+    dataset = Dataset(pl_model=model, data_path=args.data_path, batch_size=args.batch_size,
+                      ignore_num_facets=args.debug_ignore_num_facets, use_cls_for_all_facets=args.debug_use_cls_for_all_facets)
 
     results = {}
 
