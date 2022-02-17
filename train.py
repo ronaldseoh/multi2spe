@@ -709,8 +709,8 @@ class QuarterMaster(pl.LightningModule):
                     neg_embedding_tokens_mean = neg_embedding_tokens_mean.unsqueeze(1)
 
                 if self.use_target_token_embs_kmeans:
-                    pos_embedding_tokens_kmeans = utils.batch_k_means_cosine(pos_output.last_hidden_state, self.hparams.num_facets, 50, pos_special_tokens_mask_inverted)
-                    neg_embedding_tokens_kmeans = utils.batch_k_means_cosine(neg_output.last_hidden_state, self.hparams.num_facets, 50, neg_special_tokens_mask_inverted)
+                    pos_embedding_tokens_kmeans = utils.batch_k_means_cosine(pos_embedding_tokens, self.hparams.num_facets, 50, pos_special_tokens_mask_inverted)
+                    neg_embedding_tokens_kmeans = utils.batch_k_means_cosine(neg_embedding_tokens, self.hparams.num_facets, 50, neg_special_tokens_mask_inverted)
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
@@ -894,8 +894,8 @@ class QuarterMaster(pl.LightningModule):
                     neg_embedding_tokens_mean = neg_embedding_tokens_mean.unsqueeze(1)
 
                 if self.use_target_token_embs_kmeans:
-                    pos_embedding_tokens_kmeans = utils.batch_k_means_cosine(pos_output.last_hidden_state, self.hparams.num_facets, 50, pos_special_tokens_mask_inverted)
-                    neg_embedding_tokens_kmeans = utils.batch_k_means_cosine(neg_output.last_hidden_state, self.hparams.num_facets, 50, neg_special_tokens_mask_inverted)
+                    pos_embedding_tokens_kmeans = utils.batch_k_means_cosine(pos_embedding_tokens, self.hparams.num_facets, 50, pos_special_tokens_mask_inverted)
+                    neg_embedding_tokens_kmeans = utils.batch_k_means_cosine(neg_embedding_tokens, self.hparams.num_facets, 50, neg_special_tokens_mask_inverted)
 
             # pass through the extra linear layers for each facets if enabled
             if len(self.extra_facet_layers) > 0:
