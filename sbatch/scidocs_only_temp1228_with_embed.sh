@@ -12,7 +12,7 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-1-input_emb-weighted_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
+EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-1-input_emb-detached_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
 EXPERIMENT_DATE="02-16"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
