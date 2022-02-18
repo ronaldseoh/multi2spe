@@ -111,7 +111,7 @@ if __name__ == '__main__':
     pl.seed_everything(args.seed, workers=True)
 
     # Load the Lightning module from the checkpoint
-    model = QuarterMaster.load_from_checkpoint(args.pl_checkpoint_path)
+    model = QuarterMaster.load_from_checkpoint(args.pl_checkpoint_path, strict=False)
 
     # Put model in the eval mode
     model.eval()
