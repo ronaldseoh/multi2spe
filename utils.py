@@ -13,7 +13,7 @@ from specter.scripts.pytorch_lightning_training_script.train import (
 
 
 class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
-    def __init__(self, file_path, tokenizer, size, block_size=100, num_facets=1):
+    def __init__(self, file_path, tokenizer, size, block_size=100, num_facets=1, use_cls_for_all_facets=False):
         # Set the options for this datareader object based on
         # the config specified in
         # https://github.com/allenai/specter/blob/master/experiment_configs/simple.jsonnet
@@ -25,6 +25,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
         self.block_size = block_size
 
         self.num_facets = num_facets
+        self.use_cls_for_all_facets = use_cls_for_all_facets
 
         self.extra_facets_tokens = []
 
@@ -37,7 +38,10 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
             # For BERT, [unused1] has the id of 1, and so on until
             # [unused99]
             for i in range(self.num_facets - 1):
-                self.extra_facets_tokens.append('[unused{}]'.format(i+1))
+                if self.use_cls_for_all_facets:
+                    self.extra_facets_tokens.append('[CLS]')
+                else:
+                    self.extra_facets_tokens.append('[unused{}]'.format(i+1))
 
             # Let tokenizer recognize our facet tokens in order to prevent it
             # from doing WordPiece stuff on these tokens
