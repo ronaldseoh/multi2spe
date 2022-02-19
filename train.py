@@ -484,7 +484,9 @@ class QuarterMaster(pl.LightningModule):
 
     def train_dataloader(self):
         dataset = torch.utils.data.BufferedShuffleDataset(
-            utils.IterableDataSetMultiWorker(file_path=self.hparams.train_file, tokenizer=self.tokenizer, size=self.hparams.train_size, block_size=100, num_facets=self.hparams.num_facets),
+            utils.IterableDataSetMultiWorker(
+                file_path=self.hparams.train_file, tokenizer=self.tokenizer, size=self.hparams.train_size, block_size=100,
+                num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets),
             buffer_size=100)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
@@ -494,7 +496,9 @@ class QuarterMaster(pl.LightningModule):
 
     def val_dataloader(self):
         # Don't use BufferedShuffleDataset here.
-        dataset = utils.IterableDataSetMultiWorker(file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size, block_size=100, num_facets=self.hparams.num_facets)
+        dataset = utils.IterableDataSetMultiWorker(
+            file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size, block_size=100,
+            num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         return torch.utils.data.DataLoader(
@@ -1052,6 +1056,7 @@ def parse_args():
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--sum_into_single_embeddings', choices=['training_and_inference', 'training_only', 'inference_only'], type=str)
+    parser.add_argument('--debug_use_cls_for_all_facets', default=False, action='store_true')
 
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
