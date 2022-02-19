@@ -39,7 +39,7 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
             # [unused99]
             for i in range(self.num_facets - 1):
                 if self.use_cls_for_all_facets:
-                    self.extra_facets_tokens.append('[CLS]')
+                    self.extra_facets_tokens.append(self.tokenizer.cls_token)
                 else:
                     self.extra_facets_tokens.append('[unused{}]'.format(i+1))
 

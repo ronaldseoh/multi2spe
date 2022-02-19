@@ -39,7 +39,7 @@ class Dataset:
             # [unused99]
             for i in range(self.pl_model.hparams.num_facets - 1):
                 if self.use_cls_for_all_facets:
-                    self.extra_facets_tokens.append('[CLS]')
+                    self.extra_facets_tokens.append(self.pl_model.tokenizer.cls_token)
                 else:
                     self.extra_facets_tokens.append('[unused{}]'.format(i+1))
 
