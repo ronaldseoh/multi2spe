@@ -169,7 +169,7 @@ class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertE
             embeddings += position_embeddings
 
         if self.add_perturb_embeddings:
-            perturb_embeddings = self.perturb_embeddings.weight.expand((len(input_ids), self.num_facets, self.perturb_embeddings.embedding_dim)
+            perturb_embeddings = self.perturb_embeddings.weight.expand((len(input_ids), self.num_facets, self.perturb_embeddings.embedding_dim))
             embeddings[:, 0:self.num_facets] += perturb_embeddings
 
         embeddings = self.LayerNorm(embeddings)
