@@ -124,13 +124,14 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
 
 
 class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertEmbeddings):
-    def __init__(self, config, add_perturb_embeddings=False):
+    def __init__(self, config, add_perturb_embeddings=False, num_facets=-1):
         super().__init__(config)
 
         self.add_perturb_embeddings = add_perturb_embeddings
+        self.num_facets = num_facets
 
         if self.add_perturb_embeddings:
-            self.perturb_embeddings = torch.nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
+            self.perturb_embeddings = torch.nn.Embedding(self.num_facets, config.hidden_size)
 
     # Ported from
     # the original BertEmbedding definition: https://github.com/huggingface/transformers/blob/41981a25cdd028007a7491d68935c8d93f9e8b47/src/transformers/models/bert/modeling_bert.py#L190
@@ -168,8 +169,8 @@ class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertE
             embeddings += position_embeddings
 
         if self.add_perturb_embeddings:
-            perturb_embeddings = self.perturb_embeddings(input_ids)
-            embeddings += perturb_embeddings
+            perturb_embeddings = self.perturb_embeddings.weight.expand((len(input_ids), self.num_facets, self.perturb_embeddings.embedding_dim)
+            embeddings[:, 0:self.num_facets] += perturb_embeddings
 
         embeddings = self.LayerNorm(embeddings)
         embeddings = self.dropout(embeddings)
@@ -297,7 +298,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             self.add_perturb_embeddings = config.add_perturb_embeddings
 
         if self.add_perturb_embeddings:
-            self.embeddings = BertEmbeddingWithPerturbation(config, add_perturb_embeddings=True)
+            self.embeddings = BertEmbeddingWithPerturbation(config, add_perturb_embeddings=True, num_facets=self.num_facets)
 
         self.init_weights()
 
