@@ -102,6 +102,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--debug_ignore_num_facets', default=False, action='store_true')
     parser.add_argument('--debug_use_cls_for_all_facets', default=False, action='store_true')
+    parser.add_argument('--debug_disable_sum_embs', default=False, action='store_true')
 
     args = parser.parse_args()
 
@@ -112,6 +113,10 @@ if __name__ == '__main__':
 
     # Load the Lightning module from the checkpoint
     model = QuarterMaster.load_from_checkpoint(args.pl_checkpoint_path, strict=False)
+
+    # disable summed up embeddings in forward() calls if requested
+    if args.debug_disable_sum_embs:
+        model.sum_into_single_embeddings = "training_only"
 
     # Put model in the eval mode
     model.eval()
