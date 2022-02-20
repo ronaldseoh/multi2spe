@@ -17,5 +17,5 @@ EXPERIMENT_DATE="02-09"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_mag_mesh.json \
-                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl --batch-size 4 \
+                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls_no_sum.jsonl --batch-size 4 \
                 --debug_disable_sum_embs
