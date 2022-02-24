@@ -352,6 +352,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             if init_perturb_embeddings:
                 # Initialize the perturb embeddings with zeros
                 torch.nn.init.zeros_(model.embeddings.perturb_embeddings.weight)
+                torch.nn.init.normal_(model.embeddings.perturb_embeddings.weight[1:len(model.embeddings.perturb_embeddings.weight)])
 
         if original_output_loading_info:
             return model, loading_info
