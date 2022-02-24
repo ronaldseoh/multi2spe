@@ -124,10 +124,11 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
 
 
 class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertEmbeddings):
-    def __init__(self, config, add_perturb_embeddings=False, num_facets=-1):
+    def __init__(self, config, add_perturb_embeddings=False, remove_position_embeddings_for_facets=False, num_facets=-1):
         super().__init__(config)
 
         self.add_perturb_embeddings = add_perturb_embeddings
+        self.remove_position_embeddings_for_facets = remove_position_embeddings_for_facets
         self.num_facets = num_facets
 
         if self.add_perturb_embeddings:
@@ -164,8 +165,14 @@ class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertE
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
 
         embeddings = inputs_embeds + token_type_embeddings
+
         if self.position_embedding_type == "absolute":
             position_embeddings = self.position_embeddings(position_ids)
+
+            if self.remove_position_embeddings_for_facets and past_key_values_length == 0:
+                for i in range(self.num_facets):
+                    position_embeddings[:, i] = torch.zeros_like(position_embeddings[:, i])
+
             embeddings += position_embeddings
 
         if self.add_perturb_embeddings:
@@ -291,14 +298,24 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
                     config, self.add_extra_facet_layers_after, self.num_facets, self.add_bert_layer_facet_layers_alternate)
 
         self.add_perturb_embeddings = False
+        self.remove_position_embeddings_for_facets = False
 
         if "add_perturb_embeddings" in kwargs:
             self.add_perturb_embeddings = kwargs["add_perturb_embeddings"]
         elif "add_perturb_embeddings" in config_dict.keys():
             self.add_perturb_embeddings = config.add_perturb_embeddings
 
-        if self.add_perturb_embeddings:
-            self.embeddings = BertEmbeddingWithPerturbation(config, add_perturb_embeddings=True, num_facets=self.num_facets)
+        if "remove_position_embeddings_for_facets" in kwargs:
+            self.remove_position_embeddings_for_facets = kwargs["remove_position_embeddings_for_facets"]
+        elif "remove_position_embeddings_for_facets" in config_dict.keys():
+            self.remove_position_embeddings_for_facets = config.remove_position_embeddings_for_facets
+
+        if self.add_perturb_embeddings or self.remove_position_embeddings_for_facets:
+            self.embeddings = BertEmbeddingWithPerturbation(
+                config,
+                add_perturb_embeddings=self.add_perturb_embeddings,
+                remove_position_embeddings_for_facets=self.remove_position_embeddings_for_facets,
+                num_facets=self.num_facets)
 
         self.init_weights()
 

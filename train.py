@@ -209,6 +209,11 @@ class QuarterMaster(pl.LightningModule):
             else:
                 add_perturb = False
 
+            if "remove_position_embeddings_for_facets" in self.hparams:
+                remove_pos_embs_for_facets = self.hparams.remove_position_embeddings_for_facets
+            else:
+                remove_pos_embs_for_facets = False
+
             if "init_bert_layer_facet_layers" in self.hparams:
                 init_bert_layer_facet_layers = self.hparams.init_bert_layer_facet_layers
             else:
@@ -227,12 +232,14 @@ class QuarterMaster(pl.LightningModule):
                         add_extra_facet_layers_after=self.hparams.add_extra_facet_layers_after,
                         num_facets=self.hparams.num_facets,
                         add_perturb_embeddings=add_perturb,
+                        remove_position_embeddings_for_facets=remove_pos_embs_for_facets,
                         init_bert_layer_facet_layers=init_bert_layer_facet_layers,
                         add_bert_layer_facet_layers_alternate=add_bert_layer_facet_layers_alternate)
                 else:
                     self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
-                        add_perturb_embeddings=add_perturb)
+                        add_perturb_embeddings=add_perturb,
+                        remove_position_embeddings_for_facets=remove_pos_embs_for_facets)
             else:
                 self.model = transformers.BertModel.from_pretrained(self.hparams.pretrained_model_name)
         else:
@@ -1072,6 +1079,7 @@ def parse_args():
     parser.add_argument('--add_extra_facet_nonlinearity', default=False, action='store_true')
 
     parser.add_argument('--add_perturb_embeddings', default=False, action='store_true')
+    parser.add_argument('--remove_position_embeddings_for_facets', default=False, action='store_true')
 
     parser.add_argument('--loss_config', type=json.loads)
     parser.add_argument('--loss_type', default='margin', choices=['margin', 'bce'], type=str)
