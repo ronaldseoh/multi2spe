@@ -111,8 +111,6 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                      'attention_mask': pos_title['attention_mask'][0],
                      'special_tokens_mask': pos_title['special_tokens_mask'][0]}
 
-
-
         neg_input = {'input_ids': neg_title['input_ids'][0],
                      'token_type_ids': neg_title['token_type_ids'][0],
                      'attention_mask': neg_title['attention_mask'][0],
