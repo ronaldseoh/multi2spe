@@ -7,6 +7,7 @@ import torch
 from pykeops.torch import LazyTensor
 
 from specter.scripts.pytorch_lightning_training_script.train import DataReaderFromPickled
+from scincl.gdt.datasets.triples import TripleDataset
 
 
 class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
@@ -119,6 +120,101 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
 
         return source_input, pos_input, neg_input
 
+
+class SciNclTripleDataset(TripleDataset):
+    def __init__(self,
+                 triples_csv_path: str,
+                 metadata_jsonl_path: str,
+                 tokenizer,
+                 sample_n: int = 0,
+                 mask_anchor_tokens: bool = False,
+                 predict_embeddings: bool = False,
+                 abstract_only: bool = False,
+                 use_cache: bool = False,
+                 max_sequence_length: int = 512,
+                 mlm_probability: float = 0.15,
+                 graph_embeddings_path: str = None,
+                 graph_paper_ids_path: str = None,
+                 num_facets: int = 1,
+                 use_cls_for_all_facets: bool = False):
+
+        super().__init__(
+            triples_csv_path,
+            metadata_jsonl_path,
+            tokenizer,
+            sample_n,
+            mask_anchor_tokens,
+            predict_embeddings,
+            abstract_only,
+            use_cache,
+            max_sequence_length,
+            mlm_probability,
+            graph_embeddings_path,
+            graph_paper_ids_path,
+            return_token_type_ids=True,
+            return_special_tokens_mask=True)
+
+        self.num_facets = num_facets
+        self.use_cls_for_all_facets = use_cls_for_all_facets
+
+        self.extra_facets_tokens = []
+
+        if self.num_facets > 1:
+            if self.num_facets > 100:
+                raise Exception("We currently only support up to 100 facets: [CLS] plus all [unused] tokens.")
+
+            # If more than one facet is requested, then determine the ids
+            # of "unused" tokens from the tokenizer
+            # For BERT, [unused1] has the id of 1, and so on until
+            # [unused99]
+            for i in range(self.num_facets - 1):
+                if self.use_cls_for_all_facets:
+                    self.extra_facets_tokens.append(self.tokenizer.cls_token)
+                else:
+                    self.extra_facets_tokens.append('[unused{}]'.format(i+1))
+
+            # Let tokenizer recognize our facet tokens in order to prevent it
+            # from doing WordPiece stuff on these tokens
+            num_added_vocabs = self.tokenizer.add_special_tokens({"additional_special_tokens": self.extra_facets_tokens})
+
+            if num_added_vocabs > 0:
+                print("{} facet tokens were newly added to the vocabulary.".format(num_added_vocabs))
+
+    def get_texts_from_ids(self, paper_ids):
+        texts = super().get_texts_from_ids(paper_ids)
+
+        facet_token_string = ' '.join([str(token) for token in self.extra_facets_tokens])
+
+        for t in range(len(texts)):
+            texts[t] = facet_token_string + texts[t]
+
+    def __getitem__(self, idx):
+        # Put together the output from the original dataset class in a format compatible to the specter's
+        output = super().__getitem__(idx)
+
+        # As of transformers 4.9.2, adding additional special tokens do not make special_tokens_mask to make notes of them.
+        # So we are masking our facet tokens manually here.
+        for i in range(self.num_facets - 1):
+            output['anchor_special_tokens_mask'][i+1] = 1
+            output['positive_special_tokens_mask'][i+1] = 1
+            output['negative_special_tokens_mask'][i+1] = 1
+
+        source_input = {'input_ids': output['anchor_input_ids'],
+                        'token_type_ids': output['anchor_token_type_ids'],
+                        'attention_mask': output['anchor_attention_mask'],
+                        'special_tokens_mask': output['anchor_special_tokens_mask']}
+
+        pos_input = {'input_ids': output['positive_input_ids'],
+                     'token_type_ids': output['positive_token_type_ids'],
+                     'attention_mask': output['positive_attention_mask'],
+                     'special_tokens_mask': output['positive_special_tokens_mask']}
+
+        neg_input = {'input_ids': output['negative_input_ids'],
+                     'token_type_ids': output['negative_token_type_ids'],
+                     'attention_mask': output['negative_attention_mask'],
+                     'special_tokens_mask': output['negative_special_tokens_mask']}
+
+        return source_input, pos_input, neg_input
 
 def batch_k_means_cosine(batch, k, n_iter=50, whitelist_masks=None):
     # Adapted the code listed in the KeOps documentation
