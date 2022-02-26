@@ -3,9 +3,7 @@ import itertools
 import torch
 from pykeops.torch import LazyTensor
 
-from specter.scripts.pytorch_lightning_training_script.train import (
-    DataReaderFromPickled
-)
+from specter.scripts.pytorch_lightning_training_script.train import DataReaderFromPickled
 
 
 class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
