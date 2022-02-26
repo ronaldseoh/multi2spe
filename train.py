@@ -204,6 +204,15 @@ class QuarterMaster(pl.LightningModule):
 
         self.save_hyperparameters()
 
+        self.train_file_from_scincl = False
+        self.val_file_from_scincl = False
+
+        if "train_file_from_scincl" in self.hparams:
+            self.train_file_from_scincl = self.hparams.train_file_from_scincl
+
+        if "val_file_from_scincl" in self.hparams:
+            self.val_file_from_scincl = self.hparams.val_file_from_scincl
+
         if self.hparams.model_behavior == "quartermaster":
             if "add_perturb_embeddings" in self.hparams:
                 add_perturb = self.hparams.add_perturb_embeddings
@@ -491,22 +500,36 @@ class QuarterMaster(pl.LightningModule):
                 return source_embedding
 
     def train_dataloader(self):
-        dataset = torch.utils.data.BufferedShuffleDataset(
-            utils.IterableDataSetMultiWorker(
-                file_path=self.hparams.train_file, tokenizer=self.tokenizer, size=self.hparams.train_size, block_size=100,
-                num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets),
-            buffer_size=100)
+        if self.train_file_from_scincl:
+            dataset = utils.SciNclTripleDataset(
+                triples_csv_path=self.hparams.train_file, metadata_jsonl_path=self.hparams.train_metadata_file,
+                tokenizer=self.tokenizer,
+                num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
+
+            self.hparams.train_size = len(dataset)
+        else:
+            dataset = torch.utils.data.BufferedShuffleDataset(
+                utils.IterableDataSetMultiWorker(
+                    file_path=self.hparams.train_file, tokenizer=self.tokenizer, size=self.hparams.train_size, block_size=100,
+                    num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets),
+                buffer_size=100)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         return torch.utils.data.DataLoader(
             dataset,
-            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, pin_memory=True)
+            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, shuffle=True, pin_memory=True)
 
     def val_dataloader(self):
-        # Don't use BufferedShuffleDataset here.
-        dataset = utils.IterableDataSetMultiWorker(
-            file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size, block_size=100,
-            num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
+        if self.val_file_from_scincl:
+            dataset = utils.SciNclTripleDataset(
+                triples_csv_path=self.hparams.val_file, metadata_jsonl_path=self.hparams.val_metadata_file,
+                tokenizer=self.tokenizer,
+                num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
+        else:
+            # Don't use BufferedShuffleDataset here.
+            dataset = utils.IterableDataSetMultiWorker(
+                file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size, block_size=100,
+                num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         return torch.utils.data.DataLoader(
@@ -1056,6 +1079,12 @@ def parse_args():
 
     parser.add_argument('--train_size', type=int)
     parser.add_argument('--val_size', type=int)
+
+    parser.add_argument('--train_metadata_file')
+    parser.add_argument('--val_metadata_file')
+
+    parser.add_argument('--train_file_from_scincl', default=False, action='store_true')
+    parser.add_argument('--val_file_from_scincl', default=False, action='store_true')
 
     parser.add_argument('--train_token_weights_file')
     parser.add_argument('--val_token_weights_file')
