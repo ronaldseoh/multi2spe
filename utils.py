@@ -1,4 +1,7 @@
 import itertools
+import sys
+sys.path.append("specter")
+sys.path.append("scincl")
 
 import torch
 from pykeops.torch import LazyTensor
