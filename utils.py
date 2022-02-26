@@ -1,5 +1,6 @@
 import itertools
 import sys
+sys.path.append(".")
 sys.path.append("scincl")
 
 import torch
