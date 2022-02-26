@@ -188,6 +188,8 @@ class SciNclTripleDataset(TripleDataset):
         for t in range(len(texts)):
             texts[t] = facet_token_string + texts[t]
 
+        return texts
+
     def __getitem__(self, idx):
         # Put together the output from the original dataset class in a format compatible to the specter's
         output = super().__getitem__(idx)
