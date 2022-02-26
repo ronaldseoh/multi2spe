@@ -16,7 +16,7 @@ EXPERIMENT_ID_PREFIX=scincl_U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
-                --train_file /gypsum/scratch1/bseoh/scincl_dataset/train_triples.csv --train_metadata_file /gypsum/scratch1/bseoh/scincl_dataset/train_metadata.jsonl --train_file_from_scincl \
+                --train_file /gypsum/scratch1/bseoh/scincl_dataset/train_triples.csv --train_metadata_file /gypsum/scratch1/bseoh/scincl_dataset/train_metadata.jsonl --train_file_from_scincl --train_size 684100 \
                 --val_file /gypsum/scratch1/bseoh/original_data/val_shuffled.pkl --val_size 145375 \
                 --model_behavior 'quartermaster' --num_facets 3 \
                 --add_extra_facet_layers_after 3 7 \

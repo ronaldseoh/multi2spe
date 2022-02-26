@@ -505,8 +505,6 @@ class QuarterMaster(pl.LightningModule):
                 triples_csv_path=self.hparams.train_file, metadata_jsonl_path=self.hparams.train_metadata_file,
                 tokenizer=self.tokenizer,
                 num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
-
-            self.hparams.train_size = len(dataset)
         else:
             dataset = torch.utils.data.BufferedShuffleDataset(
                 utils.IterableDataSetMultiWorker(
