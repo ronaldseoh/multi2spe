@@ -12,6 +12,7 @@ from specter.scripts.pytorch_lightning_training_script.train import (
     TripletLoss
 )
 
+import custom_bert
 import utils
 
 
@@ -227,7 +228,7 @@ class QuarterMaster(pl.LightningModule):
             if "add_extra_facet_layers_after" in self.hparams:
                 # self.hparams.add_extra_facet_layers_after could be None too, so check that first
                 if self.hparams.add_extra_facet_layers_after and len(self.hparams.add_extra_facet_layers_after) > 0:
-                    self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
+                    self.model = custom_bert.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
                         add_extra_facet_layers_after=self.hparams.add_extra_facet_layers_after,
                         num_facets=self.hparams.num_facets,
@@ -236,7 +237,7 @@ class QuarterMaster(pl.LightningModule):
                         init_bert_layer_facet_layers=init_bert_layer_facet_layers,
                         add_bert_layer_facet_layers_alternate=add_bert_layer_facet_layers_alternate)
                 else:
-                    self.model = utils.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
+                    self.model = custom_bert.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
                         add_perturb_embeddings=add_perturb,
                         remove_position_embeddings_for_facets=remove_pos_embs_for_facets)
