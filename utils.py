@@ -180,6 +180,9 @@ class SciNclTripleDataset(TripleDataset):
             if num_added_vocabs > 0:
                 print("{} facet tokens were newly added to the vocabulary.".format(num_added_vocabs))
 
+        # Read the dataset files and load into memory
+        dataset.load()
+
     def get_texts_from_ids(self, paper_ids):
         texts = super().get_texts_from_ids(paper_ids)
 
