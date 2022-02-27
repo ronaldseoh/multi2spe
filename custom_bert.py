@@ -53,7 +53,8 @@ class BertEmbeddingWithPerturbation(transformers.models.bert.modeling_bert.BertE
             position_embeddings = self.position_embeddings(position_ids)
 
             if self.remove_position_embeddings_for_facets and past_key_values_length == 0:
-                position_embeddings[:, :self.num_facets] = position_embeddings[:, 0].unsqueeze(1).expand(position_embeddings[:, :self.num_facets].size())
+                for i in range(self.num_facets):
+                    position_embeddings[:, i] = torch.zeros_like(position_embeddings[:, i])
 
             embeddings += position_embeddings
 
