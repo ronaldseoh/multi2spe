@@ -505,6 +505,11 @@ class QuarterMaster(pl.LightningModule):
                 triples_csv_path=self.hparams.train_file, metadata_jsonl_path=self.hparams.train_metadata_file,
                 tokenizer=self.tokenizer,
                 num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
+
+            # pin_memory enables faster data transfer to CUDA-enabled GPU.
+            return torch.utils.data.DataLoader(
+                dataset,
+                batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, shuffle=True, pin_memory=True)
         else:
             dataset = torch.utils.data.BufferedShuffleDataset(
                 utils.IterableDataSetMultiWorker(
@@ -512,10 +517,9 @@ class QuarterMaster(pl.LightningModule):
                     num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets),
                 buffer_size=100)
 
-        # pin_memory enables faster data transfer to CUDA-enabled GPU.
-        return torch.utils.data.DataLoader(
-            dataset,
-            batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, shuffle=True, pin_memory=True)
+            return torch.utils.data.DataLoader(
+                dataset,
+                batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, pin_memory=True)
 
     def val_dataloader(self):
         if self.val_file_from_scincl:
