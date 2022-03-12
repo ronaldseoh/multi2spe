@@ -202,6 +202,12 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         self.init_weights()
 
+    def get_extended_attention_mask(self, attention_mask: Tensor, input_shape: Tuple[int], device: device) -> Tensor:
+
+        extended_attention_mask = super().get_extended_attention_mask(attention_mask, input_shape, device)
+
+        return extended_attention_mask
+
     @classmethod
     def from_pretrained(cls, pretrained_model_name_or_path: typing.Optional[typing.Union[str, os.PathLike]], *model_args, **kwargs):
 
