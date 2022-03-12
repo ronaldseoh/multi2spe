@@ -266,13 +266,19 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             # Add in the entries for multi facet properties
             config_saved["num_facets"] = self.num_facets
 
+            config_saved["num_facets"] = self.num_facets
+
             if self.enable_extra_facets:
                 config_saved["add_extra_facet_layers_after"] = self.add_extra_facet_layers_after
                 config_saved["init_bert_layer_facet_layers"] = self.init_bert_layer_facet_layers
+                config_saved["add_bert_layer_facet_layers_alternate"] = self.add_bert_layer_facet_layers_alternate
 
             # Add in the entries for perturb embeddings
             if self.add_perturb_embeddings:
                 config_saved["add_perturb_embeddings"] = self.add_perturb_embeddings
+
+            if self.remove_position_embeddings_for_facets:
+                config_saved["remove_position_embeddings_for_facets"] = self.remove_position_embeddings_for_facets
 
             # Dump the modified config back to disk
             json.dump(config_saved, open(os.path.join(save_directory, "config.json"), "w"))
