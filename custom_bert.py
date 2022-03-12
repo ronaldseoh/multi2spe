@@ -213,8 +213,8 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
 
         extended_attention_mask = super().get_extended_attention_mask(attention_mask, input_shape, device)
 
-        if abs(self.adjust_attention_masks_for_facets) > 0:
-            additional_attention_mask_weights = self.adjust_attention_masks_for_facets * torch.ones((self.num_facets, self.num_facets))
+        if abs(self.adjust_attention_mask_for_facets) > 0:
+            additional_attention_mask_weights = self.adjust_attention_mask_for_facets * torch.ones((self.num_facets, self.num_facets))
             additional_attention_mask_weights.fill_diagonal_(0)
 
             extended_attention_mask[:, :, :num_facets+1, :num_facets+1] += additional_attention_mask_weights.expand_as(extended_attention_mask[:, :, :num_facets+1, :num_facets+1])
