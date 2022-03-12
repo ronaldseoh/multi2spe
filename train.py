@@ -234,7 +234,15 @@ class QuarterMaster(pl.LightningModule):
             else:
                 add_bert_layer_facet_layers_alternate = False
 
-            if "add_extra_facet_layers_after" in self.hparams:
+            if "adjust_attention_mask_for_facets" in self.hparams:
+                adjust_attention_mask_for_facets = self.hparams.adjust_attention_mask_for_facets
+            else:
+                adjust_attention_mask_for_facets = 0
+
+            if "add_extra_facet_layers_after" in self.hparams \
+            or add_perturb \
+            or remove_pos_embs_for_facets \
+            or abs(adjust_attention_mask_for_facets) > 0:
                 # self.hparams.add_extra_facet_layers_after could be None too, so check that first
                 if self.hparams.add_extra_facet_layers_after and len(self.hparams.add_extra_facet_layers_after) > 0:
                     self.model = custom_bert.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
@@ -244,12 +252,14 @@ class QuarterMaster(pl.LightningModule):
                         add_perturb_embeddings=add_perturb,
                         remove_position_embeddings_for_facets=remove_pos_embs_for_facets,
                         init_bert_layer_facet_layers=init_bert_layer_facet_layers,
-                        add_bert_layer_facet_layers_alternate=add_bert_layer_facet_layers_alternate)
+                        add_bert_layer_facet_layers_alternate=add_bert_layer_facet_layers_alternate,
+                        adjust_attention_mask_for_facets=adjust_attention_mask_for_facets)
                 else:
                     self.model = custom_bert.BertModelWithExtraLinearLayersForMultiFacets.from_pretrained(
                         self.hparams.pretrained_model_name,
                         add_perturb_embeddings=add_perturb,
-                        remove_position_embeddings_for_facets=remove_pos_embs_for_facets)
+                        remove_position_embeddings_for_facets=remove_pos_embs_for_facets,
+                        adjust_attention_mask_for_facets=adjust_attention_mask_for_facets)
             else:
                 self.model = transformers.BertModel.from_pretrained(self.hparams.pretrained_model_name)
         else:
@@ -1096,6 +1106,7 @@ def parse_args():
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--sum_into_single_embeddings', choices=['training_and_inference', 'training_only', 'inference_only'], type=str)
     parser.add_argument('--debug_use_cls_for_all_facets', default=False, action='store_true')
+    parser.add_argument('--adjust_attention_mask_for_facets', default=0, type=int)
 
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
