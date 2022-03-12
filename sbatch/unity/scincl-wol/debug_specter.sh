@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --partition=gypsum-titanx-ms
 #SBATCH --gres=gpu:1
-#SBATCH --mem=40GB
+#SBATCH --mem=44GB
 #SBATCH --cpus-per-task=2
 
 eval "$(conda shell.bash hook)"
