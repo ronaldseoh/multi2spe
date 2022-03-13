@@ -282,7 +282,7 @@ class BertModelWithExtraLinearLayersForMultiFacets(transformers.BertModel):
             # Add in the entries for multi facet properties
             config_saved["num_facets"] = self.num_facets
 
-            config_saved["num_facets"] = self.num_facets
+            config_saved["adjust_attention_mask_for_facets"] = self.adjust_attention_mask_for_facets
 
             if self.enable_extra_facets:
                 config_saved["add_extra_facet_layers_after"] = self.add_extra_facet_layers_after
