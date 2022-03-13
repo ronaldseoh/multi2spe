@@ -828,6 +828,15 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
                 neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
 
+        if "train_drop_facets_randomly" in self.hparams and self.hparams.train_drop_facets_randomly:
+            facet_to_drop = np.random.randint(self.hparams.num_facets)
+
+            facets_to_keep = np.delete(np.arange(self.hparams.num_facets), facet_to_drop)
+
+            source_embedding = source_embedding[:, facets_to_keep, :]
+            pos_embedding = pos_embedding[:, facets_to_keep, :]
+            neg_embedding = neg_embedding[:, facets_to_keep, :]
+
         if self.use_multiple_losses:
             loss = 0
 
@@ -1107,6 +1116,7 @@ def parse_args():
     parser.add_argument('--sum_into_single_embeddings', choices=['training_and_inference', 'training_only', 'inference_only'], type=str)
     parser.add_argument('--debug_use_cls_for_all_facets', default=False, action='store_true')
     parser.add_argument('--adjust_attention_mask_for_facets', default=0, type=int)
+    parser.add_argument('--train_drop_facets_randomly', default=False, action='store_true')
 
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
