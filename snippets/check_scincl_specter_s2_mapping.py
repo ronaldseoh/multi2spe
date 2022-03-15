@@ -1,8 +1,6 @@
 import json
 import pickle
 
-import tqdm
-
 
 if __name__ == '__main__':
 
@@ -15,7 +13,7 @@ if __name__ == '__main__':
 
     with open("/gypsum/scratch1/bseoh/original_data/train_shuffled.pkl", 'rb') as f_in:
         unpickler = pickle.Unpickler(f_in)
-        while tqdm.tqdm(True):
+        while True:
             try:
                 instance = unpickler.load()
 
