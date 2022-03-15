@@ -28,6 +28,8 @@ if __name__ == '__main__':
 
                 if pos_paper_id in mapping.keys() and neg_paper_id in mapping.keys():
                     num_both_found += 1
+            except EOFError:
+                break
 
     print("num_pos_paper_ids_found", str(num_pos_paper_ids_found))
     print("num_neg_paper_ids_found", str(num_neg_paper_ids_found))
