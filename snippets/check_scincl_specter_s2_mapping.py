@@ -12,8 +12,6 @@ if __name__ == '__main__':
 
     mapping = json.load(open('/gypsum/scratch1/bseoh/scincl_dataset/specter__s2id_to_s2orc_paper_id.json', 'r'))
 
-    num_processed
-
     num_pos_paper_ids_found = 0
     num_neg_paper_ids_found = 0
 
