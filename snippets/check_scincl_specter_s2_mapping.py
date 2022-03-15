@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     with open("/gypsum/scratch1/bseoh/original_data/train_shuffled.pkl", 'rb') as f_in:
         unpickler = pickle.Unpickler(f_in)
-        for _ in tqdm.tqdm(generator())::
+        for _ in tqdm.tqdm(generator()):
             try:
                 instance = unpickler.load()
 
