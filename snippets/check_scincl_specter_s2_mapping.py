@@ -1,10 +1,18 @@
 import json
 import pickle
 
+import tqdm
+
+
+def generator():
+    while True:
+        yield
 
 if __name__ == '__main__':
 
     mapping = json.load(open('/gypsum/scratch1/bseoh/scincl_dataset/specter__s2id_to_s2orc_paper_id.json', 'r'))
+
+    num_processed
 
     num_pos_paper_ids_found = 0
     num_neg_paper_ids_found = 0
@@ -13,7 +21,7 @@ if __name__ == '__main__':
 
     with open("/gypsum/scratch1/bseoh/original_data/train_shuffled.pkl", 'rb') as f_in:
         unpickler = pickle.Unpickler(f_in)
-        while True:
+        for _ in tqdm.tqdm(generator())::
             try:
                 instance = unpickler.load()
 
