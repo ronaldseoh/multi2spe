@@ -30,9 +30,10 @@ if __name__ == '__main__':
             except EOFError:
                 break
 
-    with open('/gypsum/scratch1/bseoh/original_data/popularity_count.json', 'w') as popularity_count_file:
+    with open('/gypsum/scratch1/bseoh/original_data/val_popularity_count.json', 'w') as popularity_count_file:
         json.dump(occurrence_count, popularity_count_file)
 
-    print("Max occurrence:", str(statistics.max(occurrence_count.values())))
-    print("Min occurrence:", str(statistics.min(occurrence_count.values())))
+    print("Max occurrence:", str(max(occurrence_count.values())))
+    print("Min occurrence:", str(min(occurrence_count.values())))
     print("Mean occurrence:", str(statistics.mean(occurrence_count.values())))
+    print("Median occurrence:", str(statistics.mean(occurrence_count.values())))
