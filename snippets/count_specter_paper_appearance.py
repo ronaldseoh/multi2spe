@@ -14,7 +14,7 @@ def generator():
 if __name__ == '__main__':
     occurrence_count = collections.defaultdict(int)
 
-    with open("/gypsum/scratch1/bseoh/original_data/train_shuffled.pkl", 'rb') as f_in:
+    with open("/gypsum/scratch1/bseoh/original_data/val_shuffled.pkl", 'rb') as f_in:
         unpickler = pickle.Unpickler(f_in)
 
         for _ in tqdm.tqdm(generator()):
