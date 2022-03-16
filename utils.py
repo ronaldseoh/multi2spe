@@ -5,13 +5,14 @@ sys.path.append("scincl")
 
 import torch
 from pykeops.torch import LazyTensor
+import ujson as json
 
 from specter.scripts.pytorch_lightning_training_script.train import DataReaderFromPickled
 from scincl.gdt.datasets.triples import TripleDataset
 
 
 class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
-    def __init__(self, file_path, tokenizer, size, block_size=100, num_facets=1, use_cls_for_all_facets=False):
+    def __init__(self, file_path, tokenizer, size, block_size=100, num_facets=1, use_cls_for_all_facets=False, popularity_count_path=None):
         # Set the options for this datareader object based on
         # the config specified in
         # https://github.com/allenai/specter/blob/master/experiment_configs/simple.jsonnet
@@ -47,6 +48,12 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
 
             if num_added_vocabs > 0:
                 print("{} facet tokens were newly added to the vocabulary.".format(num_added_vocabs))
+
+        self.popularity_count = None
+
+        if popularity_count_path is not None:
+            with open(popularity_count_path, "r") as popularity_count_file:
+                self.popularity_count = json.load(popularity_count_file)
 
     def __iter__(self):
         worker_info = torch.utils.data.get_worker_info()
@@ -115,6 +122,10 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                      'token_type_ids': neg_title['token_type_ids'][0],
                      'attention_mask': neg_title['attention_mask'][0],
                      'special_tokens_mask': neg_title['special_tokens_mask'][0]}
+
+        if self.popularity_count is not None:
+            pos_input["popularity_count"] = self.popularity_count[data_instance['pos_paper_id'].metadata]
+            neg_input["popularity_count"] = self.popularity_count[data_instance['neg_paper_id'].metadata]
 
         return source_input, pos_input, neg_input
 
