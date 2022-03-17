@@ -522,10 +522,16 @@ class QuarterMaster(pl.LightningModule):
                 dataset,
                 batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, shuffle=True, pin_memory=True)
         else:
+            popularity_count_path = None
+
+            if "train_popularity_count_file" in self.hparams and self.hparams.train_popularity_count_file is not None:
+                popularity_count_path = self.hparams.train_popularity_count_file
+
             dataset = torch.utils.data.BufferedShuffleDataset(
                 utils.IterableDataSetMultiWorker(
                     file_path=self.hparams.train_file, tokenizer=self.tokenizer, size=self.hparams.train_size, block_size=100,
-                    num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets),
+                    num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets,
+                    popularity_count_path=popularity_count_path),
                 buffer_size=100)
 
             return torch.utils.data.DataLoader(
@@ -539,10 +545,16 @@ class QuarterMaster(pl.LightningModule):
                 tokenizer=self.tokenizer,
                 num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
         else:
+            popularity_count_path = None
+
+            if "val_popularity_count_file" in self.hparams and self.hparams.val_popularity_count_file is not None:
+                popularity_count_path = self.hparams.val_popularity_count_file
+
             # Don't use BufferedShuffleDataset here.
             dataset = utils.IterableDataSetMultiWorker(
                 file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size, block_size=100,
-                num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
+                num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets,
+                popularity_count_path=popularity_count_path)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         return torch.utils.data.DataLoader(
@@ -838,21 +850,28 @@ class QuarterMaster(pl.LightningModule):
             pos_embedding = pos_embedding[:, facets_to_keep, :]
             neg_embedding = neg_embedding[:, facets_to_keep, :]
 
+        pos_instance_weights = None
+        neg_instance_weights = None
+
+        if "popularity_count" in batch[1].keys():
+            pos_instance_weights = 1 / batch[1]["popularity_count"]
+            neg_instance_weights = 1 / batch[2]["popularity_count"]
+
         if self.use_multiple_losses:
             loss = 0
 
             for i, l in enumerate(self.loss_list):
                 if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                     if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
-                        this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
+                        this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights)
                     elif 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
-                        this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                        this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights)
                     else:
-                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
                 elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
-                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
                 else:
-                    this_loss = l(source_embedding, pos_embedding, neg_embedding)
+                    this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
 
                 self.log('train_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -860,15 +879,15 @@ class QuarterMaster(pl.LightningModule):
         else:
             if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                 if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
-                    loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
+                    loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights)
                 elif "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
-                    loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                    loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights)
                 else:
-                    loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+                    loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
             elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+                loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
             else:
-                loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+                loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
 
             self.log('train_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -1022,6 +1041,13 @@ class QuarterMaster(pl.LightningModule):
                 pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
                 neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
 
+        pos_instance_weights = None
+        neg_instance_weights = None
+
+        if "popularity_count" in batch[1].keys():
+            pos_instance_weights = 1 / batch[1]["popularity_count"]
+            neg_instance_weights = 1 / batch[2]["popularity_count"]
+
         if self.use_multiple_losses:
             loss = 0
 
@@ -1030,15 +1056,15 @@ class QuarterMaster(pl.LightningModule):
             for i, l in enumerate(self.loss_list):
                 if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                     if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
-                        this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
+                        this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights)
                     elif 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
-                        this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                        this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights)
                     else:
-                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+                        this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
                 elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
-                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
                 else:
-                    this_loss = l(source_embedding, pos_embedding, neg_embedding)
+                    this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
 
                 self.log('val_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -1048,15 +1074,15 @@ class QuarterMaster(pl.LightningModule):
         else:
             if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                 if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
-                    loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans)
+                    loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights)
                 elif "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
-                    loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens)
+                    loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights)
                 else:
-                    loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean)
+                    loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
             elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+                loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
             else:
-                loss = self.loss(source_embedding, pos_embedding, neg_embedding)
+                loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
 
             self.log('val_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
@@ -1110,6 +1136,9 @@ def parse_args():
 
     parser.add_argument('--train_token_weights_file')
     parser.add_argument('--val_token_weights_file')
+
+    parser.add_argument('--train_popularity_count_file')
+    parser.add_argument('--val_popularity_count_file')
 
     parser.add_argument('--pretrained_model_name', default="allenai/scibert_scivocab_uncased", type=str)
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
