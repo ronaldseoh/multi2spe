@@ -67,7 +67,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
         if self.reduction_multifacet_option_2 is None:
             raise Exception("reduction_multifacet_option_2 should not be None.")
 
-    def forward(self, query, positive, negative):
+    def forward(self, query, positive, negative, pos_instance_weights=None, neg_instance_weights=None):
         # Are there any zero vectors in `query`, `positive`, and `negative`?
         # We need to introduce masks to filter them out.
         query_mask = torch.nan_to_num((query.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf'))
@@ -176,6 +176,12 @@ class MultiFacetTripletLoss(torch.nn.Module):
 
             distance_positive = torch.sum(distance_positive_all, dim=1) / torch.count_nonzero(distance_positive_all, dim=1)
             distance_negative = torch.sum(distance_negative_all, dim=1) / torch.count_nonzero(distance_negative_all, dim=1)
+
+        if pos_instance_weights is not None:
+            distance_positive *= pos_instance_weights
+
+        if neg_instance_weights is not None:
+            distance_negative *= neg_instance_weights
 
         if self.loss_type == "bce":
             distances_as_logits = torch.stack([distance_negative, distance_positive], axis=1)
