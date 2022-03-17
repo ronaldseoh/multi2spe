@@ -124,8 +124,8 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                      'special_tokens_mask': neg_title['special_tokens_mask'][0]}
 
         if self.popularity_count is not None:
-            pos_input["popularity_count"] = self.popularity_count[data_instance['pos_paper_id'].metadata]
-            neg_input["popularity_count"] = self.popularity_count[data_instance['neg_paper_id'].metadata]
+            pos_input["popularity_count"] = torch.tensor(self.popularity_count[data_instance['pos_paper_id'].metadata])
+            neg_input["popularity_count"] = torch.tensor(self.popularity_count[data_instance['neg_paper_id'].metadata])
 
         return source_input, pos_input, neg_input
 
