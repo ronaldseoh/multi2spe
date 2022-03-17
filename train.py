@@ -860,8 +860,8 @@ class QuarterMaster(pl.LightningModule):
         neg_instance_weights = None
 
         if "popularity_count" in batch[1].keys():
-            pos_instance_weights = 1 / batch[1]["popularity_count"]
-            neg_instance_weights = 1 / batch[2]["popularity_count"]
+            pos_instance_weights = 1 / (batch[1]["popularity_count"] + 1)
+            neg_instance_weights = 1 / (batch[2]["popularity_count"] + 1)
 
         if self.use_multiple_losses:
             loss = 0
@@ -1051,8 +1051,8 @@ class QuarterMaster(pl.LightningModule):
         neg_instance_weights = None
 
         if "popularity_count" in batch[1].keys():
-            pos_instance_weights = 1 / batch[1]["popularity_count"]
-            neg_instance_weights = 1 / batch[2]["popularity_count"]
+            pos_instance_weights = 1 / (batch[1]["popularity_count"] + 1)
+            neg_instance_weights = 1 / (batch[2]["popularity_count"] + 1)
 
         if self.use_multiple_losses:
             loss = 0
