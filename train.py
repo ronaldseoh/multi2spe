@@ -875,9 +875,9 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
                 elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
-                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
+                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, None, None)
                 else:
-                    this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
+                    this_loss = l(source_embedding, pos_embedding, neg_embedding, None, None)
 
                 self.log('train_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -1068,9 +1068,9 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
                 elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
-                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
+                    this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, None, None)
                 else:
-                    this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
+                    this_loss = l(source_embedding, pos_embedding, neg_embedding, None, None)
 
                 self.log('val_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -1086,9 +1086,9 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
             elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
+                loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, None, None)
             else:
-                loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
+                loss = self.loss(source_embedding, pos_embedding, neg_embedding, None, None)
 
             self.log('val_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
