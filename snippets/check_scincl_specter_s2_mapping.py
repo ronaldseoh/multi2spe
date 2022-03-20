@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     citation_count = json.load(open('/gypsum/scratch1/bseoh/scincl_dataset/train_citation_count.json', 'r'))
 
-    mag_field = json.load(open('/gypsum/scratch1/bseoh/scincl_dataset/train_mag_field.json', 'r'))
+    mag_field = json.load(open('/gypsum/scratch1/bseoh/original_data/train_mag_field.json', 'r'))
 
     num_query_paper_ids_found = 0
     num_pos_paper_ids_found = 0
