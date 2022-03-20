@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     mapping = json.load(open('/gypsum/scratch1/bseoh/scincl_dataset/specter__s2id_to_s2orc_paper_id.json', 'r'))
 
-    citation_count = json.load(open('/gypsum/scratch1/bseoh/scincl_dataset/citation_count.json', 'r'))
+    citation_count = json.load(open('/gypsum/scratch1/bseoh/scincl_dataset/train_citation_count.json', 'r'))
 
     mag_field = json.load(open('/gypsum/scratch1/bseoh/scincl_dataset/train_mag_field.json.json', 'r'))
 
