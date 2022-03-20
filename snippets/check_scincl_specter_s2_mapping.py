@@ -80,7 +80,7 @@ if __name__ == '__main__':
                         num_query_paper_ids_found_cited += 1
                         query_paper_id_found_cited = True
 
-                    if query_paper_id in mag_field.keys():
+                    if query_paper_id in mag_field.keys() and mag_field[query_paper_id]['mag_field_of_study'] is not None and len(mag_field[query_paper_id]['mag_field_of_study']) > 0:
                         num_query_paper_ids_found_mag += 1
                         query_paper_id_found_mag = True
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
                         num_pos_paper_ids_found_cited += 1
                         pos_paper_id_found_cited = True
 
-                    if pos_paper_id in mag_field.keys():
+                    if pos_paper_id in mag_field.keys() and mag_field[pos_paper_id]['mag_field_of_study'] is not None and len(mag_field[pos_paper_id]['mag_field_of_study']) > 0:
                         num_pos_paper_ids_found_mag += 1
                         pos_paper_id_found_mag = True
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
                         num_neg_paper_ids_found_cited += 1
                         neg_paper_id_found_cited = True
 
-                    if neg_paper_id in mag_field.keys():
+                    if neg_paper_id in mag_field.keys() and mag_field[neg_paper_id]['mag_field_of_study'] is not None and len(mag_field[neg_paper_id]['mag_field_of_study']) > 0:
                         num_neg_paper_ids_found_mag += 1
                         neg_paper_id_found_mag = True
 
