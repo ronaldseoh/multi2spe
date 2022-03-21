@@ -12,18 +12,18 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_instance_weights-2_cross_entropy
-EXPERIMENT_DATE="03-19"
+EXPERIMENT_ID_PREFIX=U_k-3_debug_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05-input_emb-weighted_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
+EXPERIMENT_DATE="02-14"
 
-python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/"ep-epoch=1_avg_val_loss-avg_val_loss=0.189.ckpt" \
+python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_mag_mesh.json \
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl --batch-size 4
                 
-python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/"ep-epoch=1_avg_val_loss-avg_val_loss=0.189.ckpt" \
+python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_recomm.json \
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/recomm.jsonl --batch-size 4
                 
-python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/"ep-epoch=1_avg_val_loss-avg_val_loss=0.189.ckpt" \
+python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_view_cite_read.json \
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl --batch-size 4
 
