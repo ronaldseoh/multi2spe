@@ -843,9 +843,14 @@ class QuarterMaster(pl.LightningModule):
 
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                source_embedding_summed = torch.sum(source_embedding, dim=1).unsqueeze(1)
-                pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
-                neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
+                if self.hparams.sum_into_single_embeddings_behavior == "mean":
+                    source_embedding_summed = torch.mean(source_embedding, dim=1).unsqueeze(1)
+                    pos_embedding_summed = torch.mean(pos_embedding, dim=1).unsqueeze(1)
+                    neg_embedding_summed = torch.mean(neg_embedding, dim=1).unsqueeze(1)                    
+                else:
+                    source_embedding_summed = torch.sum(source_embedding, dim=1).unsqueeze(1)
+                    pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
+                    neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
 
         if "train_drop_facets_randomly" in self.hparams and self.hparams.train_drop_facets_randomly:
             facet_to_drop = np.random.randint(self.hparams.num_facets)
@@ -1043,9 +1048,14 @@ class QuarterMaster(pl.LightningModule):
 
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                source_embedding_summed = torch.sum(source_embedding, dim=1).unsqueeze(1)
-                pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
-                neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
+                if self.hparams.sum_into_single_embeddings_behavior == "mean":
+                    source_embedding_summed = torch.mean(source_embedding, dim=1).unsqueeze(1)
+                    pos_embedding_summed = torch.mean(pos_embedding, dim=1).unsqueeze(1)
+                    neg_embedding_summed = torch.mean(neg_embedding, dim=1).unsqueeze(1)                    
+                else:
+                    source_embedding_summed = torch.sum(source_embedding, dim=1).unsqueeze(1)
+                    pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
+                    neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
 
         pos_instance_weights = None
         neg_instance_weights = None
@@ -1150,6 +1160,7 @@ def parse_args():
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--sum_into_single_embeddings', choices=['training_and_inference', 'training_only', 'inference_only'], type=str)
+    parser.add_argument('--sum_into_single_embeddings_behavior', default='sum', choices=['sum', 'mean'], type=str)
     parser.add_argument('--debug_use_cls_for_all_facets', default=False, action='store_true')
     parser.add_argument('--adjust_attention_mask_for_facets', default=0, type=int)
     parser.add_argument('--train_drop_facets_randomly', default=False, action='store_true')
