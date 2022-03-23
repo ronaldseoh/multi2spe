@@ -512,7 +512,10 @@ class QuarterMaster(pl.LightningModule):
 
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "inference_only"):
-                return torch.sum(source_embedding, dim=1).unsqueeze(1)
+                if "sum_into_single_embeddings_behavior" in self.hparams and self.hparams.sum_into_single_embeddings_behavior == "mean":
+                    return torch.mean(source_embedding, dim=1).unsqueeze(1)
+                else:
+                    return torch.sum(source_embedding, dim=1).unsqueeze(1)
             else:
                 return source_embedding
 
@@ -843,7 +846,7 @@ class QuarterMaster(pl.LightningModule):
 
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                if self.hparams.sum_into_single_embeddings_behavior == "mean":
+                if "sum_into_single_embeddings_behavior" in self.hparams and self.hparams.sum_into_single_embeddings_behavior == "mean":
                     source_embedding_summed = torch.mean(source_embedding, dim=1).unsqueeze(1)
                     pos_embedding_summed = torch.mean(pos_embedding, dim=1).unsqueeze(1)
                     neg_embedding_summed = torch.mean(neg_embedding, dim=1).unsqueeze(1)                    
@@ -1048,7 +1051,7 @@ class QuarterMaster(pl.LightningModule):
 
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                if self.hparams.sum_into_single_embeddings_behavior == "mean":
+                if "sum_into_single_embeddings_behavior" in self.hparams and self.hparams.sum_into_single_embeddings_behavior == "mean":
                     source_embedding_summed = torch.mean(source_embedding, dim=1).unsqueeze(1)
                     pos_embedding_summed = torch.mean(pos_embedding, dim=1).unsqueeze(1)
                     neg_embedding_summed = torch.mean(neg_embedding, dim=1).unsqueeze(1)                    
