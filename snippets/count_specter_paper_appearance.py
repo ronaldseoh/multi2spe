@@ -67,9 +67,9 @@ if __name__ == '__main__':
                 break
 
     avg_pos_weights /= avg_pos_weights_num_seen
-    avg_num_weights /= avg_pos_weights_num_seen
+    avg_neg_weights /= avg_neg_weights_num_seen
 
-    avg_pos_neg_weights = (avg_pos_weights + avg_num_weights) / 2
+    avg_pos_neg_weights = (avg_pos_weights + avg_neg_weights) / 2
 
     avg_weights['avg_pos_weights_num_seen'] = avg_pos_weights_num_seen
     avg_weights['avg_neg_weights_num_seen'] = avg_neg_weights_num_seen
@@ -86,5 +86,5 @@ if __name__ == '__main__':
     print("Max occurrence:", str(max(occurrence_count.values())))
     print("Min occurrence:", str(min(occurrence_count.values())))
     print("Mean occurrence:", str(statistics.mean(occurrence_count.values())))
-    print("Median occurrence:", str(statistics.mean(occurrence_count.values())))
+    print("Median occurrence:", str(statistics.median(occurrence_count.values())))
     print("avg_weights:", str(avg_weights))
