@@ -13,7 +13,7 @@ def generator():
 
 if __name__ == '__main__':
 
-    specter_data_file_path = "/home/bseoh/my_scratch/original_data/train.pkl"
+    specter_data_file_path = "/home/bseoh/my_scratch/original_data/val.pkl"
     popularity_count = collections.defaultdict(int)
     weights = {}
 
@@ -81,13 +81,13 @@ if __name__ == '__main__':
     for pid in popularity_count.keys():
         weights[pid] = (1 / popularity_count[pid]) / avg_pos_neg_weights
 
-    with open('/home/bseoh/my_scratch/original_data/train_weights.json', 'w') as weights_file:
+    with open('/home/bseoh/my_scratch/original_data/val_weights.json', 'w') as weights_file:
         json.dump(weights, weights_file)
 
-    with open('/home/bseoh/my_scratch/original_data/train_popularity_count.json', 'w') as popularity_count_file:
+    with open('/home/bseoh/my_scratch/original_data/val_popularity_count.json', 'w') as popularity_count_file:
         json.dump(popularity_count, popularity_count_file)
 
-    with open('/home/bseoh/my_scratch/original_data/train_weights_avg.json', 'w') as avg_weights_file:
+    with open('/home/bseoh/my_scratch/original_data/val_weights_avg.json', 'w') as avg_weights_file:
         json.dump(avg_weights, avg_weights_file)
 
     print("Max occurrence:", str(max(popularity_count.values())))
