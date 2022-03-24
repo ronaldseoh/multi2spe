@@ -13,7 +13,7 @@ def generator():
 
 if __name__ == '__main__':
 
-    specter_data_file_path = "/home/bseoh/my_scratch/original_data/train.pkl"
+    specter_data_file_path = "/home/bseoh/my_scratch/original_data/val.pkl"
     occurrence_count = collections.defaultdict(int)
 
     with open(specter_data_file_path, 'rb') as f_in:
@@ -77,10 +77,10 @@ if __name__ == '__main__':
     avg_weights['avg_neg_weights'] = avg_neg_weights
     avg_weights['avg_pos_neg_weights'] = avg_pos_neg_weights
 
-    with open('/home/bseoh/my_scratch/original_data/train_popularity_count.json', 'w') as popularity_count_file:
+    with open('/home/bseoh/my_scratch/original_data/val_popularity_count.json', 'w') as popularity_count_file:
         json.dump(occurrence_count, popularity_count_file)
 
-    with open('/home/bseoh/my_scratch/original_data/train_avg_weights.json', 'w') as avg_weights_file:
+    with open('/home/bseoh/my_scratch/original_data/val_avg_weights.json', 'w') as avg_weights_file:
         json.dump(avg_weights, avg_weights_file)
 
     print("Max occurrence:", str(max(occurrence_count.values())))
