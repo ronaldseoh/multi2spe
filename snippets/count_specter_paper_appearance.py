@@ -15,6 +15,7 @@ if __name__ == '__main__':
 
     specter_data_file_path = "/home/bseoh/my_scratch/original_data/train.pkl"
     popularity_count = collections.defaultdict(int)
+    weights = {}
 
     with open(specter_data_file_path, 'rb') as f_in:
         unpickler = pickle.Unpickler(f_in)
@@ -77,6 +78,11 @@ if __name__ == '__main__':
     avg_weights['avg_neg_weights'] = avg_neg_weights
     avg_weights['avg_pos_neg_weights'] = avg_pos_neg_weights
 
+    for pid in popularity_count.keys():
+        weights[pid] = (1 / popularity_count[pid]) / avg_pos_neg_weights
+
+    with open('/home/bseoh/my_scratch/original_data/train_weights.json', 'w') as weights_file:
+        json.dump(weights, weights_file)
 
     with open('/home/bseoh/my_scratch/original_data/train_popularity_count.json', 'w') as popularity_count_file:
         json.dump(popularity_count, popularity_count_file)
