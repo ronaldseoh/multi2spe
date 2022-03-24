@@ -189,8 +189,8 @@ class MultiFacetTripletLoss(torch.nn.Module):
 
             losses = torch.nn.functional.cross_entropy(distances_as_logits, labels)
         elif self.loss_type == "simple_ce":
-            positive_part = torch.log(torch.nn.functional.sigmoid(distance_positive))
-            negative_part = - torch.log(torch.nn.functional.sigmoid(-distance_negative))
+            positive_part = torch.nn.functional.logsigmoid(distance_positive)
+            negative_part = - torch.nn.functional.logsigmoid(-distance_negative)
 
             if pos_instance_weights is not None:
                 positive_part *= pos_instance_weights
