@@ -177,13 +177,13 @@ class MultiFacetTripletLoss(torch.nn.Module):
             distance_positive = torch.sum(distance_positive_all, dim=1) / torch.count_nonzero(distance_positive_all, dim=1)
             distance_negative = torch.sum(distance_negative_all, dim=1) / torch.count_nonzero(distance_negative_all, dim=1)
 
-        if pos_instance_weights is not None:
-            distance_positive *= pos_instance_weights
-
-        if neg_instance_weights is not None:
-            distance_negative *= neg_instance_weights
-
         if self.loss_type == "bce":
+            if pos_instance_weights is not None:
+                distance_positive *= pos_instance_weights
+
+            if neg_instance_weights is not None:
+                distance_negative *= neg_instance_weights
+
             distances_as_logits = torch.stack([distance_negative, distance_positive], axis=1)
             labels = torch.tensor([1 for _ in range(len(distance_positive))], device=distance_positive.device)
 
