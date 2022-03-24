@@ -1,10 +1,9 @@
 #!/bin/bash
-#SBATCH --job-name=U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_instance_weights_simple_ce
-#SBATCH -o sbatch_logs/stdout/U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_instance_weights_simple_ce_%j.txt
-#SBATCH -e sbatch_logs/stderr/U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_instance_weights_simple_ce_%j.err
+#SBATCH --job-name=k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_simple_ce
+#SBATCH -o sbatch_logs/stdout/k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_simple_ce_%j.txt
+#SBATCH -e sbatch_logs/stderr/k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_simple_ce_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=gpu-long
-#SBATCH --constraint=ials_gigabyte_gpu_2020
+#SBATCH --partition=2080ti-long
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
@@ -12,14 +11,12 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_instance_weights_simple_ce
+EXPERIMENT_ID_PREFIX=k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_simple_ce
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
-                --train_file /gypsum/scratch1/bseoh/original_data/train_shuffled.pkl --train_size 684100 \
-                --val_file /gypsum/scratch1/bseoh/original_data/val_shuffled.pkl --val_size 145375 \
-                --train_weights_file /gypsum/scratch1/bseoh/original_data/train_weights.json \
-                --val_weights_file /gypsum/scratch1/bseoh/original_data/val_weights.json \
+                --train_file ~/my_scratch/original_data/train_shuffled.pkl --train_size 684100 \
+                --val_file ~/my_scratch/original_data/val_shuffled.pkl --val_size 145375 \
                 --model_behavior 'quartermaster' --num_facets 3 \
                 --add_extra_facet_layers_after 3 7 \
                 --init_bert_layer_facet_layers 'identity' \
@@ -31,6 +28,7 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --loss_config '[{"name": "original", "weight": 0.9, "loss_type": "simple_ce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false, "sum_into_single_embeddings": true}, {"name": "no_sum", "weight": 0.1, "loss_type": "simple_ce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false, "sum_into_single_embeddings": false}, {"name": "mean_and_word_emb", "weight": 0.05, "loss_type": "simple_ce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "mean", "use_target_token_embs": true}]' \
                 --gpus 1 --num_workers 0 --fp16 \
                 --batch_size 2 --grad_accum 16  --num_epochs 2 \
+                --seed 1991 \
                 --wandb
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
