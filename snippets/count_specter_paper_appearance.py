@@ -87,7 +87,7 @@ if __name__ == '__main__':
     with open('/home/bseoh/my_scratch/original_data/train_popularity_count.json', 'w') as popularity_count_file:
         json.dump(popularity_count, popularity_count_file)
 
-    with open('/home/bseoh/my_scratch/original_data/train_avg_weights.json', 'w') as avg_weights_file:
+    with open('/home/bseoh/my_scratch/original_data/train_weights_avg.json', 'w') as avg_weights_file:
         json.dump(avg_weights, avg_weights_file)
 
     print("Max occurrence:", str(max(popularity_count.values())))
