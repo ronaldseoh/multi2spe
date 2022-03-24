@@ -12,7 +12,7 @@ from scincl.gdt.datasets.triples import TripleDataset
 
 
 class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
-    def __init__(self, file_path, tokenizer, size, block_size=100, num_facets=1, use_cls_for_all_facets=False, popularity_count_path=None):
+    def __init__(self, file_path, tokenizer, size, block_size=100, num_facets=1, use_cls_for_all_facets=False, weights_path=None):
         # Set the options for this datareader object based on
         # the config specified in
         # https://github.com/allenai/specter/blob/master/experiment_configs/simple.jsonnet
@@ -49,11 +49,11 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
             if num_added_vocabs > 0:
                 print("{} facet tokens were newly added to the vocabulary.".format(num_added_vocabs))
 
-        self.popularity_count = None
+        self.weights = None
 
-        if popularity_count_path is not None:
-            with open(popularity_count_path, "r") as popularity_count_file:
-                self.popularity_count = json.load(popularity_count_file)
+        if weights_path is not None:
+            with open(weights_path, "r") as weights_file:
+                self.weights = json.load(weights_file)
 
     def __iter__(self):
         worker_info = torch.utils.data.get_worker_info()
@@ -123,9 +123,9 @@ class IterableDataSetMultiWorker(torch.utils.data.IterableDataset):
                      'attention_mask': neg_title['attention_mask'][0],
                      'special_tokens_mask': neg_title['special_tokens_mask'][0]}
 
-        if self.popularity_count is not None:
-            pos_input["popularity_count"] = torch.tensor(self.popularity_count.get(data_instance['pos_paper_id'].metadata, 0))
-            neg_input["popularity_count"] = torch.tensor(self.popularity_count.get(data_instance['neg_paper_id'].metadata, 0))
+        if self.weights is not None:
+            pos_input["weights"] = torch.tensor(self.weights.get(data_instance['pos_paper_id'].metadata, 0))
+            neg_input["weights"] = torch.tensor(self.weights.get(data_instance['neg_paper_id'].metadata, 0))
 
         return source_input, pos_input, neg_input
 

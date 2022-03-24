@@ -531,16 +531,16 @@ class QuarterMaster(pl.LightningModule):
                 dataset,
                 batch_size=self.hparams.batch_size, num_workers=self.hparams.num_workers, shuffle=True, pin_memory=True)
         else:
-            popularity_count_path = None
+            weights_path = None
 
-            if "train_popularity_count_file" in self.hparams and self.hparams.train_popularity_count_file is not None:
-                popularity_count_path = self.hparams.train_popularity_count_file
+            if "train_weights_file" in self.hparams and self.hparams.train_weights_file is not None:
+                weights_path = self.hparams.train_weights_file
 
             dataset = torch.utils.data.BufferedShuffleDataset(
                 utils.IterableDataSetMultiWorker(
                     file_path=self.hparams.train_file, tokenizer=self.tokenizer, size=self.hparams.train_size, block_size=100,
                     num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets,
-                    popularity_count_path=popularity_count_path),
+                    weights_path=weights_path),
                 buffer_size=100)
 
             return torch.utils.data.DataLoader(
@@ -554,16 +554,16 @@ class QuarterMaster(pl.LightningModule):
                 tokenizer=self.tokenizer,
                 num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
         else:
-            popularity_count_path = None
+            weights_path = None
 
-            if "val_popularity_count_file" in self.hparams and self.hparams.val_popularity_count_file is not None:
-                popularity_count_path = self.hparams.val_popularity_count_file
+            if "val_weights_file" in self.hparams and self.hparams.val_weights_file is not None:
+                weights_path = self.hparams.val_weights_file
 
             # Don't use BufferedShuffleDataset here.
             dataset = utils.IterableDataSetMultiWorker(
                 file_path=self.hparams.val_file, tokenizer=self.tokenizer, size=self.hparams.val_size, block_size=100,
                 num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets,
-                popularity_count_path=popularity_count_path)
+                weights_path=weights_path)
 
         # pin_memory enables faster data transfer to CUDA-enabled GPU.
         return torch.utils.data.DataLoader(
@@ -867,9 +867,9 @@ class QuarterMaster(pl.LightningModule):
         pos_instance_weights = None
         neg_instance_weights = None
 
-        if "popularity_count" in batch[1].keys():
-            pos_instance_weights = 1 + 1 / (batch[1]["popularity_count"] + 1)
-            neg_instance_weights = 1 + 1 / (batch[2]["popularity_count"] + 1)
+        if "weights" in batch[1].keys():
+            pos_instance_weights = batch[1]["weights"]
+            neg_instance_weights = batch[2]["weights"]
 
         if self.use_multiple_losses:
             loss = 0
@@ -1063,9 +1063,9 @@ class QuarterMaster(pl.LightningModule):
         pos_instance_weights = None
         neg_instance_weights = None
 
-        if "popularity_count" in batch[1].keys():
-            pos_instance_weights = 1 + 1 / (batch[1]["popularity_count"] + 1)
-            neg_instance_weights = 1 + 1 / (batch[2]["popularity_count"] + 1)
+        if "weights" in batch[1].keys():
+            pos_instance_weights = batch[1]["weights"]
+            neg_instance_weights = batch[2]["weights"]
 
         if self.use_multiple_losses:
             loss = 0
@@ -1156,8 +1156,8 @@ def parse_args():
     parser.add_argument('--train_token_weights_file')
     parser.add_argument('--val_token_weights_file')
 
-    parser.add_argument('--train_popularity_count_file')
-    parser.add_argument('--val_popularity_count_file')
+    parser.add_argument('--train_weights_file')
+    parser.add_argument('--val_weights_file')
 
     parser.add_argument('--pretrained_model_name', default="allenai/scibert_scivocab_uncased", type=str)
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
