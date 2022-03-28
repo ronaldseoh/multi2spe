@@ -27,6 +27,7 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --loss_config '[{"name": "original", "weight": 0.5, "loss_type": "margin", "margin": 1.0, "distance": "l2-norm", "reduction": "mean", "reduction_multifacet": "min", "use_target_token_embs": false, "sum_into_single_embeddings": true}, {"name": "no_sum", "weight": 0.5, "loss_type": "margin", "margin": 1.0, "distance": "l2-norm", "reduction": "mean", "reduction_multifacet": "min", "use_target_token_embs": false, "sum_into_single_embeddings": false}]' \
                 --gpus 1 --num_workers 0 --fp16 \
                 --batch_size 2 --grad_accum 16  --num_epochs 2 \
+                --seed 1991 \
                 --wandb
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
