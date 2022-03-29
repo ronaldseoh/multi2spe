@@ -886,8 +886,11 @@ class QuarterMaster(pl.LightningModule):
             loss_instance_weights = None
 
             if "weights" in batch[1].keys():
-                pos_instance_weights = batch[1]["weights"]
-                neg_instance_weights = batch[2]["weights"]
+                if "use_pos_weights_as_loss_weights" in self.hparams and self.hparams.use_pos_weights_as_loss_weights:
+                    loss_instance_weights = batch[1]["weights"]
+                else:
+                    pos_instance_weights = batch[1]["weights"]
+                    neg_instance_weights = batch[2]["weights"]
 
             if self.use_multiple_losses:
                 loss = 0
@@ -1086,8 +1089,11 @@ class QuarterMaster(pl.LightningModule):
             loss_instance_weights = None
 
             if "weights" in batch[1].keys():
-                pos_instance_weights = batch[1]["weights"]
-                neg_instance_weights = batch[2]["weights"]
+                if "use_pos_weights_as_loss_weights" in self.hparams and self.hparams.use_pos_weights_as_loss_weights:
+                    loss_instance_weights = batch[1]["weights"]
+                else:
+                    pos_instance_weights = batch[1]["weights"]
+                    neg_instance_weights = batch[2]["weights"]
 
             if self.use_multiple_losses:
                 loss = 0
@@ -1180,6 +1186,8 @@ def parse_args():
 
     parser.add_argument('--train_weights_file')
     parser.add_argument('--val_weights_file')
+
+    parser.add_argument('--use_pos_weights_as_loss_weights', default=False, action='store_true')
 
     parser.add_argument('--pretrained_model_name', default="allenai/scibert_scivocab_uncased", type=str)
     parser.add_argument('--model_behavior', default='quartermaster', choices=['quartermaster', 'specter'], type=str)
