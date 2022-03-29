@@ -18,8 +18,8 @@ EXPERIMENT_DATE=`date +"%m-%d"`
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --train_file /gypsum/scratch1/bseoh/20220327_shard_11/preprocessed/data-train.p --train_size 252640 \
                 --val_file /gypsum/scratch1/bseoh/20220327_shard_11/preprocessed/data-val.p --val_size 77900 \
-                --train_popularity_count_file /gypsum/scratch1/bseoh/20220327_shard_11/preprocessed/train_weights.json \
-                --val_popularity_count_file /gypsum/scratch1/bseoh/20220327_shard_11/preprocessed/val_weights.json \
+                --train_weights_file /gypsum/scratch1/bseoh/20220327_shard_11/preprocessed/train_weights.json \
+                --val_weights_file /gypsum/scratch1/bseoh/20220327_shard_11/preprocessed/val_weights.json \
                 --model_behavior 'quartermaster' --num_facets 3 \
                 --add_extra_facet_layers_after 3 7 \
                 --init_bert_layer_facet_layers 'identity' \
