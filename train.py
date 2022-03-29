@@ -67,7 +67,7 @@ class MultiFacetTripletLoss(torch.nn.Module):
         if self.reduction_multifacet_option_2 is None:
             raise Exception("reduction_multifacet_option_2 should not be None.")
 
-    def forward(self, query, positive, negative, pos_instance_weights=None, neg_instance_weights=None):
+    def forward(self, query, positive, negative, pos_instance_weights=None, neg_instance_weights=None, loss_instance_weights=None):
         # Are there any zero vectors in `query`, `positive`, and `negative`?
         # We need to introduce masks to filter them out.
         query_mask = torch.nan_to_num((query.sum(dim=2) == 0) * float('inf'), nan=1.0, posinf=float('inf'), neginf=float('-inf'))
@@ -201,6 +201,9 @@ class MultiFacetTripletLoss(torch.nn.Module):
             losses = positive_part + negative_part
         else:
             losses = torch.nn.functional.relu(distance_positive - distance_negative + self.margin)
+
+        if loss_instance_weights is not None:
+            losses *= loss_instance_weights
 
         if self.reduction == 'mean':
             return losses.mean()
@@ -880,6 +883,7 @@ class QuarterMaster(pl.LightningModule):
         else:
             pos_instance_weights = None
             neg_instance_weights = None
+            loss_instance_weights = None
 
             if "weights" in batch[1].keys():
                 pos_instance_weights = batch[1]["weights"]
@@ -891,15 +895,15 @@ class QuarterMaster(pl.LightningModule):
                 for i, l in enumerate(self.loss_list):
                     if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                         if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
-                            this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights)
+                            this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                         elif 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
-                            this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights)
+                            this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                         else:
-                            this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
+                            this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
-                        this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
+                        this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     else:
-                        this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
+                        this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)
 
                     self.log('train_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -907,15 +911,15 @@ class QuarterMaster(pl.LightningModule):
             else:
                 if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                     if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
-                        loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights)
+                        loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     elif "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
-                        loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights)
+                        loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     else:
-                        loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
+                        loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                    loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
+                    loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 else:
-                    loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
+                    loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)
 
                 self.log('train_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -1079,6 +1083,7 @@ class QuarterMaster(pl.LightningModule):
         else:
             pos_instance_weights = None
             neg_instance_weights = None
+            loss_instance_weights = None
 
             if "weights" in batch[1].keys():
                 pos_instance_weights = batch[1]["weights"]
@@ -1092,15 +1097,15 @@ class QuarterMaster(pl.LightningModule):
                 for i, l in enumerate(self.loss_list):
                     if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                         if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
-                            this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights)
+                            this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                         elif 'do_not_use_target_token_embs_mean' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['do_not_use_target_token_embs_mean']:
-                            this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights)
+                            this_loss = l(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                         else:
-                            this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
+                            this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
-                        this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
+                        this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     else:
-                        this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)
+                        this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)
 
                     self.log('val_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
 
@@ -1110,15 +1115,15 @@ class QuarterMaster(pl.LightningModule):
             else:
                 if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                     if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
-                        loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights)
+                        loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     elif "loss_do_not_use_target_token_embs_mean" in self.hparams and self.hparams.loss_do_not_use_target_token_embs_mean:
-                        loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weights)
+                        loss = self.loss(source_embedding, pos_embedding_tokens, neg_embedding_tokens, pos_instance_weights, neg_instance_weight, loss_instance_weights)
                     else:
-                        loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights)
+                        loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
-                    loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights)
+                    loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 else:
-                    loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights)                    
+                    loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)                    
 
                 self.log('val_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
 
