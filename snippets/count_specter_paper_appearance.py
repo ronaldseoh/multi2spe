@@ -79,7 +79,8 @@ if __name__ == '__main__':
     avg_weights['avg_pos_neg_weights'] = avg_pos_neg_weights
 
     for pid in popularity_count.keys():
-        weights[pid] = (1 / popularity_count[pid]) / avg_pos_neg_weights
+        # weights[pid] = (1 / popularity_count[pid]) / avg_pos_neg_weights
+        weights[pid] = 1 + (1 / popularity_count[pid] + 1)
 
     with open('/home/bseoh/my_scratch/20220327_shard_11/preprocessed/val_weights.json', 'w') as weights_file:
         json.dump(weights, weights_file)
