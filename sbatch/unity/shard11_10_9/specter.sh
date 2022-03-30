@@ -3,7 +3,8 @@
 #SBATCH -o sbatch_logs/stdout/shard11-10-9_U_specter_%j.txt
 #SBATCH -e sbatch_logs/stderr/shard11-10-9_U_specter_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=2080ti-long
+#SBATCH --partition=gpu-long
+#SBATCH --constraint=ials_gigabyte_gpu_2020
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
