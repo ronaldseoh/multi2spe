@@ -17,8 +17,8 @@ EXPERIMENT_DATE=`date +"%m-%d"`
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --train_file ~/my_scratch/20220327_shard_11/preprocessed/data-train.p --train_size 252640 \
                 --val_file ~/my_scratch/20220327_shard_11/preprocessed/data-val.p --val_size 77900 \
-                --train_weights_file ~/my_scratch/20220327_shard_11/preprocessed/train_weights.json \
-                --val_weights_file ~/my_scratch/20220327_shard_11/preprocessed/val_weights.json \
+                --train_weights_file ~/my_scratch/20220327_shard_11/preprocessed/train_weights_v5.json \
+                --val_weights_file ~/my_scratch/20220327_shard_11/preprocessed/val_weights_v5.json \
                 --use_pos_weights_as_loss_weights \
                 --model_behavior 'quartermaster' --num_facets 3 \
                 --add_extra_facet_layers_after 3 7 \
