@@ -23,9 +23,9 @@ if __name__ == '__main__':
 
     unique_paper_ids = set()
 
-    extra_metadata = json.load(open('/home/bseoh/my_scratch/20220327_shard_11/preprocessed/train_extra_metadata.json', 'r'))
+    extra_metadata = json.load(open('preprocessed/train_extra_metadata.json', 'r'))
 
-    with open("/home/bseoh/my_scratch/20220327_shard_11/preprocessed/data-train.p", 'rb') as f_in:
+    with open("preprocessed/data-train.p", 'rb') as f_in:
         unpickler = pickle.Unpickler(f_in)
         for _ in tqdm.tqdm(generator()):
             try:
