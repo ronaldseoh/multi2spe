@@ -44,6 +44,9 @@ if __name__ == '__main__':
     avg_pos_weights = 0
     avg_neg_weights = 0
 
+    avg_pos_weights = 0
+    avg_neg_weights = 0
+
     with open(specter_data_file_path, 'rb') as f_in:
         unpickler = pickle.Unpickler(f_in)
 
@@ -57,11 +60,13 @@ if __name__ == '__main__':
                 if not avg_pos_weights_ids_seen[pos_paper_id]:
                     avg_pos_weights_num_seen += 1
                     avg_pos_weights += 1 / popularity_count[pos_paper_id]
+                    avg_pos_counts += popularity_count[pos_paper_id]
                     avg_pos_weights_ids_seen[pos_paper_id] = True
 
                 if not avg_neg_weights_ids_seen[neg_paper_id]:
                     avg_neg_weights_num_seen += 1
                     avg_neg_weights += 1 / popularity_count[neg_paper_id]
+                    avg_neg_counts += popularity_count[neg_paper_id]
                     avg_neg_weights_ids_seen[neg_paper_id] = True
 
             except EOFError:
@@ -72,16 +77,21 @@ if __name__ == '__main__':
 
     avg_pos_neg_weights = (avg_pos_weights + avg_neg_weights) / 2
 
+    avg_pos_counts /= avg_pos_weights_num_seen
+    avg_neg_counts /= avg_neg_weights_num_seen
+
     avg_weights['avg_pos_weights_num_seen'] = avg_pos_weights_num_seen
     avg_weights['avg_neg_weights_num_seen'] = avg_neg_weights_num_seen
     avg_weights['avg_pos_weights'] = avg_pos_weights
     avg_weights['avg_neg_weights'] = avg_neg_weights
     avg_weights['avg_pos_neg_weights'] = avg_pos_neg_weights
+    avg_weights['avg_pos_counts'] = avg_pos_weights
+    avg_weights['avg_neg_counts'] = avg_neg_weights
 
     for pid in popularity_count.keys():
-        weights[pid] = (1 / popularity_count[pid]) / avg_pos_neg_weights
+        weights[pid] = (1 / (popularity_count[pid] + avg_pos_counts)) / avg_pos_weights
 
-    with open('preprocessed/train_weights_v5.json', 'w') as weights_file:
+    with open('preprocessed/train_weights_v6.json', 'w') as weights_file:
         json.dump(weights, weights_file)
 
     with open('preprocessed/train_popularity_count.json', 'w') as popularity_count_file:
