@@ -44,8 +44,8 @@ if __name__ == '__main__':
     avg_pos_weights = 0
     avg_neg_weights = 0
 
-    avg_pos_weights = 0
-    avg_neg_weights = 0
+    avg_pos_counts = 0
+    avg_neg_counts = 0
 
     with open(specter_data_file_path, 'rb') as f_in:
         unpickler = pickle.Unpickler(f_in)
