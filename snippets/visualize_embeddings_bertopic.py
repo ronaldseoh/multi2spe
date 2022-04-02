@@ -82,13 +82,13 @@ spacy_nlp = English()
 
 
 # Read the embeddings jsonl created with embed.py
-facet_selected = 2
+facet_selected = 0
 
 mag_embeddings = []
 mag_docs = []
 mag_labels = []
 
-with open("save_U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_02-09/cls_no_sum.jsonl", "r") as mag_embeddings_file:
+with open("save_shard11_k-3_debug_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_instance_weights-v5_cross_entropy_03-30/cls.jsonl", "r") as mag_embeddings_file:
     for line in tqdm.tqdm(mag_embeddings_file):
         paper = json.loads(line)
 
