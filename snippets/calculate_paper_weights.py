@@ -85,8 +85,8 @@ if __name__ == '__main__':
     avg_weights['avg_pos_weights'] = avg_pos_weights
     avg_weights['avg_neg_weights'] = avg_neg_weights
     avg_weights['avg_pos_neg_weights'] = avg_pos_neg_weights
-    avg_weights['avg_pos_counts'] = avg_pos_weights
-    avg_weights['avg_neg_counts'] = avg_neg_weights
+    avg_weights['avg_pos_counts'] = avg_pos_counts
+    avg_weights['avg_neg_counts'] = avg_neg_counts
 
     for pid in popularity_count.keys():
         weights[pid] = (1 / (popularity_count[pid] + avg_pos_counts)) / avg_pos_weights
