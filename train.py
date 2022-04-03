@@ -2,6 +2,7 @@ import argparse
 import os
 import pathlib
 import json
+import itertools
 
 import numpy as np
 import torch
@@ -354,9 +355,13 @@ class QuarterMaster(pl.LightningModule):
             self.extra_facet_nonlinearity = torch.nn.Tanh()
 
         self.add_extra_facet_layers_alternate = False
+        self.add_extra_facet_layers_alternate_2 = False
 
         if "add_extra_facet_layers_alternate" in self.hparams and self.hparams.num_facets > 1 and self.hparams.add_extra_facet_layers_alternate:
             self.add_extra_facet_layers_alternate = True
+
+        if "add_extra_facet_layers_alternate_2" in self.hparams and self.hparams.num_facets > 1 and self.hparams.add_extra_facet_layers_alternate_2:
+            self.add_extra_facet_layers_alternate_2 = True
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.hparams.pretrained_model_name)
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
@@ -512,6 +517,13 @@ class QuarterMaster(pl.LightningModule):
                     extra_facet_layers_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers], dim=0).mean(dim=0)
                     extra_facet_layers_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers]
 
+                if self.add_extra_facet_layers_alternate_2:
+                    extra_facet_layers_alternate_2_weights = []
+
+                    for combo in itertools.combinations(range(self.hparams.num_facets), r=2):
+                        extra_facet_layers_alternate_2_weights.append(
+                            self.extra_facet_layers[combo[0]].weight - self.extra_facet_layers[combo[1]].weight)
+
                 # Pass the source embeddings through extra linear layers
                 for n in range(self.hparams.num_facets):
                     # Instead of passing embeddings through output linear layers independently,
@@ -520,6 +532,10 @@ class QuarterMaster(pl.LightningModule):
                         source_embedding[:, n, :] = torch.nn.functional.linear(source_embedding[:, n, :], extra_facet_layers_alternate_weights[n], self.extra_facet_layers[n].bias)
                     else:
                         source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
+
+                    if self.add_extra_facet_layers_alternate_2:
+                        for combo_weight in extra_facet_layers_alternate_2_weights:
+                            source_embedding[:, n, :] = torch.nn.functional.linear(source_embedding[:, n, :], combo_weight)
 
             if self.hparams.add_extra_facet_nonlinearity:
                 source_embedding = self.extra_facet_nonlinearity(source_embedding)
@@ -811,6 +827,13 @@ class QuarterMaster(pl.LightningModule):
                     extra_facet_layers_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers], dim=0).mean(dim=0)
                     extra_facet_layers_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers]
 
+                if self.add_extra_facet_layers_alternate_2:
+                    extra_facet_layers_alternate_2_weights = []
+
+                    for combo in itertools.combinations(range(self.hparams.num_facets), r=2):
+                        extra_facet_layers_alternate_2_weights.append(
+                            self.extra_facet_layers[combo[0]].weight - self.extra_facet_layers[combo[1]].weight)
+
                 # Pass the source embeddings through extra linear layers
                 for n in range(self.hparams.num_facets):
                     # Instead of passing embeddings through output linear layers independently,
@@ -820,6 +843,10 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
+                    if self.add_extra_facet_layers_alternate_2:
+                        for combo_weight in extra_facet_layers_alternate_2_weights:
+                            source_embedding[:, n, :] = torch.nn.functional.linear(source_embedding[:, n, :], combo_weight)
+
             # For positive and negative papers, we could choose to train separate linear layers from source/pos
             if len(self.extra_facet_layers_for_target) > 0:
                 # Instead of passing embeddings through output linear layers independently,
@@ -828,6 +855,13 @@ class QuarterMaster(pl.LightningModule):
                     extra_facet_layers_for_target_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers_for_target], dim=0).mean(dim=0)
                     extra_facet_layers_for_target_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers_for_target]
 
+                if self.add_extra_facet_layers_alternate_2:
+                    extra_facet_layers_for_target_alternate_2_weights = []
+
+                    for combo in itertools.combinations(range(self.hparams.num_facets), r=2):
+                        extra_facet_layers_for_target_alternate_2_weights.append(
+                            self.extra_facet_layers_for_target[combo[0]].weight - self.extra_facet_layers_for_target[combo[1]].weight)
+
                 for n in range(self.hparams.num_facets):
                     if self.add_extra_facet_layers_alternate:
                         pos_embedding[:, n, :] = torch.nn.functional.linear(pos_embedding[:, n, :], extra_facet_layers_for_target_alternate_weights[n], self.extra_facet_layers_for_target[n].bias)
@@ -835,6 +869,12 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
                         neg_embedding[:, n, :] = self.extra_facet_layers_for_target[n](neg_embedding[:, n, :])
+
+                    if self.add_extra_facet_layers_alternate_2:
+                        for combo_weight in extra_facet_layers_for_target_alternate_2_weights:
+                            pos_embedding[:, n, :] = torch.nn.functional.linear(pos_embedding[:, n, :], combo_weight)
+                            neg_embedding[:, n, :] = torch.nn.functional.linear(neg_embedding[:, n, :], combo_weight)
+
             elif len(self.extra_facet_layers) > 0:
                 for n in range(self.hparams.num_facets):
                     if self.add_extra_facet_layers_alternate:
@@ -843,6 +883,11 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
                         neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
+
+                    if self.add_extra_facet_layers_alternate_2:
+                        for combo_weight in extra_facet_layers_alternate_2_weights:
+                            pos_embedding[:, n, :] = torch.nn.functional.linear(pos_embedding[:, n, :], combo_weight)
+                            neg_embedding[:, n, :] = torch.nn.functional.linear(neg_embedding[:, n, :], combo_weight)
 
             if self.hparams.add_extra_facet_nonlinearity:
                 source_embedding = self.extra_facet_nonlinearity(source_embedding)
@@ -1023,6 +1068,13 @@ class QuarterMaster(pl.LightningModule):
                     extra_facet_layers_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers], dim=0).mean(dim=0)
                     extra_facet_layers_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers]
 
+                if self.add_extra_facet_layers_alternate_2:
+                    extra_facet_layers_alternate_2_weights = []
+
+                    for combo in itertools.combinations(range(self.hparams.num_facets), r=2):
+                        extra_facet_layers_alternate_2_weights.append(
+                            self.extra_facet_layers[combo[0]].weight - self.extra_facet_layers[combo[1]].weight)
+
                 # Pass the source embeddings through extra linear layers
                 for n in range(self.hparams.num_facets):
                     # Instead of passing embeddings through output linear layers independently,
@@ -1032,6 +1084,10 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         source_embedding[:, n, :] = self.extra_facet_layers[n](source_embedding[:, n, :])
 
+                    if self.add_extra_facet_layers_alternate_2:
+                        for combo_weight in extra_facet_layers_alternate_2_weights:
+                            source_embedding[:, n, :] = torch.nn.functional.linear(source_embedding[:, n, :], combo_weight)
+
             # For positive and negative papers, we could choose to train separate linear layers from source/pos
             if len(self.extra_facet_layers_for_target) > 0:
                 # Instead of passing embeddings through output linear layers independently,
@@ -1039,6 +1095,13 @@ class QuarterMaster(pl.LightningModule):
                 if self.add_extra_facet_layers_alternate:
                     extra_facet_layers_for_target_mean_weight = torch.stack([f.weight for f in self.extra_facet_layers_for_target], dim=0).mean(dim=0)
                     extra_facet_layers_for_target_alternate_weights = [f.weight - extra_facet_layers_mean_weight for f in self.extra_facet_layers_for_target]
+
+                if self.add_extra_facet_layers_alternate_2:
+                    extra_facet_layers_for_target_alternate_2_weights = []
+
+                    for combo in itertools.combinations(range(self.hparams.num_facets), r=2):
+                        extra_facet_layers_for_target_alternate_2_weights.append(
+                            self.extra_facet_layers_for_target[combo[0]].weight - self.extra_facet_layers_for_target[combo[1]].weight)
 
                 for n in range(self.hparams.num_facets):
                     if self.add_extra_facet_layers_alternate:
@@ -1048,6 +1111,11 @@ class QuarterMaster(pl.LightningModule):
                         pos_embedding[:, n, :] = self.extra_facet_layers_for_target[n](pos_embedding[:, n, :])
                         neg_embedding[:, n, :] = self.extra_facet_layers_for_target[n](neg_embedding[:, n, :])
 
+                    if self.add_extra_facet_layers_alternate_2:
+                        for combo_weight in extra_facet_layers_for_target_alternate_2_weights:
+                            pos_embedding[:, n, :] = torch.nn.functional.linear(pos_embedding[:, n, :], combo_weight)
+                            neg_embedding[:, n, :] = torch.nn.functional.linear(neg_embedding[:, n, :], combo_weight)
+
             elif len(self.extra_facet_layers) > 0:
                 for n in range(self.hparams.num_facets):
                     if self.add_extra_facet_layers_alternate:
@@ -1056,6 +1124,11 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         pos_embedding[:, n, :] = self.extra_facet_layers[n](pos_embedding[:, n, :])
                         neg_embedding[:, n, :] = self.extra_facet_layers[n](neg_embedding[:, n, :])
+
+                    if self.add_extra_facet_layers_alternate_2:
+                        for combo_weight in extra_facet_layers_alternate_2_weights:
+                            pos_embedding[:, n, :] = torch.nn.functional.linear(pos_embedding[:, n, :], combo_weight)
+                            neg_embedding[:, n, :] = torch.nn.functional.linear(neg_embedding[:, n, :], combo_weight)
 
             if self.hparams.add_extra_facet_nonlinearity:
                 source_embedding = self.extra_facet_nonlinearity(source_embedding)
@@ -1201,6 +1274,7 @@ def parse_args():
     parser.add_argument('--add_extra_facet_layers', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_for_target', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_alternate', default=False, action='store_true')
+    parser.add_argument('--add_extra_facet_layers_alternate_2', default=False, action='store_true')
     parser.add_argument('--add_extra_facet_layers_after', nargs='*', type=int, help='Add extra facet layers right after the hidden states of specified encoder layers.')
     parser.add_argument('--init_bert_layer_facet_layers', default="default", choices=["default", "identity"], type=str)
     parser.add_argument('--add_bert_layer_facet_layers_alternate', default=False, action='store_true')
