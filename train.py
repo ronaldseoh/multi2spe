@@ -760,6 +760,15 @@ class QuarterMaster(pl.LightningModule):
             pos_embedding = pos_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
             neg_embedding = neg_output.last_hidden_state[:, 0:self.hparams.num_facets, :].contiguous()
 
+            if "train_drop_facets_randomly" in self.hparams and self.hparams.train_drop_facets_randomly:
+                facet_to_drop = np.random.randint(self.hparams.num_facets)
+
+                facets_to_keep = np.delete(np.arange(self.hparams.num_facets), facet_to_drop)
+
+                source_embedding = source_embedding[:, facets_to_keep, :]
+                pos_embedding = pos_embedding[:, facets_to_keep, :]
+                neg_embedding = neg_embedding[:, facets_to_keep, :]
+
             if self.use_target_token_embs:
                 # Use 'special_tokens_mask' to sum up just the sequence tokens and exclude all special tokens
                 # [CLS], [unused0~k] (for extra facets), [SEP], [PAD]
@@ -913,15 +922,6 @@ class QuarterMaster(pl.LightningModule):
                     source_embedding_summed = torch.sum(source_embedding, dim=1).unsqueeze(1)
                     pos_embedding_summed = torch.sum(pos_embedding, dim=1).unsqueeze(1)
                     neg_embedding_summed = torch.sum(neg_embedding, dim=1).unsqueeze(1)
-
-        if "train_drop_facets_randomly" in self.hparams and self.hparams.train_drop_facets_randomly:
-            facet_to_drop = np.random.randint(self.hparams.num_facets)
-
-            facets_to_keep = np.delete(np.arange(self.hparams.num_facets), facet_to_drop)
-
-            source_embedding = source_embedding[:, facets_to_keep, :]
-            pos_embedding = pos_embedding[:, facets_to_keep, :]
-            neg_embedding = neg_embedding[:, facets_to_keep, :]
 
         if self.hparams.model_behavior == 'specter':
             loss = self.loss(source_embedding, pos_embedding, neg_embedding)
