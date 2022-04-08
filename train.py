@@ -384,6 +384,7 @@ class QuarterMaster(pl.LightningModule):
         self.use_target_token_embs_weighted_trainable = False
         self.use_target_token_embs_weighted_mu = -1
         self.sum_into_single_embeddings = None
+        self.predict_facet_magnitudes = False
 
         if self.hparams.model_behavior == 'specter':
             self.loss = TripletLoss(
@@ -393,6 +394,10 @@ class QuarterMaster(pl.LightningModule):
         else:
             if "loss_config" in self.hparams and self.hparams.loss_config is not None:
                 self.use_multiple_losses = True
+
+            self.query_facet_magnitude_layers = torch.nn.ModuleList()
+            self.pos_facet_magnitude_layers = torch.nn.ModuleList()
+            self.neg_facet_magnitude_layers = torch.nn.ModuleList()
 
             if self.use_multiple_losses:
                 self.loss_list = []
@@ -425,6 +430,15 @@ class QuarterMaster(pl.LightningModule):
 
                     if "sum_into_single_embeddings" in loss_config.keys() and loss_config["sum_into_single_embeddings"]:
                         self.sum_into_single_embeddings = "training_only"
+
+                    if "predict_facet_magnitudes" in loss_config.keys() and loss_config["predict_facet_magnitudes"]:
+                        self.query_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+                        self.pos_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+                        self.neg_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+                    else:
+                        self.query_facet_magnitude_layers.append(torch.nn.Identity())
+                        self.pos_facet_magnitude_layers.append(torch.nn.Identity())
+                        self.neg_facet_magnitude_layers.append(torch.nn.Identity())
 
                     self.loss_list.append(
                         MultiFacetTripletLoss(
@@ -467,6 +481,15 @@ class QuarterMaster(pl.LightningModule):
 
                         if "loss_use_target_token_embs_weighted_trainable" in self.hparams:
                             self.use_target_token_embs_weighted_trainable = self.hparams.loss_use_target_token_embs_weighted_trainable
+
+                if "loss_predict_facet_magnitudes" in self.hparams:
+                    self.query_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+                    self.pos_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+                    self.neg_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+                else:
+                    self.query_facet_magnitude_layers.append(torch.nn.Identity())
+                    self.pos_facet_magnitude_layers.append(torch.nn.Identity())
+                    self.neg_facet_magnitude_layers.append(torch.nn.Identity())
 
                 self.loss = MultiFacetTripletLoss(
                     loss_type=loss_type,
@@ -951,6 +974,15 @@ class QuarterMaster(pl.LightningModule):
                 loss = 0
 
                 for i, l in enumerate(self.loss_list):
+                    if type(query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                        source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
+                    if type(pos_facet_magnitude_layers[i]) is torch.nn.Linear:
+                        pos_embedding_magnitudes = self.pos_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
+                    if type(neg_facet_magnitude_layers[i]) is torch.nn.Linear:
+                        neg_embedding_magnitudes = self.neg_facet_magnitude_layers[i](neg_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
                     if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                         if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
                             this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
@@ -959,8 +991,26 @@ class QuarterMaster(pl.LightningModule):
                         else:
                             this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
+                        if type(query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            source_embedding_summed *= source_embedding_magnitudes
+
+                        if type(pos_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            pos_embedding_summed *= pos_embedding_magnitudes
+
+                        if type(neg_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            neg_embedding_summed *= neg_embedding_magnitudes
+
                         this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     else:
+                        if type(query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            source_embedding *= source_embedding_magnitudes
+
+                        if type(pos_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            pos_embedding *= pos_embedding_magnitudes
+
+                        if type(neg_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            neg_embedding *= neg_embedding_magnitudes
+
                         this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)
 
                     self.log('train_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
@@ -1189,6 +1239,15 @@ class QuarterMaster(pl.LightningModule):
                 loss_breakdowns = []
 
                 for i, l in enumerate(self.loss_list):
+                    if type(query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                        source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
+                    if type(pos_facet_magnitude_layers[i]) is torch.nn.Linear:
+                        pos_embedding_magnitudes = self.pos_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
+                    if type(neg_facet_magnitude_layers[i]) is torch.nn.Linear:
+                        neg_embedding_magnitudes = self.neg_facet_magnitude_layers[i](neg_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
                     if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                         if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
                             this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
@@ -1197,8 +1256,26 @@ class QuarterMaster(pl.LightningModule):
                         else:
                             this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
+                        if type(query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            source_embedding_summed *= source_embedding_magnitudes
+
+                        if type(pos_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            pos_embedding_summed *= pos_embedding_magnitudes
+
+                        if type(neg_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            neg_embedding_summed *= neg_embedding_magnitudes
+
                         this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     else:
+                        if type(query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            source_embedding *= source_embedding_magnitudes
+
+                        if type(pos_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            pos_embedding *= pos_embedding_magnitudes
+
+                        if type(neg_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            neg_embedding *= neg_embedding_magnitudes
+
                         this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)
 
                     self.log('val_loss_' + self.hparams.loss_config[i]["name"], this_loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
@@ -1322,6 +1399,7 @@ def parse_args():
     parser.add_argument('--loss_use_target_token_embs_weighted',  default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted_trainable', default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted_mu',  default=1e-4, type=float)
+    parser.add_argument('--loss_predict_facet_magnitudes', default=False, action='store_true')
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
