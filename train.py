@@ -974,13 +974,13 @@ class QuarterMaster(pl.LightningModule):
                 loss = 0
 
                 for i, l in enumerate(self.loss_list):
-                    if type(query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                    if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                         source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
 
-                    if type(pos_facet_magnitude_layers[i]) is torch.nn.Linear:
+                    if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                         pos_embedding_magnitudes = self.pos_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
 
-                    if type(neg_facet_magnitude_layers[i]) is torch.nn.Linear:
+                    if type(self.neg_facet_magnitude_layers[i]) is torch.nn.Linear:
                         neg_embedding_magnitudes = self.neg_facet_magnitude_layers[i](neg_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
 
                     if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
