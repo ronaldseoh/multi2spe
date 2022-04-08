@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=scincl_k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
-#SBATCH -o sbatch_logs/stdout/scincl_k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin_%j.txt
-#SBATCH -e sbatch_logs/stderr/scincl_k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin_%j.err
+#SBATCH --job-name=scincl_k-3_debug_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
+#SBATCH -o sbatch_logs/stdout/scincl_k-3_debug_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin_%j.txt
+#SBATCH -e sbatch_logs/stderr/scincl_k-3_debug_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=1080ti-long
 #SBATCH --gres=gpu:1
@@ -11,7 +11,7 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=scincl_k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
+EXPERIMENT_ID_PREFIX=scincl_k-3_debug_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
