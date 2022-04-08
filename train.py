@@ -363,6 +363,11 @@ class QuarterMaster(pl.LightningModule):
         if "add_extra_facet_layers_alternate_2" in self.hparams and self.hparams.num_facets > 1 and self.hparams.add_extra_facet_layers_alternate_2:
             self.add_extra_facet_layers_alternate_2 = True
 
+        self.use_facet_embs_normalize = False
+
+        if "use_facet_embs_normalize" in self.hparams and self.hparams.use_facet_embs_normalize:
+            self.use_facet_embs_normalize = True
+
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(self.hparams.pretrained_model_name)
         self.tokenizer.model_max_length = self.model.config.max_position_embeddings
 
@@ -912,6 +917,11 @@ class QuarterMaster(pl.LightningModule):
                 if self.hparams.num_facets > 1:
                     self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=False, is_before_extra=False)
 
+            if self.use_facet_embs_normalize:
+                source_embedding = source_embedding_normalized
+                pos_embedding = pos_embedding_normalized
+                neg_embedding = neg_embedding_normalized
+
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
                 if "sum_into_single_embeddings_behavior" in self.hparams and self.hparams.sum_into_single_embeddings_behavior == "mean":
@@ -1143,6 +1153,11 @@ class QuarterMaster(pl.LightningModule):
             if self.hparams.num_facets > 1:
                 self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
 
+            if self.use_facet_embs_normalize:
+                source_embedding = source_embedding_normalized
+                pos_embedding = pos_embedding_normalized
+                neg_embedding = neg_embedding_normalized
+
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
                 if "sum_into_single_embeddings_behavior" in self.hparams and self.hparams.sum_into_single_embeddings_behavior == "mean":
@@ -1268,6 +1283,7 @@ def parse_args():
     parser.add_argument('--sum_into_single_embeddings', choices=['training_and_inference', 'training_only', 'inference_only'], type=str)
     parser.add_argument('--sum_into_single_embeddings_behavior', default='sum', choices=['sum', 'mean'], type=str)
     parser.add_argument('--debug_use_cls_for_all_facets', default=False, action='store_true')
+    parser.add_argument('--use_facet_embs_normalize',  default=False, action='store_true')
     parser.add_argument('--adjust_attention_mask_for_facets', default=0, type=int)
     parser.add_argument('--train_drop_facets_randomly', default=False, action='store_true')
 
