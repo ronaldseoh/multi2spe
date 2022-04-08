@@ -482,7 +482,7 @@ class QuarterMaster(pl.LightningModule):
                         if "loss_use_target_token_embs_weighted_trainable" in self.hparams:
                             self.use_target_token_embs_weighted_trainable = self.hparams.loss_use_target_token_embs_weighted_trainable
 
-                if "loss_predict_facet_magnitudes" in self.hparams:
+                if "loss_predict_facet_magnitudes" in self.hparams and self.hparams.loss_predict_facet_magnitudes:
                     self.query_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
                     self.pos_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
                     self.neg_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
