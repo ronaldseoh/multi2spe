@@ -1017,6 +1017,15 @@ class QuarterMaster(pl.LightningModule):
 
                     loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
             else:
+                if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
+                    source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
+                if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
+                    pos_embedding_magnitudes = self.pos_facet_magnitude_layers[0](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
+                if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
+                    neg_embedding_magnitudes = self.neg_facet_magnitude_layers[0](neg_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
                 if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                     if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
                         loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
@@ -1025,8 +1034,26 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
+                    if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        source_embedding_summed *= source_embedding_magnitudes
+
+                    if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        pos_embedding_summed *= pos_embedding_magnitudes
+
+                    if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        neg_embedding_summed *= neg_embedding_magnitudes
+
                     loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 else:
+                    if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        source_embedding *= source_embedding_magnitudes
+
+                    if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        pos_embedding *= pos_embedding_magnitudes
+
+                    if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        neg_embedding *= neg_embedding_magnitudes
+
                     loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)
 
                 self.log('train_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True, logger=True)
@@ -1284,6 +1311,15 @@ class QuarterMaster(pl.LightningModule):
 
                     loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
             else:
+                if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
+                    source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
+                if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
+                    pos_embedding_magnitudes = self.pos_facet_magnitude_layers[0](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
+                if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
+                    neg_embedding_magnitudes = self.neg_facet_magnitude_layers[0](neg_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous())
+
                 if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                     if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
                         loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
@@ -1292,8 +1328,26 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
+                    if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        source_embedding_summed *= source_embedding_magnitudes
+
+                    if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        pos_embedding_summed *= pos_embedding_magnitudes
+
+                    if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        neg_embedding_summed *= neg_embedding_magnitudes
+    
                     loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 else:
+                    if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        source_embedding *= source_embedding_magnitudes
+
+                    if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        pos_embedding *= pos_embedding_magnitudes
+
+                    if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        neg_embedding *= neg_embedding_magnitudes
+
                     loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)                    
 
                 self.log('val_loss_original', loss, on_step=True, on_epoch=False, sync_dist=True, prog_bar=True)
