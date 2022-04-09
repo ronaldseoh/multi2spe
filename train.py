@@ -397,7 +397,6 @@ class QuarterMaster(pl.LightningModule):
 
             self.query_facet_magnitude_layers = torch.nn.ModuleList()
             self.pos_facet_magnitude_layers = torch.nn.ModuleList()
-            self.neg_facet_magnitude_layers = torch.nn.ModuleList()
 
             if self.use_multiple_losses:
                 self.loss_list = []
@@ -434,11 +433,9 @@ class QuarterMaster(pl.LightningModule):
                     if "predict_facet_magnitudes" in loss_config.keys() and loss_config["predict_facet_magnitudes"]:
                         self.query_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
                         self.pos_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
-                        self.neg_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
                     else:
                         self.query_facet_magnitude_layers.append(torch.nn.Identity())
                         self.pos_facet_magnitude_layers.append(torch.nn.Identity())
-                        self.neg_facet_magnitude_layers.append(torch.nn.Identity())
 
                     self.loss_list.append(
                         MultiFacetTripletLoss(
@@ -485,11 +482,9 @@ class QuarterMaster(pl.LightningModule):
                 if "loss_predict_facet_magnitudes" in self.hparams and self.hparams.loss_predict_facet_magnitudes:
                     self.query_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
                     self.pos_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
-                    self.neg_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
                 else:
                     self.query_facet_magnitude_layers.append(torch.nn.Identity())
                     self.pos_facet_magnitude_layers.append(torch.nn.Identity())
-                    self.neg_facet_magnitude_layers.append(torch.nn.Identity())
 
                 self.loss = MultiFacetTripletLoss(
                     loss_type=loss_type,
@@ -980,9 +975,6 @@ class QuarterMaster(pl.LightningModule):
                     if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                         pos_embedding_magnitudes = self.pos_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
 
-                    if type(self.neg_facet_magnitude_layers[i]) is torch.nn.Linear:
-                        neg_embedding_magnitudes = self.neg_facet_magnitude_layers[i](neg_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
-
                     if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                         if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
                             this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
@@ -996,9 +988,7 @@ class QuarterMaster(pl.LightningModule):
 
                         if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                             pos_embedding_summed *= pos_embedding_magnitudes
-
-                        if type(self.neg_facet_magnitude_layers[i]) is torch.nn.Linear:
-                            neg_embedding_summed *= neg_embedding_magnitudes
+                            neg_embedding_summed *= pos_embedding_magnitudes
 
                         this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     else:
@@ -1007,9 +997,7 @@ class QuarterMaster(pl.LightningModule):
 
                         if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                             pos_embedding *= pos_embedding_magnitudes
-
-                        if type(self.neg_facet_magnitude_layers[i]) is torch.nn.Linear:
-                            neg_embedding *= neg_embedding_magnitudes
+                            neg_embedding *= pos_embedding_magnitudes
 
                         this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)
 
@@ -1022,9 +1010,6 @@ class QuarterMaster(pl.LightningModule):
 
                 if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                     pos_embedding_magnitudes = self.pos_facet_magnitude_layers[0](pos_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
-
-                if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
-                    neg_embedding_magnitudes = self.neg_facet_magnitude_layers[0](neg_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
 
                 if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                     if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
@@ -1039,9 +1024,7 @@ class QuarterMaster(pl.LightningModule):
 
                     if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                         pos_embedding_summed *= pos_embedding_magnitudes
-
-                    if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
-                        neg_embedding_summed *= neg_embedding_magnitudes
+                        neg_embedding_summed *= pos_embedding_magnitudes
 
                     loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 else:
@@ -1050,9 +1033,7 @@ class QuarterMaster(pl.LightningModule):
 
                     if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                         pos_embedding *= pos_embedding_magnitudes
-
-                    if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
-                        neg_embedding *= neg_embedding_magnitudes
+                        neg_embedding *= pos_embedding_magnitudes
 
                     loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)
 
@@ -1272,9 +1253,6 @@ class QuarterMaster(pl.LightningModule):
                     if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                         pos_embedding_magnitudes = self.pos_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
 
-                    if type(self.neg_facet_magnitude_layers[i]) is torch.nn.Linear:
-                        neg_embedding_magnitudes = self.neg_facet_magnitude_layers[i](neg_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
-
                     if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                         if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
                             this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
@@ -1288,9 +1266,7 @@ class QuarterMaster(pl.LightningModule):
 
                         if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                             pos_embedding_summed *= pos_embedding_magnitudes
-
-                        if type(self.neg_facet_magnitude_layers[i]) is torch.nn.Linear:
-                            neg_embedding_summed *= neg_embedding_magnitudes
+                            neg_embedding_summed *= pos_embedding_magnitudes
 
                         this_loss = l(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     else:
@@ -1299,9 +1275,7 @@ class QuarterMaster(pl.LightningModule):
 
                         if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                             pos_embedding *= pos_embedding_magnitudes
-
-                        if type(self.neg_facet_magnitude_layers[i]) is torch.nn.Linear:
-                            neg_embedding *= neg_embedding_magnitudes
+                            neg_embedding *= pos_embedding_magnitudes
 
                         this_loss = l(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)
 
@@ -1333,9 +1307,7 @@ class QuarterMaster(pl.LightningModule):
 
                     if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                         pos_embedding_summed *= pos_embedding_magnitudes
-
-                    if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
-                        neg_embedding_summed *= neg_embedding_magnitudes
+                        neg_embedding_summed *= pos_embedding_magnitudes
     
                     loss = self.loss(source_embedding_summed, pos_embedding_summed, neg_embedding_summed, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 else:
@@ -1344,9 +1316,7 @@ class QuarterMaster(pl.LightningModule):
 
                     if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                         pos_embedding *= pos_embedding_magnitudes
-
-                    if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
-                        neg_embedding *= neg_embedding_magnitudes
+                        neg_embedding *= pos_embedding_magnitudes
 
                     loss = self.loss(source_embedding, pos_embedding, neg_embedding, pos_instance_weights, neg_instance_weights, loss_instance_weights)                    
 
