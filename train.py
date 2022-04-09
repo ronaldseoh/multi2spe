@@ -432,7 +432,11 @@ class QuarterMaster(pl.LightningModule):
 
                     if "predict_facet_magnitudes" in loss_config.keys() and loss_config["predict_facet_magnitudes"]:
                         self.query_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
-                        self.pos_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+                        
+                        if "predict_facet_magnitudes_identical" in loss_config.keys() and loss_config["predict_facet_magnitudes_identical"]:
+                            self.pos_facet_magnitude_layers.append(torch.nn.Identity())
+                        else:
+                            self.pos_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
                     else:
                         self.query_facet_magnitude_layers.append(torch.nn.Identity())
                         self.pos_facet_magnitude_layers.append(torch.nn.Identity())
@@ -481,7 +485,11 @@ class QuarterMaster(pl.LightningModule):
 
                 if "loss_predict_facet_magnitudes" in self.hparams and self.hparams.loss_predict_facet_magnitudes:
                     self.query_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
-                    self.pos_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+
+                    if "loss_predict_facet_magnitudes_identical" in self.hparams and self.hparams.loss_predict_facet_magnitudes_identical:
+                        self.pos_facet_magnitude_layers.append(torch.nn.Identity())
+                    else:
+                        self.pos_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
                 else:
                     self.query_facet_magnitude_layers.append(torch.nn.Identity())
                     self.pos_facet_magnitude_layers.append(torch.nn.Identity())
@@ -972,6 +980,9 @@ class QuarterMaster(pl.LightningModule):
                     if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                         source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
 
+                        if not (type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear):
+                            pos_embedding_magnitudes = self.query_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
+
                     if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                         pos_embedding_magnitudes = self.pos_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
 
@@ -986,6 +997,10 @@ class QuarterMaster(pl.LightningModule):
                         if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                             source_embedding_summed *= source_embedding_magnitudes
 
+                            if not (type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear):
+                                pos_embedding_summed *= pos_embedding_magnitudes
+                                neg_embedding_summed *= pos_embedding_magnitudes
+
                         if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                             pos_embedding_summed *= pos_embedding_magnitudes
                             neg_embedding_summed *= pos_embedding_magnitudes
@@ -994,6 +1009,10 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                             source_embedding *= source_embedding_magnitudes
+
+                            if not (type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear):
+                                pos_embedding *= pos_embedding_magnitudes
+                                neg_embedding *= pos_embedding_magnitudes
 
                         if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                             pos_embedding *= pos_embedding_magnitudes
@@ -1007,6 +1026,9 @@ class QuarterMaster(pl.LightningModule):
             else:
                 if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                     source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
+
+                    if not (type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear):
+                        pos_embedding_magnitudes = self.query_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
 
                 if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                     pos_embedding_magnitudes = self.pos_facet_magnitude_layers[0](pos_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
@@ -1022,6 +1044,10 @@ class QuarterMaster(pl.LightningModule):
                     if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                         source_embedding_summed *= source_embedding_magnitudes
 
+                        if not (type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear):
+                            pos_embedding_summed *= pos_embedding_magnitudes
+                            neg_embedding_summed *= pos_embedding_magnitudes
+
                     if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                         pos_embedding_summed *= pos_embedding_magnitudes
                         neg_embedding_summed *= pos_embedding_magnitudes
@@ -1030,6 +1056,10 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                         source_embedding *= source_embedding_magnitudes
+
+                        if not (type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear):
+                            pos_embedding *= pos_embedding_magnitudes
+                            neg_embedding *= pos_embedding_magnitudes
 
                     if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                         pos_embedding *= pos_embedding_magnitudes
@@ -1250,6 +1280,9 @@ class QuarterMaster(pl.LightningModule):
                     if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                         source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
 
+                        if not (type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear):
+                            pos_embedding_magnitudes = self.query_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
+
                     if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                         pos_embedding_magnitudes = self.pos_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
 
@@ -1264,6 +1297,10 @@ class QuarterMaster(pl.LightningModule):
                         if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                             source_embedding_summed *= source_embedding_magnitudes
 
+                            if not (type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear):
+                                pos_embedding_summed *= pos_embedding_magnitudes
+                                neg_embedding_summed *= pos_embedding_magnitudes
+
                         if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                             pos_embedding_summed *= pos_embedding_magnitudes
                             neg_embedding_summed *= pos_embedding_magnitudes
@@ -1272,6 +1309,10 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                             source_embedding *= source_embedding_magnitudes
+
+                            if not (type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear):
+                                pos_embedding *= pos_embedding_magnitudes
+                                neg_embedding *= pos_embedding_magnitudes
 
                         if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
                             pos_embedding *= pos_embedding_magnitudes
@@ -1288,6 +1329,9 @@ class QuarterMaster(pl.LightningModule):
                 if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                     source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
 
+                    if not (type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear):
+                        pos_embedding_magnitudes = self.query_facet_magnitude_layers[i](pos_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
+
                 if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                     pos_embedding_magnitudes = self.pos_facet_magnitude_layers[0](pos_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
 
@@ -1302,6 +1346,10 @@ class QuarterMaster(pl.LightningModule):
                     if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                         source_embedding_summed *= source_embedding_magnitudes
 
+                        if not (type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear):
+                            pos_embedding_summed *= pos_embedding_magnitudes
+                            neg_embedding_summed *= pos_embedding_magnitudes
+
                     if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                         pos_embedding_summed *= pos_embedding_magnitudes
                         neg_embedding_summed *= pos_embedding_magnitudes
@@ -1310,6 +1358,10 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                         source_embedding *= source_embedding_magnitudes
+
+                        if not (type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear):
+                            pos_embedding *= pos_embedding_magnitudes
+                            neg_embedding *= pos_embedding_magnitudes
 
                     if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                         pos_embedding *= pos_embedding_magnitudes
@@ -1421,6 +1473,7 @@ def parse_args():
     parser.add_argument('--loss_use_target_token_embs_weighted_trainable', default=False, action='store_true')
     parser.add_argument('--loss_use_target_token_embs_weighted_mu',  default=1e-4, type=float)
     parser.add_argument('--loss_predict_facet_magnitudes', default=False, action='store_true')
+    parser.add_argument('--loss_predict_facet_magnitudes_identical', default=False, action='store_true')
 
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--grad_accum', default=1, type=int)
