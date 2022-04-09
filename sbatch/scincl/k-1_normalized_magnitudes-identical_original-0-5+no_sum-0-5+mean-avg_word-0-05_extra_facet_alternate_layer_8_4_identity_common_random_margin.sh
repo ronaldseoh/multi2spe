@@ -21,7 +21,6 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --add_extra_facet_layers_after 3 7 \
                 --init_bert_layer_facet_layers 'identity' \
                 --use_facet_embs_normalize \
-                --use_facet_embs_normalize_identical \
                 --sum_into_single_embeddings 'training_and_inference' \
                 --add_extra_facet_layers \
                 --add_extra_facet_nonlinearity \
