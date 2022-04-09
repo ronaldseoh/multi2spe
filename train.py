@@ -1291,9 +1291,6 @@ class QuarterMaster(pl.LightningModule):
                 if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
                     pos_embedding_magnitudes = self.pos_facet_magnitude_layers[0](pos_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
 
-                if type(self.neg_facet_magnitude_layers[0]) is torch.nn.Linear:
-                    neg_embedding_magnitudes = self.neg_facet_magnitude_layers[0](neg_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
-
                 if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                     if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
                         loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
