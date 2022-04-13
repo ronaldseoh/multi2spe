@@ -574,11 +574,24 @@ class QuarterMaster(pl.LightningModule):
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "inference_only"):
                 if "sum_into_single_embeddings_behavior" in self.hparams and self.hparams.sum_into_single_embeddings_behavior == "mean":
-                    return torch.mean(source_embedding, dim=1).unsqueeze(1)
+                    source_embedding = torch.mean(source_embedding, dim=1).unsqueeze(1)
                 else:
-                    return torch.sum(source_embedding, dim=1).unsqueeze(1)
+                    source_embedding = torch.sum(source_embedding, dim=1).unsqueeze(1)
+
+            if len(self.query_facet_magnitude_layers) == 1:
+                source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
+
+                source_embedding *= source_embedding_magnitudes
             else:
-                return source_embedding
+                for i in range(len(self.loss_list)):
+                    if self.use_multiple_losses and self.loss_list[i]['name'] == 'original' and type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                        source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
+
+                        source_embedding *= source_embedding_magnitudes
+
+                        break # use just one estimation of magnitudes
+    
+            return source_embedding
 
     def train_dataloader(self):
         if self.train_file_from_scincl:
