@@ -578,6 +578,9 @@ class QuarterMaster(pl.LightningModule):
                 else:
                     source_embedding = torch.sum(source_embedding, dim=1).unsqueeze(1)
 
+            if self.use_facet_embs_normalize:
+                source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
+
             if len(self.query_facet_magnitude_layers) == 1:
                 source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
 
