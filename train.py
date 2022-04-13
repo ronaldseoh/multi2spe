@@ -1006,7 +1006,7 @@ class QuarterMaster(pl.LightningModule):
                             this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
                         if self.use_facet_embs_normalize:
-                            source_embedding_summed pos_embedding_summed, neg_embedding_summed = self._get_normalized_embeddings(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+                            source_embedding_summed, pos_embedding_summed, neg_embedding_summed = self._get_normalized_embeddings(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
 
                         if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                             source_embedding_summed *= source_embedding_magnitudes
@@ -1061,7 +1061,7 @@ class QuarterMaster(pl.LightningModule):
                         loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
                     if self.use_facet_embs_normalize:
-                        source_embedding_summed pos_embedding_summed, neg_embedding_summed = self._get_normalized_embeddings(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+                        source_embedding_summed, pos_embedding_summed, neg_embedding_summed = self._get_normalized_embeddings(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
 
                     if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                         source_embedding_summed *= source_embedding_magnitudes
@@ -1322,7 +1322,7 @@ class QuarterMaster(pl.LightningModule):
                             this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     elif "sum_into_single_embeddings" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['sum_into_single_embeddings']:
                         if self.use_facet_embs_normalize:
-                            source_embedding_summed pos_embedding_summed, neg_embedding_summed = self._get_normalized_embeddings(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+                            source_embedding_summed, pos_embedding_summed, neg_embedding_summed = self._get_normalized_embeddings(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
 
                         if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                             source_embedding_summed *= source_embedding_magnitudes
@@ -1379,7 +1379,7 @@ class QuarterMaster(pl.LightningModule):
                         loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 elif self.sum_into_single_embeddings is not None and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
                     if self.use_facet_embs_normalize:
-                        source_embedding_summed pos_embedding_summed, neg_embedding_summed = self._get_normalized_embeddings(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
+                        source_embedding_summed, pos_embedding_summed, neg_embedding_summed = self._get_normalized_embeddings(source_embedding_summed, pos_embedding_summed, neg_embedding_summed)
 
                     if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                         source_embedding_summed *= source_embedding_magnitudes
