@@ -1268,11 +1268,6 @@ class QuarterMaster(pl.LightningModule):
             if self.hparams.num_facets > 1:
                 self._calculate_facet_distances_mean(source_embedding_normalized, pos_embedding_normalized, neg_embedding_normalized, is_val=True, is_before_extra=False)
 
-            if self.use_facet_embs_normalize:
-                source_embedding = source_embedding_normalized
-                pos_embedding = pos_embedding_normalized
-                neg_embedding = neg_embedding_normalized
-
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "training_only"):
                 if "sum_into_single_embeddings_behavior" in self.hparams and self.hparams.sum_into_single_embeddings_behavior == "mean":
