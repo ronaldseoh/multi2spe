@@ -39,7 +39,7 @@ import matplotlib
 #matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import normalize
-from sklearn.manifold import MDS
+from sklearn.manifold import MDS, TSNE
 import umap
 import umap.plot
 import tqdm
@@ -178,8 +178,10 @@ if __name__ == "__main__":
     mag_labels = np.array(mag_labels)
 
     # Run MDS
-    mds = MDS(2, random_state=0)
-    mag_embeddings_2d = mds.fit_transform(mag_embeddings)
+    # mds = MDS(2, random_state=0)
+    # mag_embeddings_2d = mds.fit_transform(mag_embeddings)
+    tsne = TSNE(n_components=2, random_state=0, learning_rate='auto', init='random')
+    mag_embeddings_2d = tsne.fit_transform(mag_embeddings)
 
     # Plot first with facet #
     umap.plot.points(mag_embeddings_2d, labels=facet_labels)
