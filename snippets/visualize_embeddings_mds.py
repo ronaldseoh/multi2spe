@@ -180,7 +180,7 @@ if __name__ == "__main__":
     # Run MDS
     # mds = MDS(2, random_state=0)
     # mag_embeddings_2d = mds.fit_transform(mag_embeddings)
-    tsne = TSNE(n_components=2, random_state=0, learning_rate='auto', init='random')
+    tsne = TSNE(n_components=2, random_state=0, init='random')
     mag_embeddings_2d = tsne.fit_transform(mag_embeddings)
 
     # Plot first with facet #
