@@ -142,7 +142,7 @@ def plot(
     ax.text(
         0.99,
         0.01,
-        "MDS",
+        "TSNE",
         transform=ax.transAxes,
         horizontalalignment="right",
         color=font_color,
