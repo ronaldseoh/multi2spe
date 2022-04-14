@@ -184,7 +184,7 @@ if __name__ == "__main__":
     mag_embeddings_2d = tsne.fit_transform(mag_embeddings)
 
     # Plot first with facet #
-    umap.plot.points(mag_embeddings_2d, labels=facet_labels)
+    plot(mag_embeddings_2d, labels=facet_labels)
 
     # Save the plot to a file
     plt.savefig("plot1.png")
