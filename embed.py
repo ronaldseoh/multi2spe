@@ -103,6 +103,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug_ignore_num_facets', default=False, action='store_true')
     parser.add_argument('--debug_use_cls_for_all_facets', default=False, action='store_true')
     parser.add_argument('--debug_disable_sum_embs', default=False, action='store_true')
+    parser.add_argument('--debug_disable_multiply_facet_magnitudes', default=False, action='store_true')
 
     args = parser.parse_args()
 
@@ -117,6 +118,10 @@ if __name__ == '__main__':
     # disable summed up embeddings in forward() calls if requested
     if args.debug_disable_sum_embs:
         model.sum_into_single_embeddings = "training_only"
+
+    # disable multiplying facet magnitudes in forward() calls if requested
+    if args.debug_disable_multiply_facet_magnitudes:
+        model.multiply_facet_magnitudes = False
 
     # Put model in the eval mode
     model.eval()
