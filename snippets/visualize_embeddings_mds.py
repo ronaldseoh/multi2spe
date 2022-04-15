@@ -166,8 +166,15 @@ if __name__ == "__main__":
             paper = json.loads(line)
             
             if paper["paper_id"] in mag_val_pids:
+                embs_paper = []
+
                 for i, emb in enumerate(paper["embedding"]):
-                    mag_embeddings.append(np.array(emb))
+                    embs_paper.append(np.array(emb))
+
+                emb_mean = np.mean(embs_paper, axis=0)
+
+                for i, emb in enumerate(emb_paper):
+                    mag_embeddings.append(emb - emb_mean)
                     facet_labels.append(i)
                     mag_labels.append(mag_val[mag_val.pid == paper["paper_id"]].iloc[0].class_label)
 
