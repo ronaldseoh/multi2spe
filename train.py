@@ -385,6 +385,7 @@ class QuarterMaster(pl.LightningModule):
         self.use_target_token_embs_weighted_mu = -1
         self.sum_into_single_embeddings = None
         self.predict_facet_magnitudes = False
+        self.multiply_facet_magnitudes = False
 
         if self.hparams.model_behavior == 'specter':
             self.loss = TripletLoss(
@@ -432,6 +433,10 @@ class QuarterMaster(pl.LightningModule):
 
                     if "predict_facet_magnitudes" in loss_config.keys() and loss_config["predict_facet_magnitudes"]:
                         self.query_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+                        
+                        if loss_config["name"] == "original":
+                            if not ("disable_multiply_facet_magnitudes" in self.hparams and self.hparams.disable_multiply_facet_magnitudes):
+                                self.multiply_facet_magnitudes = True
                         
                         if "predict_facet_magnitudes_identical" in loss_config.keys() and loss_config["predict_facet_magnitudes_identical"]:
                             self.pos_facet_magnitude_layers.append(torch.nn.Identity())
@@ -485,6 +490,9 @@ class QuarterMaster(pl.LightningModule):
 
                 if "loss_predict_facet_magnitudes" in self.hparams and self.hparams.loss_predict_facet_magnitudes:
                     self.query_facet_magnitude_layers.append(torch.nn.Linear(self.model.config.hidden_size, 1))
+
+                    if not ("disable_multiply_facet_magnitudes" in self.hparams and self.hparams.disable_multiply_facet_magnitudes):
+                        self.multiply_facet_magnitudes = True
 
                     if "loss_predict_facet_magnitudes_identical" in self.hparams and self.hparams.loss_predict_facet_magnitudes_identical:
                         self.pos_facet_magnitude_layers.append(torch.nn.Identity())
@@ -581,18 +589,19 @@ class QuarterMaster(pl.LightningModule):
             if self.use_facet_embs_normalize:
                 source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
 
-            if len(self.query_facet_magnitude_layers) == 1:
-                source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
+            if self.multiply_facet_magnitudes:
+                if len(self.query_facet_magnitude_layers) == 1:
+                    source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, self.hparams.num_facets+0, :].contiguous()).unsqueeze(-1)
 
-                source_embedding *= source_embedding_magnitudes
-            else:
-                for i in range(len(self.loss_list)):
-                    if self.use_multiple_losses and self.hparams.loss_config[i]['name'] == 'original' and type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
-                        source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
+                    source_embedding *= source_embedding_magnitudes
+                else:
+                    for i in range(len(self.loss_list)):
+                        if self.use_multiple_losses and self.hparams.loss_config[i]['name'] == 'original' and type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
 
-                        source_embedding *= source_embedding_magnitudes
+                            source_embedding *= source_embedding_magnitudes
 
-                        break # use just one estimation of magnitudes
+                            break # use just one estimation of magnitudes
     
             return source_embedding
 
@@ -1470,6 +1479,7 @@ def parse_args():
     parser.add_argument('--num_facets', default=1, type=int)
     parser.add_argument('--sum_into_single_embeddings', choices=['training_and_inference', 'training_only', 'inference_only'], type=str)
     parser.add_argument('--sum_into_single_embeddings_behavior', default='sum', choices=['sum', 'mean'], type=str)
+    parser.add_argument('--disable_multiply_facet_magnitudes', default=False, action='store_true')
     parser.add_argument('--debug_use_cls_for_all_facets', default=False, action='store_true')
     parser.add_argument('--use_facet_embs_normalize',  default=False, action='store_true')
     parser.add_argument('--adjust_attention_mask_for_facets', default=0, type=int)
