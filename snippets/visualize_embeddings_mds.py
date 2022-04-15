@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
                 emb_mean = np.mean(embs_paper, axis=0)
 
-                for i, emb in enumerate(emb_paper):
+                for i, emb in enumerate(embs_paper):
                     mag_embeddings.append(emb - emb_mean)
                     facet_labels.append(i)
                     mag_labels.append(mag_val[mag_val.pid == paper["paper_id"]].iloc[0].class_label)
