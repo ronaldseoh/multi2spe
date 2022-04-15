@@ -587,7 +587,7 @@ class QuarterMaster(pl.LightningModule):
                 source_embedding *= source_embedding_magnitudes
             else:
                 for i in range(len(self.loss_list)):
-                    if self.use_multiple_losses and self.loss_list[i]['name'] == 'original' and type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                    if self.use_multiple_losses and self.hparams.loss_config[i]['name'] == 'original' and type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                         source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, self.hparams.num_facets+i, :].contiguous()).unsqueeze(-1)
 
                         source_embedding *= source_embedding_magnitudes
