@@ -193,9 +193,10 @@ if __name__ == "__main__":
     for f in range(max(facet_labels) + 1):
         indexes_by_facet = np.where(facet_labels == f)[0].tolist()
         mag_embeddings_2d_by_facet = mag_embeddings_2d[indexes_by_facet]
+        mag_labels_by_facet = mag_labels[indexes_by_facet]
 
         # Then plot with MAG labels
-        plot(mag_embeddings_2d_by_facet, labels=mag_labels)    
+        plot(mag_embeddings_2d_by_facet, labels=mag_labels_by_facet)    
 
         # Save the plot to a file
         plt.savefig("plot_facet_{}.png".format(str(f)))
