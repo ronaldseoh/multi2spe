@@ -185,7 +185,7 @@ if __name__ == "__main__":
     mag_labels = np.array(mag_labels)
 
     # Run MDS
-    mds = MDS(2, random_state=0)
+    mds = MDS(2, random_state=0, verbose=1)
     mag_embeddings_2d = mds.fit_transform(mag_embeddings)
     #tsne = TSNE(n_components=2, random_state=0, init='random')
     #mag_embeddings_2d = tsne.fit_transform(mag_embeddings)
