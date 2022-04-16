@@ -190,14 +190,12 @@ if __name__ == "__main__":
     tsne = TSNE(n_components=2, random_state=0, init='random')
     mag_embeddings_2d = tsne.fit_transform(mag_embeddings)
 
-    # Plot first with facet #
-    plot(mag_embeddings_2d, labels=facet_labels)
+    for f in range(max(facet_labels) + 1):
+        indexes_by_facet = np.where(facet_labels == f)[0].tolist()
+        mag_embeddings_2d_by_facet = mag_embeddings_2d[indexes_by_facet]
 
-    # Save the plot to a file
-    plt.savefig("plot1.png")
-    
-    # Then plot with MAG labels
-    plot(mag_embeddings_2d, labels=mag_labels)    
+        # Then plot with MAG labels
+        plot(mag_embeddings_2d_by_facet, labels=mag_labels)    
 
-    # Save the plot to a file
-    plt.savefig("plot2.png")
+        # Save the plot to a file
+        plt.savefig("plot_facet_{}.png".format(str(f)))
