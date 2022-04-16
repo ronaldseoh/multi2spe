@@ -4,7 +4,7 @@ sys.path.append(".")
 sys.path.append("scincl")
 
 import torch
-from pykeops.torch import LazyTensor
+# from pykeops.torch import LazyTensor
 import ujson as json
 
 from specter.scripts.pytorch_lightning_training_script.train import DataReaderFromPickled
