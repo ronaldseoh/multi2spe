@@ -185,10 +185,10 @@ if __name__ == "__main__":
     mag_labels = np.array(mag_labels)
 
     # Run MDS
-    # mds = MDS(2, random_state=0)
-    # mag_embeddings_2d = mds.fit_transform(mag_embeddings)
-    tsne = TSNE(n_components=2, random_state=0, init='random')
-    mag_embeddings_2d = tsne.fit_transform(mag_embeddings)
+    mds = MDS(2, random_state=0)
+    mag_embeddings_2d = mds.fit_transform(mag_embeddings)
+    #tsne = TSNE(n_components=2, random_state=0, init='random')
+    #mag_embeddings_2d = tsne.fit_transform(mag_embeddings)
 
     for f in range(max(facet_labels) + 1):
         indexes_by_facet = np.where(facet_labels == f)[0].tolist()
