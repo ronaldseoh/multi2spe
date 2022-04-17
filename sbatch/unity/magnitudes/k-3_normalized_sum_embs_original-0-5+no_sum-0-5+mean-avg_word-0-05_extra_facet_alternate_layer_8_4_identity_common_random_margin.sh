@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
-#SBATCH -o sbatch_logs/stdout/k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin_%j.txt
-#SBATCH -e sbatch_logs/stderr/k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin_%j.err
+#SBATCH --job-name=U_k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
+#SBATCH -o sbatch_logs/stdout/U_k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin_%j.txt
+#SBATCH -e sbatch_logs/stderr/U_k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu-long
 #SBATCH --constraint=ials_gigabyte_gpu_2020
@@ -12,12 +12,12 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
+EXPERIMENT_ID_PREFIX=U_k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
-                --train_file ~/my_scratch/original_data/train_shuffled.pkl --train_size 684100 \
-                --val_file ~/my_scratch/original_data/val_shuffled.pkl --val_size 145375 \
+                --train_file /gypsum/scratch1/bseoh/original_data/train_shuffled.pkl --train_size 684100 \
+                --val_file /gypsum/scratch1/bseoh/original_data/val_shuffled.pkl --val_size 145375 \
                 --model_behavior 'quartermaster' --num_facets 3 \
                 --add_extra_facet_layers_after 3 7 \
                 --init_bert_layer_facet_layers 'identity' \
