@@ -3,7 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/scidocs_only_cosine_%j.txt
 #SBATCH -e sbatch_logs/stderr/scidocs_only_cosine_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=1080ti-short
+#SBATCH --partition=2080ti-short
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
@@ -11,7 +11,7 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=scincl_k-1_normalized_magnitudes-identical_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
+EXPERIMENT_ID_PREFIX=scincl_k-1_debug_normalized_magnitudes_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
 EXPERIMENT_DATE="04-13"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
