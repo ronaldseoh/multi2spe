@@ -3,7 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/scidocs_only_cosine_%j.txt
 #SBATCH -e sbatch_logs/stderr/scidocs_only_cosine_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=gpu-long
+#SBATCH --partition=gpu
 #SBATCH --constraint=ials_gigabyte_gpu_2020
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
@@ -12,7 +12,7 @@
 eval "$(conda shell.bash hook)"
 
 
-EXPERIMENT_ID_PREFIX=scincl_U_k-3_normalized_magnitudes-identical_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
+EXPERIMENT_ID_PREFIX=scincl_U_k-3_normalized_magnitudes_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
 EXPERIMENT_DATE="04-16"
 
 conda activate scidocs
