@@ -12,9 +12,8 @@
 eval "$(conda shell.bash hook)"
 
 
-EXPERIMENT_ID_PREFIX=U_k-3_debug_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05-input_emb_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
-EXPERIMENT_DATE="01-23"
-
+EXPERIMENT_ID_PREFIX=scincl_U_k-3_normalized_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
+EXPERIMENT_DATE="04-16"
 
 conda activate scidocs
 
@@ -28,13 +27,12 @@ python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT
                       --data-path ../scidocs/data \
                       --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results.xlsx
 
-python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl \
-                      --user-citation save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl \
-                      --recomm save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/recomm.jsonl \
+python ../scidocs/scripts/run.py --cls ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls_no_multiply_magnitudes.jsonl \
+                      --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_no_multiply_magnitudes.jsonl \
+                      --recomm ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/recomm_no_multiply_magnitudes.jsonl \
                       --val_or_test test \
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --cls-svm \
-                      --user-citation-metric "cosine" \
                       --data-path ../scidocs/data \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine.xlsx
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_no_multiply_magnitudes.xlsx
