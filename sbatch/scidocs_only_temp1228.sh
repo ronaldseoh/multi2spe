@@ -12,7 +12,7 @@
 eval "$(conda shell.bash hook)"
 
 
-EXPERIMENT_ID_PREFIX=scincl_U_k-1_normalized_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
+EXPERIMENT_ID_PREFIX=scincl_U_k-3_normalized_magnitudes-identical_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_margin
 EXPERIMENT_DATE="04-16"
 
 conda activate scidocs
