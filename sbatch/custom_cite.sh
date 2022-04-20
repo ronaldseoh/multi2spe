@@ -10,8 +10,8 @@
 
 eval "$(conda shell.bash hook)"
 
-EXPERIMENT_ID_PREFIX=scincl_k-3_sum_embs_original-0-5+no_sum-0-5_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
-EXPERIMENT_DATE="03-17"
+EXPERIMENT_ID_PREFIX=scincl_specter
+EXPERIMENT_DATE="03-10"
                 
 conda activate scidocs
 
@@ -20,5 +20,4 @@ python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/sa
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --data-path ~/my_scratch/scidocs-shard7 \
-                      --user-citation-metric "cosine" \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite.xlsx
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_custom_cite.xlsx
