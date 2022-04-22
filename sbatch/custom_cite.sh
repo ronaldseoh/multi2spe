@@ -10,8 +10,8 @@
 
 eval "$(conda shell.bash hook)"
 
-EXPERIMENT_ID_PREFIX=shard11_specter
-EXPERIMENT_DATE="03-28"
+EXPERIMENT_ID_PREFIX=specter
+EXPERIMENT_DATE="02-02"
 
 conda activate scidocs
 
