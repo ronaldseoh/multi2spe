@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --partition=2080ti-short
 #SBATCH --gres=gpu:1
-#SBATCH --mem=24GB
+#SBATCH --mem=40GB
 #SBATCH --cpus-per-task=2
 
 eval "$(conda shell.bash hook)"
