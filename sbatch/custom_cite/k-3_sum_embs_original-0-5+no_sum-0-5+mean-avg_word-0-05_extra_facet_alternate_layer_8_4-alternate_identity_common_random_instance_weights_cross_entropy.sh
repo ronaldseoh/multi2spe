@@ -16,7 +16,7 @@ EXPERIMENT_DATE="03-21"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ~/my_scratch/scidocs-shard7-14/data_final.json \
-                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl --batch-size 4
+                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite_shard7-14.jsonl --batch-size 4
 
 conda deactivate
 conda activate scidocs
@@ -27,4 +27,4 @@ python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/sa
                       --n-jobs 4 --cuda-device 0 \
                       --user-citation-metric "cosine" \
                       --data-path ~/my_scratch/scidocs-shard7-14 \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite.xlsx
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite_shard7-14.xlsx
