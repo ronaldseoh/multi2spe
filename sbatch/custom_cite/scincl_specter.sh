@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=custom_cite
-#SBATCH -o sbatch_logs/stdout/custom_cite_%j.txt
-#SBATCH -e sbatch_logs/stderr/custom_cite_%j.err
+#SBATCH --job-name=custom_cite_scincl_specter
+#SBATCH -o sbatch_logs/stdout/custom_cite_scincl_specter_%j.txt
+#SBATCH -e sbatch_logs/stderr/custom_cite_scincl_specter_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=2080ti-short
 #SBATCH --gres=gpu:1
@@ -10,8 +10,8 @@
 
 eval "$(conda shell.bash hook)"
 
-EXPERIMENT_ID_PREFIX=specter
-EXPERIMENT_DATE="02-02"
+EXPERIMENT_ID_PREFIX=scincl_specter
+EXPERIMENT_DATE="03-10"
 
 conda activate scidocs
 
