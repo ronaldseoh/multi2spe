@@ -15,7 +15,7 @@ conda activate qm
 EXPERIMENT_ID_PREFIX=specter
 EXPERIMENT_DATE="09-09"
 
-python embed.py --pl-checkpoint-path /old/scratch/bseoh_umass_edu/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
+python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path /gypsum/scratch1/bseoh/scidocs-shard7/data_final.json \
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite_shard7-14.jsonl --batch-size 4
 
