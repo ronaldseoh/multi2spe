@@ -18,5 +18,5 @@ python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/sa
                       --val_or_test test \
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
-                      --data-path /gypsum/scratch1/bseoh/scidocs-shard7-14 \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_custom_cite_shard7-14.xlsx
+                      --data-path /gypsum/scratch1/bseoh/scidocs-shard7 \
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_custom_cite_fix.xlsx
