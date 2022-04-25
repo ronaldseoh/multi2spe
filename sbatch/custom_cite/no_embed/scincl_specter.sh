@@ -19,4 +19,4 @@ python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/sa
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --data-path ~/my_scratch/scidocs-shard7 \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_custom_cite.xlsx
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_custom_cite_neg500.xlsx
