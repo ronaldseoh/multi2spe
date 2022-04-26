@@ -16,16 +16,16 @@ EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_e
 EXPERIMENT_DATE="03-23"
                 
 python embed.py --pl-checkpoint-path /old/scratch/bseoh_umass_edu/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
-                --data-path /gypsum/scratch1/bseoh/scidocs-shard7-14/data_final.json \
-                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite_shard7-14.jsonl --batch-size 4
+                --data-path /gypsum/scratch1/bseoh/scidocs-shard7_14_21/data_final.json \
+                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite_shard7_14_21.jsonl --batch-size 4
 
 conda deactivate
 conda activate scidocs
 
-python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl \
+python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite_shard7_14_21.jsonl \
                       --val_or_test test \
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --user-citation-metric "cosine" \
-                      --data-path /gypsum/scratch1/bseoh/scidocs-shard7-14 \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite_shard7-14.xlsx
+                      --data-path /gypsum/scratch1/bseoh/scidocs-shard7_14_21 \
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite_shard7_14_21.xlsx
