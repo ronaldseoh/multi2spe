@@ -15,15 +15,15 @@ EXPERIMENT_ID_PREFIX=shard11_specter
 EXPERIMENT_DATE="03-28"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
-                --data-path ~/my_scratch/scidocs-shard7-14/data_final.json \
-                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite_shard7-14.jsonl --batch-size 4
+                --data-path ~/my_scratch/scidocs-shard7_14_21/data_final.json \
+                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite_shard7_14_21.jsonl --batch-size 4
 
 conda deactivate
 conda activate scidocs
 
-python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl \
+python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite_shard7_14_21.jsonl \
                       --val_or_test test \
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
-                      --data-path ~/my_scratch/scidocs-shard7-14 \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_custom_cite_shard7-14.xlsx
+                      --data-path ~/my_scratch/scidocs-shard7_14_21 \
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_custom_cite_shard7_14_21.xlsx
