@@ -3,7 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/custom_cite_scincl_specter_%j.txt
 #SBATCH -e sbatch_logs/stderr/custom_cite_scincl_specter_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=2080ti-short
+#SBATCH --partition=2080ti-long
 #SBATCH --gres=gpu:1
 #SBATCH --mem=40GB
 #SBATCH --cpus-per-task=2

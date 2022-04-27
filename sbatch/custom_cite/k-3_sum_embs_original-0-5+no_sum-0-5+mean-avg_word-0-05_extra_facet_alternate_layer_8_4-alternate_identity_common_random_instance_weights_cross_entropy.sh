@@ -3,7 +3,7 @@
 #SBATCH -o sbatch_logs/stdout/custom_cite_k-3_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_instance_weights_cross_entropy_%j.txt
 #SBATCH -e sbatch_logs/stderr/custom_cite_k-3_sum_embs_original-0-5+no_sum-0-5+mean-avg_word-0-05_extra_facet_alternate_layer_8_4-alternate_identity_common_random_instance_weights_cross_entropy_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=2080ti-short
+#SBATCH --partition=2080ti-long
 #SBATCH --gres=gpu:1
 #SBATCH --mem=40GB
 #SBATCH --cpus-per-task=2
