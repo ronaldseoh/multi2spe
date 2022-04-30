@@ -8,10 +8,10 @@ import tqdm
 
 if __name__ == '__main__':
 
-    scincl_data_file_path = "/home/bseoh/my_scratch/scincl_dataset_wol/preprocessed/scincl_dataset_wol"
+    scincl_data_file_path = "train_triples.csv"
     mapping = {}
 
-    with open(specter_data_file_path, 'rb') as f_in:
+    with open(scincl_data_file_path, 'r') as f_in:
         reader = csv.reader(csvfile, delimiter=',')
 
         for row in tqdm.tqdm(reader):
@@ -23,5 +23,5 @@ if __name__ == '__main__':
             mapping[pos_paper_id] = pos_paper_id
             mapping[neg_paper_id] = neg_paper_id
 
-    with open('/home/bseoh/my_scratch/scincl_dataset_wol/train_all_paper_ids.json', 'w') as all_paper_ids_file:
+    with open('train_all_paper_ids.json', 'w') as all_paper_ids_file:
         json.dump(mapping, all_paper_ids_file)
