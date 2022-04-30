@@ -1,37 +1,27 @@
 import json
-import pickle
+import csv
 #import collections
 #import statistics
 
 import tqdm
 
 
-def generator():
-    while True:
-        yield
-
-
 if __name__ == '__main__':
 
-    specter_data_file_path = "/home/bseoh/my_scratch/20220327_shard_11/preprocessed/data-train.p"
+    scincl_data_file_path = "/home/bseoh/my_scratch/scincl_dataset_wol/preprocessed/scincl_dataset_wol"
     mapping = {}
 
     with open(specter_data_file_path, 'rb') as f_in:
-        unpickler = pickle.Unpickler(f_in)
+        reader = csv.reader(csvfile, delimiter=',')
 
-        for _ in tqdm.tqdm(generator()):
-            try:
-                instance = unpickler.load()
+        for row in tqdm.tqdm(reader):
+            query_paper_id = row[0]
+            pos_paper_id = row[1]
+            neg_paper_id = row[2]
 
-                source_paper_id = instance.fields.get('source_paper_id').metadata
-                pos_paper_id = instance.fields.get('pos_paper_id').metadata
-                neg_paper_id = instance.fields.get('neg_paper_id').metadata
-            except EOFError:
-                break
-
-            mapping[source_paper_id] = source_paper_id
+            mapping[query_paper_id] = query_paper_id
             mapping[pos_paper_id] = pos_paper_id
             mapping[neg_paper_id] = neg_paper_id
 
-    with open('/home/bseoh/my_scratch/20220327_shard_11/preprocessed/train_all_paper_ids.json', 'w') as all_paper_ids_file:
+    with open('/home/bseoh/my_scratch/scincl_dataset_wol/train_all_paper_ids.json', 'w') as all_paper_ids_file:
         json.dump(mapping, all_paper_ids_file)
