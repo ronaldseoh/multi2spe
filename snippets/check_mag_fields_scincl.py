@@ -21,7 +21,7 @@ if __name__ == '__main__':
     extra_metadata = json.load(open('train_extra_metadata.json', 'r'))
 
     with open('train_triples.csv', 'r') as f_in:
-        reader = csv.reader(csvfile, delimiter=',')
+        reader = csv.reader(f_in, delimiter=',')
         for row in tqdm.tqdm(reader):
             query_paper_id = row[0]
             pos_paper_id = row[1]
