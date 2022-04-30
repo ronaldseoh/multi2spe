@@ -12,7 +12,7 @@ if __name__ == '__main__':
     mapping = {}
 
     with open(scincl_data_file_path, 'r') as f_in:
-        reader = csv.reader(csvfile, delimiter=',')
+        reader = csv.reader(f_in, delimiter=',')
 
         for row in tqdm.tqdm(reader):
             query_paper_id = row[0]
