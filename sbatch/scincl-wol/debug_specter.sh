@@ -35,6 +35,10 @@ python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_D
                 --data-path ../scidocs/data/paper_metadata_view_cite_read.json \
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl --batch-size 4
 
+python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
+                --data-path ~/my_scratch/scidocs-shard7/data_final.json \
+                --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl --batch-size 4
+
 conda deactivate
 conda activate scidocs
 
@@ -47,3 +51,10 @@ python ../scidocs/scripts/run.py --cls ../quartermaster/save_${EXPERIMENT_ID_PRE
                       --cls-svm \
                       --data-path ../scidocs/data \
                       --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results.xlsx
+
+python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl \
+                      --val_or_test test \
+                      --multifacet-behavior extra_linear \
+                      --n-jobs 4 --cuda-device 0 \
+                      --data-path ~/my_scratch/scidocs-shard7 \
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_custom_cite.xlsx
