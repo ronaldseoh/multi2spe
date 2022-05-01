@@ -6,7 +6,7 @@
 #SBATCH --partition=gpu-long
 #SBATCH --constraint=ials_gigabyte_gpu_2020
 #SBATCH --gres=gpu:1
-#SBATCH --mem=48GB
+#SBATCH --mem=64GB
 #SBATCH --cpus-per-task=2
 
 eval "$(conda shell.bash hook)"
