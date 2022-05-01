@@ -609,7 +609,7 @@ class QuarterMaster(pl.LightningModule):
         if self.train_file_from_scincl:
             dataset = utils.SciNclTripleDataset(
                 triples_csv_path=self.hparams.train_file, metadata_jsonl_path=self.hparams.train_metadata_file,
-                tokenizer=self.tokenizer,
+                tokenizer=self.tokenizer, use_cache=True,
                 num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
 
             # pin_memory enables faster data transfer to CUDA-enabled GPU.
@@ -637,7 +637,7 @@ class QuarterMaster(pl.LightningModule):
         if self.val_file_from_scincl:
             dataset = utils.SciNclTripleDataset(
                 triples_csv_path=self.hparams.val_file, metadata_jsonl_path=self.hparams.val_metadata_file,
-                tokenizer=self.tokenizer,
+                tokenizer=self.tokenizer, use_cache=True,
                 num_facets=self.hparams.num_facets, use_cls_for_all_facets=self.hparams.debug_use_cls_for_all_facets)
         else:
             weights_path = None
