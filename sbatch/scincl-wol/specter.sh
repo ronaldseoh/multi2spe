@@ -15,7 +15,7 @@ EXPERIMENT_ID_PREFIX=scincl-wol_specter
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
-                --train_file ~/my_scratch/scincl_dataset_wol/train_triples.csv --train_metadata_file ~/my_scratch/scincl_dataset_wol/train_metadata.jsonl --train_file_from_scincl --train_size 684100 \
+                --train_file ~/my_696ds-s21/scincl_dataset_wol/train_triples.csv --train_metadata_file ~/my_696ds-s21/scincl_dataset_wol/train_metadata.jsonl --train_file_from_scincl --train_size 684100 \
                 --val_file ~/my_scratch/original_data/val_shuffled.pkl --val_size 145375 \
                 --model_behavior 'specter' \
                 --gpus 1 --num_workers 0 --fp16 \
