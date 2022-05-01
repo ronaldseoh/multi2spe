@@ -1,18 +1,18 @@
 #!/bin/bash
-#SBATCH --job-name=scincl-wol_U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
-#SBATCH -o sbatch_logs/stdout/scincl-wol_U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy_%j.txt
-#SBATCH -e sbatch_logs/stderr/scincl-wol_U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy_%j.err
+#SBATCH --job-name=scincl-wol_U_k-3_sum_embs_original-0-5+no_sum-0-5_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
+#SBATCH -o sbatch_logs/stdout/scincl-wol_U_k-3_sum_embs_original-0-5+no_sum-0-5_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy_%j.txt
+#SBATCH -e sbatch_logs/stderr/scincl-wol_U_k-3_sum_embs_original-0-5+no_sum-0-5_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu-long
 #SBATCH --constraint=ials_gigabyte_gpu_2020
 #SBATCH --gres=gpu:1
-#SBATCH --mem=44GB
+#SBATCH --mem=48GB
 #SBATCH --cpus-per-task=2
 
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=scincl-wol_U_k-3_sum_embs_original-0-9+no_sum-0-1+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
+EXPERIMENT_ID_PREFIX=scincl-wol_U_k-3_sum_embs_original-0-5+no_sum-0-5_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
@@ -25,7 +25,7 @@ python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
                 --add_extra_facet_layers \
                 --add_extra_facet_nonlinearity \
                 --add_extra_facet_layers_alternate \
-                --loss_config '[{"name": "original", "weight": 0.9, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false, "sum_into_single_embeddings": true}, {"name": "no_sum", "weight": 0.1, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false, "sum_into_single_embeddings": false}, {"name": "mean_and_word_emb", "weight": 0.05, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "mean", "use_target_token_embs": true}]' \
+                --loss_config '[{"name": "original", "weight": 0.5, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false, "sum_into_single_embeddings": true}, {"name": "no_sum", "weight": 0.5, "loss_type": "bce", "margin": 1.0, "distance": "dot", "reduction": "mean", "reduction_multifacet": "max", "use_target_token_embs": false, "sum_into_single_embeddings": false}]' \
                 --gpus 1 --num_workers 0 --fp16 \
                 --batch_size 2 --grad_accum 16  --num_epochs 2 \
                 --wandb
