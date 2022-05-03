@@ -4,6 +4,7 @@
 #SBATCH -e sbatch_logs/stderr/scidocs_only_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=2080ti-short
+#SBATCH --gres=gpu:1
 #SBATCH --mem=40GB
 #SBATCH --cpus-per-task=2
 
