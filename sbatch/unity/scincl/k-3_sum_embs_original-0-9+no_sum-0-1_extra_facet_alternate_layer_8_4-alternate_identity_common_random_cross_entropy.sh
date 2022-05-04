@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu-long
 #SBATCH --constraint=ials_gigabyte_gpu_2020
-#SBATCH -G 1
+#SBATCH --gres=gpu:1
 #SBATCH --mem=40GB
 #SBATCH --cpus-per-task=2
 
