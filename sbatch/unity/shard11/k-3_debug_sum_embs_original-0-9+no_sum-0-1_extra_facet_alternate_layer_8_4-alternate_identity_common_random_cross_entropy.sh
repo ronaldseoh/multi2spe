@@ -60,3 +60,11 @@ python ../scidocs/scripts/run.py --cls save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT
                       --user-citation-metric "cosine" \
                       --data-path ../scidocs/data \
                       --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine.xlsx
+
+python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl \
+                      --val_or_test test \
+                      --multifacet-behavior extra_linear \
+                      --n-jobs 4 --cuda-device 0 \
+                      --user-citation-metric "cosine" \
+                      --data-path /gypsum/scratch1/bseoh/scidocs-shard7 \
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite.xlsx
