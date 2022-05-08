@@ -54,7 +54,7 @@ if __name__ == '__main__':
                 if pos_paper_id in extra_metadata.keys() and extra_metadata[pos_paper_id]['mag_field_of_study'] is not None:
                     num_pos_paper_ids_found_mag += 1
 
-                    if extra_metadata[query_paper_id]['mag_field_of_study'] is not None:
+                    if query_paper_id in extra_metadata.keys() and extra_metadata[query_paper_id]['mag_field_of_study'] is not None:
                         if len(set(extra_metadata[query_paper_id]['mag_field_of_study']).intersection(extra_metadata[pos_paper_id]['mag_field_of_study'])) == 0:
                             num_triples_pos_cross_domain_pure += 1
 
@@ -67,7 +67,7 @@ if __name__ == '__main__':
                 if neg_paper_id in extra_metadata.keys() and extra_metadata[neg_paper_id]['mag_field_of_study'] is not None:
                     num_neg_paper_ids_found_mag += 1
 
-                    if extra_metadata[query_paper_id]['mag_field_of_study'] is not None:
+                    if query_paper_id in extra_metadata.keys() and extra_metadata[query_paper_id]['mag_field_of_study'] is not None:
                         if len(set(extra_metadata[query_paper_id]['mag_field_of_study']).intersection(extra_metadata[neg_paper_id]['mag_field_of_study'])) == 0:
                             num_triples_neg_cross_domain_pure += 1
 
