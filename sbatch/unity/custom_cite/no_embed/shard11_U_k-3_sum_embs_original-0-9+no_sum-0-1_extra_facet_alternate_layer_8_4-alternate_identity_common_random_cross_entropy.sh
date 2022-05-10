@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=custom_cite_scincl_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
-#SBATCH -o sbatch_logs/stdout/custom_cite_scincl_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.txt
-#SBATCH -e sbatch_logs/stderr/custom_cite_scincl_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.err
+#SBATCH --job-name=custom_cite_shard11_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
+#SBATCH -o sbatch_logs/stdout/custom_cite_shard11_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.txt
+#SBATCH -e sbatch_logs/stderr/custom_cite_shard11_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=cpu-long
 #SBATCH --mem=40GB
@@ -9,7 +9,7 @@
 
 eval "$(conda shell.bash hook)"
 
-EXPERIMENT_ID_PREFIX=scincl_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
+EXPERIMENT_ID_PREFIX=shard11_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
 EXPERIMENT_DATE="05-04"
 
 conda activate scidocs
