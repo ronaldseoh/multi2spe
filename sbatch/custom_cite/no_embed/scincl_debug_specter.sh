@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=custom_cite_specter
-#SBATCH -o sbatch_logs/stdout/custom_cite_specter_%j.txt
-#SBATCH -e sbatch_logs/stderr/custom_cite_specter_%j.err
+#SBATCH --job-name=custom_cite_scincl_debug_specter
+#SBATCH -o sbatch_logs/stdout/custom_cite_scincl_debug_specter_%j.txt
+#SBATCH -e sbatch_logs/stderr/custom_cite_scincl_debug_specter_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=2080ti-short
 #SBATCH --mem=40GB
@@ -9,8 +9,8 @@
 
 eval "$(conda shell.bash hook)"
 
-EXPERIMENT_ID_PREFIX=specter
-EXPERIMENT_DATE="02-02"
+EXPERIMENT_ID_PREFIX=scincl_debug_specter
+EXPERIMENT_DATE="03-01"
 
 conda activate scidocs
 
