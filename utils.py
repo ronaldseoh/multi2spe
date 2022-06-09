@@ -215,20 +215,20 @@ class SciNclTripleDataset(TripleDataset):
             output['positive_special_tokens_mask'][i+1] = 1
             output['negative_special_tokens_mask'][i+1] = 1
 
-        source_input = {'input_ids': output.get('anchor_input_ids', ''),
-                        'token_type_ids': output.get('anchor_token_type_ids', ''),
-                        'attention_mask': output.get('anchor_attention_mask', ''),
-                        'special_tokens_mask': output.get('anchor_special_tokens_mask', '')}
+        source_input = {'input_ids': output['anchor_input_ids'],
+                        'token_type_ids': output['anchor_token_type_ids'],
+                        'attention_mask': output['anchor_attention_mask'],
+                        'special_tokens_mask': output['anchor_special_tokens_mask']}
 
-        pos_input = {'input_ids': output.get('positive_input_ids', ''),
-                     'token_type_ids': output.get('positive_token_type_ids', ''),
-                     'attention_mask': output.get('positive_attention_mask', ''),
-                     'special_tokens_mask': output.get('positive_special_tokens_mask', '')}
+        pos_input = {'input_ids': output['positive_input_ids'],
+                     'token_type_ids': output['positive_token_type_ids'],
+                     'attention_mask': output['positive_attention_mask'],
+                     'special_tokens_mask': output['positive_special_tokens_mask']}
 
-        neg_input = {'input_ids': output.get('negative_input_ids', ''),
-                     'token_type_ids': output.get('negative_token_type_ids', ''),
-                     'attention_mask': output.get('negative_attention_mask', ''),
-                     'special_tokens_mask': output.get('negative_special_tokens_mask','')}
+        neg_input = {'input_ids': output['negative_input_ids'],
+                     'token_type_ids': output['negative_token_type_ids'],
+                     'attention_mask': output['negative_attention_mask'],
+                     'special_tokens_mask': output['negative_special_tokens_mask']}
 
         return source_input, pos_input, neg_input
 
