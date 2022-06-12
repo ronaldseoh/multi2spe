@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --qos=normal
 #SBATCH --job-name=U_k-5_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
 #SBATCH -o sbatch_logs/stdout/U_k-5_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.txt
 #SBATCH -e sbatch_logs/stderr/U_k-5_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.err
