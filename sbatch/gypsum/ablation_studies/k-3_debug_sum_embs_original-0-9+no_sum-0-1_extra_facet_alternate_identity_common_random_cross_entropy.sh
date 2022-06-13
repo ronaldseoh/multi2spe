@@ -1,9 +1,10 @@
 #!/bin/bash
+#SBATCH -A pi_tbernard_umass_edu
 #SBATCH --job-name=k-3_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_identity_common_random_cross_entropy
 #SBATCH -o sbatch_logs/stdout/k-3_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_identity_common_random_cross_entropy_%j.txt
 #SBATCH -e sbatch_logs/stderr/k-3_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_identity_common_random_cross_entropy_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=1080ti-long
+#SBATCH --partition=gypsum-1080ti-ms
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
@@ -15,8 +16,8 @@ EXPERIMENT_ID_PREFIX=k-3_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alte
 EXPERIMENT_DATE=`date +"%m-%d"`
 
 python train.py --save_dir save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE} \
-                --train_file ~/my_scratch/original_data/train_shuffled.pkl --train_size 684100 \
-                --val_file ~/my_scratch/original_data/val_shuffled.pkl --val_size 145375 \
+                --train_file /gypsum/scratch1/bseoh/original_data/train_shuffled.pkl --train_size 684100 \
+                --val_file /gypsum/scratch1/bseoh/original_data/val_shuffled.pkl --val_size 145375 \
                 --model_behavior 'quartermaster' --num_facets 3 \
                 --sum_into_single_embeddings 'training_and_inference' \
                 --add_extra_facet_layers \
@@ -41,7 +42,7 @@ python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_D
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl --batch-size 4
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
-                --data-path ~/my_scratch/scidocs-shard7/data_final.json \
+                --data-path /gypsum/scratch1/bseoh/scidocs-shard7/data_final.json \
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl --batch-size 4
 
 conda deactivate
@@ -63,7 +64,7 @@ python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/sa
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --user-citation-metric "cosine" \
-                      --data-path ~/my_scratch/scidocs-shard7 \
+                      --data-path /gypsum/scratch1/bseoh/scidocs-shard7 \
                       --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite.xlsx
                       
 python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl \
@@ -71,5 +72,6 @@ python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/sa
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --user-citation-metric "cosine" \
-                      --data-path ~/my_scratch/scidocs-shard7-full \
+                      --data-path /gypsum/scratch1/bseoh/scidocs-shard7-full \
                       --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite-full.xlsx
+
