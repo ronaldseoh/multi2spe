@@ -42,7 +42,7 @@ python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_D
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation.jsonl --batch-size 4
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
-                --data-path ~/my_scratch/scidocs-shard7/data_final.json \
+                --data-path /gypsum/scratch1/bseoh/scidocs-shard7/data_final.json \
                 --output save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl --batch-size 4
 
 conda deactivate
