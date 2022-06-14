@@ -15,7 +15,7 @@ EXPERIMENT_DATE="06-10"
 
 conda activate scidocs
 
-python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite_shard7.jsonl \
+python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl \
                       --val_or_test test \
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
