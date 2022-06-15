@@ -49,11 +49,11 @@ python ../scidocs/scripts/run_custom_cite.py --user-citation /gypsum/work1/696ds
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --data-path /gypsum/scratch1/bseoh/scidocs-shard7 \
-                      --results-save-path /gypsum/work1/696ds-s21/bseoh/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite_cross_domain.xlsx
+                      --results-save-path /gypsum/work1/696ds-s21/bseoh/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite.xlsx
 
 python ../scidocs/scripts/run_custom_cite.py --user-citation /gypsum/work1/696ds-s21/bseoh/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/user-citation_custom_cite.jsonl \
                       --val_or_test test \
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --data-path /gypsum/scratch1/bseoh/scidocs-shard7-full \
-                      --results-save-path /gypsum/work1/696ds-s21/bseoh/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite_cross_domain-full.xlsx
+                      --results-save-path /gypsum/work1/696ds-s21/bseoh/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite-full.xlsx
