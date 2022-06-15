@@ -10,7 +10,7 @@
 
 eval "$(conda shell.bash hook)"
 
-EXPERIMENT_ID_PREFIX=shard11_k-3_sum_embs_original-1+no_sum-0_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
+EXPERIMENT_ID_PREFIX=k-3_sum_embs_original-1+no_sum-0_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
 EXPERIMENT_DATE="06-10"
 
 conda activate scidocs
