@@ -1,9 +1,10 @@
 #!/bin/bash
+#SBATCH -A pi_tbernard_umass_edu
 #SBATCH --job-name=custom_cite_U_k-3_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
 #SBATCH -o sbatch_logs/stdout/custom_cite_U_k-3_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.txt
 #SBATCH -e sbatch_logs/stderr/custom_cite_U_k-3_debug_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=cpu-long
+#SBATCH --partition=gypsum-1080ti-ms
 #SBATCH --mem=40GB
 #SBATCH --cpus-per-task=2
 
