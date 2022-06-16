@@ -19,5 +19,5 @@ python ../scidocs/scripts/run_custom_cite.py --user-citation ../quartermaster/sa
                       --multifacet-behavior extra_linear \
                       --n-jobs 4 --cuda-device 0 \
                       --user-citation-metric "cosine" \
-                      --data-path /gypsum/scratch1/bseoh/scidocs-shard7 \
-                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite_cross_domain.xlsx
+                      --data-path /gypsum/scratch1/bseoh/scidocs-shard7-full \
+                      --results-save-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/results_cosine_custom_cite-full.xlsx
