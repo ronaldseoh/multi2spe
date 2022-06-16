@@ -6,7 +6,7 @@
 #SBATCH --partition=gpu-long
 #SBATCH --constraint=ials_gigabyte_gpu_2020
 #SBATCH --gres=gpu:1
-#SBATCH --mem=24GB
+#SBATCH --mem=64GB
 #SBATCH --cpus-per-task=2
 
 eval "$(conda shell.bash hook)"
@@ -15,7 +15,11 @@ conda activate qm
 EXPERIMENT_ID_PREFIX=k-3_sum_embs_original-0+no_sum-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
 EXPERIMENT_DATE="06-10"
 
-                
+python embed.py --pl-checkpoint-path /gypsum/work1/696ds-s21/bseoh/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
+                --data-path ../scidocs/data/paper_metadata_mag_mesh.json \
+                --output /gypsum/work1/696ds-s21/bseoh/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/cls.jsonl --batch-size 4 \
+                --debug_disable_sum_embs
+
 python embed.py --pl-checkpoint-path /gypsum/work1/696ds-s21/bseoh/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../scidocs/data/paper_metadata_recomm.json \
                 --output /gypsum/work1/696ds-s21/bseoh/quartermaster/save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/recomm.jsonl --batch-size 4 \
