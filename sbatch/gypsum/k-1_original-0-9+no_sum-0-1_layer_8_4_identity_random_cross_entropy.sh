@@ -4,7 +4,8 @@
 #SBATCH -o sbatch_logs/stdout/k-1_original-0-9+no_sum-0-1_layer_8_4_identity_random_cross_entropy_%j.txt
 #SBATCH -e sbatch_logs/stderr/k-1_original-0-9+no_sum-0-1_layer_8_4_identity_random_cross_entropy_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=gypsum-1080ti-ms
+#SBATCH --partition=gpu-long
+#SBATCH --constraint=ials_gigabyte_gpu_2020
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
