@@ -1,9 +1,10 @@
 #!/bin/bash
+#SBATCH -A pi_tbernard_umass_edu
 #SBATCH --job-name=custom_cite_shard11_debug_specter
 #SBATCH -o sbatch_logs/stdout/custom_cite_shard11_debug_specter_%j.txt
 #SBATCH -e sbatch_logs/stderr/custom_cite_shard11_debug_specter_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=2080ti-long
+#SBATCH --partition=gypsum-1080ti-ms
 #SBATCH --gres=gpu:1
 #SBATCH --mem=40GB
 #SBATCH --cpus-per-task=2
