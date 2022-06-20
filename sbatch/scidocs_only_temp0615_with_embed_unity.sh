@@ -4,7 +4,6 @@
 #SBATCH -o sbatch_logs/stdout/scidocs_only_cosine_%j.txt
 #SBATCH -e sbatch_logs/stderr/scidocs_only_cosine_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=gpu-long
 #SBATCH --partition=gypsum-1080ti-ms
 #SBATCH --gres=gpu:1
 #SBATCH --mem=64GB
