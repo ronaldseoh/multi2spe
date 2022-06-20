@@ -1,19 +1,19 @@
 #!/bin/bash
 #SBATCH -A pi_tbernard_umass_edu
-#SBATCH --job-name=custom_cite_debug_specter
-#SBATCH -o sbatch_logs/stdout/custom_cite_debug_specter_%j.txt
-#SBATCH -e sbatch_logs/stderr/custom_cite_debug_specter_%j.err
+#SBATCH --job-name=custom_cite_U_debug_specter
+#SBATCH -o sbatch_logs/stdout/custom_cite_U_debug_specter_%j.txt
+#SBATCH -e sbatch_logs/stderr/custom_cite_U_debug_specter_%j.err
 #SBATCH --ntasks=1
 #SBATCH --partition=gypsum-1080ti-ms
 #SBATCH --gres=gpu:1
-#SBATCH --mem=40GB
+#SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
 
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=debug_specter
-EXPERIMENT_DATE="01-15"
+EXPERIMENT_ID_PREFIX=U_debug_specter
+EXPERIMENT_DATE="02-02"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path /gypsum/scratch1/bseoh/scidocs-shard7/data_final.json \
