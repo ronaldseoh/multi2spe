@@ -47,6 +47,10 @@ if __name__ == '__main__':
                 for f in extra_metadata[query_paper_id]['mag_field_of_study']:
                     query_paper_count_by_mag_field[f] += 1
 
+            else:
+                if query_paper_id not in query_paper_ids_seen:
+                    query_paper_count_by_mag_field['**Unknown**'] += 1
+
             if pos_paper_id in extra_metadata.keys() and extra_metadata[pos_paper_id]['mag_field_of_study'] is not None:
                 if pos_paper_id not in pos_paper_ids_seen:
                     num_pos_paper_ids_found_mag += 1
@@ -61,6 +65,9 @@ if __name__ == '__main__':
                     if len(set(extra_metadata[pos_paper_id]['mag_field_of_study']) - set(extra_metadata[query_paper_id]['mag_field_of_study'])) > 0:
                         num_triples_pos_cross_domain += 1
 
+            else:
+                if pos_paper_id not in pos_paper_ids_seen:
+                    pos_paper_count_by_mag_field['**Unknown**'] += 1
 
             if neg_paper_id in extra_metadata.keys() and extra_metadata[neg_paper_id]['mag_field_of_study'] is not None:
                 if neg_paper_id not in neg_paper_ids_seen:
@@ -75,6 +82,10 @@ if __name__ == '__main__':
 
                     if len(set(extra_metadata[neg_paper_id]['mag_field_of_study']) - set(extra_metadata[query_paper_id]['mag_field_of_study'])) > 0:
                         num_triples_neg_cross_domain += 1
+
+            else:
+                if neg_paper_id not in neg_paper_ids_seen:
+                    neg_paper_count_by_mag_field['**Unknown**'] += 1
 
             query_paper_ids_seen.add(query_paper_id)
             pos_paper_ids_seen.add(pos_paper_id)
