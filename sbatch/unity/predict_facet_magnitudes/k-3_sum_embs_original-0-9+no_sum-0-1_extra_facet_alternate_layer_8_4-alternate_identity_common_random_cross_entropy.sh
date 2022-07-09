@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -A pi_mccallum_umass_edu
+#SBATCH -A pi_tbernard_umass_edu
 #SBATCH --job-name=facet_mag_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
 #SBATCH -o sbatch_logs/stdout/facet_mag_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.txt
 #SBATCH -e sbatch_logs/stderr/facet_mag_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_%j.err
