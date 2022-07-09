@@ -579,6 +579,15 @@ class QuarterMaster(pl.LightningModule):
             if self.hparams.add_extra_facet_nonlinearity:
                 source_embedding = self.extra_facet_nonlinearity(source_embedding)
 
+            if self.multiply_facet_magnitudes:
+                for i in range(len(self.loss_list)):
+                    if self.use_multiple_losses and self.hparams.loss_config[i]['name'] == 'original' and type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                        source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, :self.hparams.num_facets, :])
+
+                        source_embedding *= source_embedding_magnitudes
+
+                        break # use just one estimation of magnitudes
+
             if self.sum_into_single_embeddings is not None \
             and self.sum_into_single_embeddings in ("training_and_inference", "inference_only"):
                 if "sum_into_single_embeddings_behavior" in self.hparams and self.hparams.sum_into_single_embeddings_behavior == "mean":
@@ -589,15 +598,6 @@ class QuarterMaster(pl.LightningModule):
             if self.use_facet_embs_normalize:
                 source_embedding = torch.nn.functional.normalize(source_embedding, p=2, dim=-1)
 
-            if self.multiply_facet_magnitudes:
-                for i in range(len(self.loss_list)):
-                    if self.use_multiple_losses and self.hparams.loss_config[i]['name'] == 'original' and type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
-                        source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, :self.hparams.num_facets, :])
-
-                        source_embedding *= source_embedding_magnitudes
-
-                        break # use just one estimation of magnitudes
-    
             return source_embedding
 
     def train_dataloader(self):
