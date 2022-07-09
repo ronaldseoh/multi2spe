@@ -998,9 +998,9 @@ class QuarterMaster(pl.LightningModule):
                         else:
                             this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     else:
-                        source_embedding_temp = source_embedding
-                        pos_embedding_temp = pos_embedding
-                        neg_embedding_temp = neg_embedding
+                        source_embedding_temp = source_embedding.clone()
+                        pos_embedding_temp = pos_embedding.clone()
+                        neg_embedding_temp = neg_embedding.clone()
 
                         if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                             source_embedding_temp *= source_embedding_magnitudes
@@ -1054,9 +1054,9 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 else:
-                    source_embedding_temp = source_embedding
-                    pos_embedding_temp = pos_embedding
-                    neg_embedding_temp = neg_embedding
+                    source_embedding_temp = source_embedding.clone()
+                    pos_embedding_temp = pos_embedding.clone()
+                    neg_embedding_temp = neg_embedding.clone()
 
                     if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                         source_embedding_temp *= source_embedding_magnitudes
@@ -1300,9 +1300,9 @@ class QuarterMaster(pl.LightningModule):
                         else:
                             this_loss = l(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                     else:
-                        source_embedding_temp = source_embedding
-                        pos_embedding_temp = pos_embedding
-                        neg_embedding_temp = neg_embedding
+                        source_embedding_temp = source_embedding.clone()
+                        pos_embedding_temp = pos_embedding.clone()
+                        neg_embedding_temp = neg_embedding.clone()
 
                         if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
                             source_embedding_temp *= source_embedding_magnitudes
@@ -1358,9 +1358,9 @@ class QuarterMaster(pl.LightningModule):
                     else:
                         loss = self.loss(source_embedding, pos_embedding_tokens_mean, neg_embedding_tokens_mean, pos_instance_weights, neg_instance_weights, loss_instance_weights)
                 else:
-                    source_embedding_temp = source_embedding
-                    pos_embedding_temp = pos_embedding
-                    neg_embedding_temp = neg_embedding
+                    source_embedding_temp = source_embedding.clone()
+                    pos_embedding_temp = pos_embedding.clone()
+                    neg_embedding_temp = neg_embedding.clone()
 
                     if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
                         source_embedding_temp *= source_embedding_magnitudes
