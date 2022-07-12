@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -A pi_mccallum_umass_edu
+#SBATCH -A pi_tbernard_umass_edu
 #SBATCH --job-name=facet_mag_shard11_k-1_original-0-9+no_sum-0-1_layer_8_4_identity_random_cross_entropy
 #SBATCH -o sbatch_logs/stdout/facet_mag_shard11_k-1_original-0-9+no_sum-0-1_layer_8_4_identity_random_cross_entropy_%j.txt
 #SBATCH -e sbatch_logs/stderr/facet_mag_shard11_k-1_original-0-9+no_sum-0-1_layer_8_4_identity_random_cross_entropy_%j.err
