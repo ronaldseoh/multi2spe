@@ -981,17 +981,6 @@ class QuarterMaster(pl.LightningModule):
                 loss = 0
 
                 for i, l in enumerate(self.loss_list):
-                    if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
-                        source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-
-                        if not (type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear):
-                            pos_embedding_magnitudes = self.query_facet_magnitude_layers[i](pos_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-                            neg_embedding_magnitudes = self.query_facet_magnitude_layers[i](neg_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-
-                    if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
-                        pos_embedding_magnitudes = self.pos_facet_magnitude_layers[i](pos_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-                        neg_embedding_magnitudes = self.pos_facet_magnitude_layers[i](neg_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-
                     if 'use_target_token_embs' in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]['use_target_token_embs']:
                         if "use_target_token_embs_kmeans" in self.hparams.loss_config[i].keys() and self.hparams.loss_config[i]["use_target_token_embs_kmeans"]:
                             this_loss = l(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
@@ -1005,13 +994,20 @@ class QuarterMaster(pl.LightningModule):
                         neg_embedding_temp = neg_embedding.clone()
 
                         if type(self.query_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            source_embedding_magnitudes = self.query_facet_magnitude_layers[i](source_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
                             source_embedding_temp *= source_embedding_magnitudes
 
                             if not (type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear):
+                                pos_embedding_magnitudes = self.query_facet_magnitude_layers[i](pos_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
+                                neg_embedding_magnitudes = self.query_facet_magnitude_layers[i](neg_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
+
                                 pos_embedding_temp *= pos_embedding_magnitudes
                                 neg_embedding_temp *= neg_embedding_magnitudes
 
                         if type(self.pos_facet_magnitude_layers[i]) is torch.nn.Linear:
+                            pos_embedding_magnitudes = self.pos_facet_magnitude_layers[i](pos_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
+                            neg_embedding_magnitudes = self.pos_facet_magnitude_layers[i](neg_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
+
                             pos_embedding_temp *= pos_embedding_magnitudes
                             neg_embedding_temp *= neg_embedding_magnitudes
 
@@ -1039,17 +1035,6 @@ class QuarterMaster(pl.LightningModule):
 
                     loss = loss + self.hparams.loss_config[i]["weight"] * this_loss
             else:
-                if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
-                    source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-
-                    if not (type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear):
-                        pos_embedding_magnitudes = self.query_facet_magnitude_layers[0](pos_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-                        neg_embedding_magnitudes = self.query_facet_magnitude_layers[0](neg_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-
-                if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
-                    pos_embedding_magnitudes = self.pos_facet_magnitude_layers[0](pos_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-                    neg_embedding_magnitudes = self.pos_facet_magnitude_layers[0](neg_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
-
                 if "loss_use_target_token_embs" in self.hparams and self.hparams.loss_use_target_token_embs:
                     if "loss_use_target_token_embs_kmeans" in self.hparams and self.hparams.loss_use_target_token_embs_kmeans:
                         loss = self.loss(source_embedding, pos_embedding_tokens_kmeans, neg_embedding_tokens_kmeans, pos_instance_weights, neg_instance_weights, loss_instance_weights)
@@ -1063,13 +1048,20 @@ class QuarterMaster(pl.LightningModule):
                     neg_embedding_temp = neg_embedding.clone()
 
                     if type(self.query_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        source_embedding_magnitudes = self.query_facet_magnitude_layers[0](source_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
                         source_embedding_temp *= source_embedding_magnitudes
 
                         if not (type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear):
+                            pos_embedding_magnitudes = self.query_facet_magnitude_layers[0](pos_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
+                            neg_embedding_magnitudes = self.query_facet_magnitude_layers[0](neg_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
+
                             pos_embedding_temp *= pos_embedding_magnitudes
                             neg_embedding_temp *= neg_embedding_magnitudes
 
                     if type(self.pos_facet_magnitude_layers[0]) is torch.nn.Linear:
+                        pos_embedding_magnitudes = self.pos_facet_magnitude_layers[0](pos_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
+                        neg_embedding_magnitudes = self.pos_facet_magnitude_layers[0](neg_output.last_hidden_state[:, :self.hparams.num_facets, :].contiguous())
+
                         pos_embedding_temp *= pos_embedding_magnitudes
                         neg_embedding_temp *= neg_embedding_magnitudes
 
