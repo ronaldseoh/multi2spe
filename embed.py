@@ -130,7 +130,10 @@ if __name__ == '__main__':
     dataset = Dataset(pl_model=model, data_path=args.data_path, batch_size=args.batch_size,
                       ignore_num_facets=args.debug_ignore_num_facets, use_cls_for_all_facets=args.debug_use_cls_for_all_facets)
 
-    results = {}
+
+    pathlib.Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+
+    fout = open(args.output, 'a+')
 
     for batch, batch_ids in tqdm.auto.tqdm(dataset.batches(), total=len(dataset) // args.batch_size):
 
@@ -142,19 +145,16 @@ if __name__ == '__main__':
             emb = emb.unsqueeze(dim=1)
 
         for paper_id, embedding in zip(batch_ids, emb.unbind()):
-
             if len(embedding.shape) == 1:
-                results[paper_id] =  {"paper_id": paper_id, "embedding": embedding.detach().cpu().numpy().tolist()}
+                res = {"paper_id": paper_id, "embedding": embedding.detach().cpu().numpy().tolist()}
             else:
                 embedding_list = list(embedding.unbind()) # list of vectors
 
                 for i in range(len(embedding_list)):
                     embedding_list[i] = embedding_list[i].detach().cpu().numpy().tolist()
 
-                results[paper_id] =  {"paper_id": paper_id, "embedding": embedding_list}
+                res = {"paper_id": paper_id, "embedding": embedding_list}
 
-    pathlib.Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-
-    with open(args.output, 'w') as fout:
-        for res in results.values():
             fout.write(json.dumps(res) + '\n')
+
+    fout.close()
