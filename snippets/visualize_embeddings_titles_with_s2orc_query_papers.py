@@ -89,7 +89,7 @@ if __name__ == "__main__":
                 if paper["paper_id"] in cross_domain_sample_paper_ids:
                     for f, emb in enumerate(paper["embedding"]):
                         cross_domain_embeddings_by_facets[f].append(np.array(emb))
-            except EOFError:
+            except:
                 break
 
     with open("quartermaster/save_k-3_sum_embs_original+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy_12-31/cls.jsonl", "r") as mag_embeddings_file:
