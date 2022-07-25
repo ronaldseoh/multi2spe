@@ -116,8 +116,7 @@ if __name__ == "__main__":
     search_results_by_facets = {}
 
     for f in range(NUM_FACETS):
-        distances_by_facets[f] = sklearn.metrics.pairwise.euclidean_distances(
-            cross_domain_embeddings_by_facets[f][cross_domain_sample_idxs], mag_embeddings_by_facets[f])
+        distances_by_facets[f] = sklearn.metrics.pairwise.euclidean_distances(cross_domain_embeddings_by_facets[f], mag_embeddings_by_facets[f])
 
         # Closest first
         search_results_by_facets[f] = np.argsort(distances_by_facets[f], axis=-1)
