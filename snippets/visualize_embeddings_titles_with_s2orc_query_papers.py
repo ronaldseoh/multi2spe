@@ -50,10 +50,12 @@ if __name__ == "__main__":
     # Read the embeddings jsonl created with embed.py
     mag_embeddings_by_facets = {}
     cross_domain_embeddings_by_facets = {}
+    cross_domain_embeddings_by_facets_temp = {}
 
     for f in range(NUM_FACETS):
         mag_embeddings_by_facets[f] = []
         cross_domain_embeddings_by_facets[f] = []
+        cross_domain_embeddings_by_facets_temp[f] = {}
 
     mag_titles = []
     cross_domain_titles = []
@@ -88,9 +90,13 @@ if __name__ == "__main__":
 
                 if paper["paper_id"] in cross_domain_sample_paper_ids:
                     for f, emb in enumerate(paper["embedding"]):
-                        cross_domain_embeddings_by_facets[f].append(np.array(emb))
+                        cross_domain_embeddings_by_facets_temp[f][paper["paper_id"]] = np.array(emb)
             except:
                 break
+
+    for f in range(NUM_FACETS):
+        for pid in cross_domain_sample_paper_ids:
+            cross_domain_embeddings_by_facets[f].append(cross_domain_embeddings_by_facets_temp[f][pid])
 
     mag_labels = []
 
