@@ -92,6 +92,8 @@ if __name__ == "__main__":
             except:
                 break
 
+    mag_labels = []
+
     with open("quartermaster/save_shard11_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_05-04/cls_no_sum.jsonl", "r") as mag_embeddings_file:
         for line in tqdm.tqdm(mag_embeddings_file):
             paper = json.loads(line)
