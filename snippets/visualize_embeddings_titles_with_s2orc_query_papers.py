@@ -84,7 +84,8 @@ if __name__ == "__main__":
     with open("20220721_shard_3_cross/embeddings_no_sum.jsonl", "r") as cross_domain_embedding_file:
         while True:
             try:
-                paper = json.loads(cross_domain_embedding_file.readline()
+                paper = json.loads(cross_domain_embedding_file.readline())
+
                 if paper["paper_id"] in cross_domain_sample_paper_ids:
                     for f, emb in enumerate(paper["embedding"]):
                         cross_domain_embeddings_by_facets[f].append(np.array(emb))
