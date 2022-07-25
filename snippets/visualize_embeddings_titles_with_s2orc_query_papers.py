@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import normalize
 import ujson as json
+import ijson
 import sklearn.metrics
 import tqdm
 
@@ -43,17 +44,52 @@ if __name__ == "__main__":
     # MAG metadata to get the paper titles
     mag_metadata = json.load(open("scidocs/data/paper_metadata_mag_mesh.json", "r"))
 
+    # cross-domain metadata to get the paper titles
+    cross_domain_metadata = ijson.parse(open("20220721_shard_3_cross/metadata.json", "r"))
+
     # Read the embeddings jsonl created with embed.py
     mag_embeddings_by_facets = {}
+    cross_domain_embeddings_by_facets = {}
 
     for f in range(NUM_FACETS):
         mag_embeddings_by_facets[f] = []
+        cross_domain_embeddings_by_facets[f] = []
 
     mag_titles = []
-    mag_labels = []
+    cross_domain_titles = []
 
-    # Pick computer science papers only using the label=4
-    mag_val_cs_indexes = []
+    # Pick cross domain papers from shard 3 query papers
+    cross_domain_paper_ids_temp = set()
+
+    with open("20220721_shard_3_cross/train.txt", "r") as query_paper_ids_file:
+        for pid in query_paper_ids_file.readlines():
+            cross_domain_paper_ids_temp.add(pid.rstrip())
+
+    cross_domain_paper_ids = []
+
+    for prefix, event, value in cross_domain_metadata:
+        if event == "string":
+            paper_id, field = prefix.split(".")
+            
+            if paper_id in cross_domain_paper_ids_temp:
+                if field == "title":
+                    cross_domain_paper_ids.append(paper_id)
+                    cross_domain_titles.append(value)
+                elif field == "abstract":
+                    cross_domain_titles.append(value)
+
+    cross_domain_sample_idxs = random.sample(range(len(cross_domain_paper_ids)), k=10)
+    cross_domain_sample_paper_ids = cross_domain_paper_ids[cross_domain_sample_idxs]
+
+    with open("20220721_shard_3_cross/embeddings_no_sum.jsonl", "r") as cross_domain_embedding_file:
+        while True:
+            try:
+                paper = json.loads(cross_domain_embedding_file.readline()
+                if paper["paper_id"] in cross_domain_sample_paper_ids:
+                    for f, emb in enumerate(paper["embedding"]):
+                        cross_domain_embeddings_by_facets[f].append(np.array(emb))
+            except EOFError:
+                break
 
     with open("quartermaster/save_k-3_sum_embs_original+mean-avg_word-0-05_extra_facet_alternate_layer_8_4_identity_common_random_cross_entropy_12-31/cls.jsonl", "r") as mag_embeddings_file:
         for line in tqdm.tqdm(mag_embeddings_file):
@@ -76,7 +112,7 @@ if __name__ == "__main__":
     distances_by_facets = {}
     search_results_by_facets = {}
 
-    sample_idxs = random.sample(mag_val_cs_indexes, k=10)
+    
 
     for f in range(NUM_FACETS):
         distances_by_facets[f] = sklearn.metrics.pairwise.euclidean_distances(
