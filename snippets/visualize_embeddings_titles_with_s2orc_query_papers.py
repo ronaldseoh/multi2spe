@@ -59,6 +59,7 @@ if __name__ == "__main__":
 
     mag_titles = []
     cross_domain_titles = []
+    cross_domain_abstract = []
 
     # Pick cross domain papers from shard 3 query papers
     cross_domain_paper_ids_temp = set()
@@ -78,7 +79,7 @@ if __name__ == "__main__":
                     cross_domain_paper_ids.append(paper_id)
                     cross_domain_titles.append(value)
                 elif field == "abstract":
-                    cross_domain_titles.append(value)
+                    cross_domain_abstract.append(value)
 
     cross_domain_sample_idxs = random.sample(range(len(cross_domain_paper_ids)), k=10)
     cross_domain_sample_paper_ids = [cross_domain_paper_ids[si] for si in cross_domain_sample_idxs]
