@@ -101,28 +101,23 @@ if __name__ == "__main__":
                 mag_titles.append(mag_metadata[paper["paper_id"]]["title"])
                 class_label = mag_val[mag_val.pid == paper["paper_id"]].iloc[0].class_label
                 mag_labels.append(class_label)
-    
-                if class_label == 4:
-                    mag_val_cs_indexes.append(len(mag_labels) - 1)
 
     for f in range(NUM_FACETS):
         mag_embeddings_by_facets[f] = np.array(mag_embeddings_by_facets[f])
         mag_embeddings_by_facets[f] = normalize(mag_embeddings_by_facets[f], norm="l2", axis=1)
 
+        cross_domain_embeddings_by_facets[f] = np.array(cross_domain_embeddings_by_facets[f])
+        cross_domain_embeddings_by_facets[f] = normalize(cross_domain_embeddings_by_facets[f], norm="l2", axis=1)
+
     distances_by_facets = {}
     search_results_by_facets = {}
 
-    
-
     for f in range(NUM_FACETS):
         distances_by_facets[f] = sklearn.metrics.pairwise.euclidean_distances(
-            mag_embeddings_by_facets[f][sample_idxs], mag_embeddings_by_facets[f])
+            cross_domain_embeddings_by_facets[f][cross_domain_sample_idxs], mag_embeddings_by_facets[f])
 
         # Closest first
         search_results_by_facets[f] = np.argsort(distances_by_facets[f], axis=-1)
-
-        # Exclude the first ones in each result as that would be the query paper itself.
-        search_results_by_facets[f] = search_results_by_facets[f][:, 1:]
 
     # Write down the titles
     with open("titles.txt", "w") as titles_file:
