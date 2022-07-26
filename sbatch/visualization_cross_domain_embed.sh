@@ -12,8 +12,8 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=shard11_U_specter
-EXPERIMENT_DATE="03-29"
+EXPERIMENT_ID_PREFIX=specter
+EXPERIMENT_DATE="09-09"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../20220721_shard_3_cross/metadata.json \
