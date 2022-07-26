@@ -119,10 +119,10 @@ if __name__ == "__main__":
 
     for f in range(NUM_FACETS):
         mag_embeddings_by_facets[f] = np.array(mag_embeddings_by_facets[f])
-        mag_embeddings_by_facets[f] = normalize(mag_embeddings_by_facets[f], norm="l2", axis=1)
+        # mag_embeddings_by_facets[f] = normalize(mag_embeddings_by_facets[f], norm="l2", axis=1)
 
         cross_domain_embeddings_by_facets[f] = np.array(cross_domain_embeddings_by_facets[f])
-        cross_domain_embeddings_by_facets[f] = normalize(cross_domain_embeddings_by_facets[f], norm="l2", axis=1)
+        # cross_domain_embeddings_by_facets[f] = normalize(cross_domain_embeddings_by_facets[f], norm="l2", axis=1)
 
     distances_by_facets = {}
     search_results_by_facets = {}
