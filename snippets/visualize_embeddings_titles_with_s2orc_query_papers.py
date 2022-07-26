@@ -10,7 +10,7 @@ import tqdm
 
 random.seed(413)
 
-NUM_FACETS = 1
+NUM_FACETS = 3
 
 K = 5
 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     cross_domain_sample_idxs = random.sample(range(len(cross_domain_paper_ids)), k=20)
     cross_domain_sample_paper_ids = [cross_domain_paper_ids[si] for si in cross_domain_sample_idxs]
 
-    with open("20220721_shard_3_cross/specter_embeddings.jsonl", "r") as cross_domain_embedding_file:
+    with open("20220721_shard_3_cross/specter_embeddings_no_sum.jsonl", "r") as cross_domain_embedding_file:
         while True:
             try:
                 paper = json.loads(cross_domain_embedding_file.readline())
@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
     mag_labels = []
 
-    with open("quartermaster/save_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_05-04/cls.jsonl", "r") as mag_embeddings_file:
+    with open("quartermaster/save_U_k-3_sum_embs_original-0-9+no_sum-0-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy_05-04/cls_no_sum.jsonl", "r") as mag_embeddings_file:
         for line in tqdm.tqdm(mag_embeddings_file):
             paper = json.loads(line)
 
