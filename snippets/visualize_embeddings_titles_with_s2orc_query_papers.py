@@ -133,7 +133,7 @@ if __name__ == "__main__":
     # Write down the titles
     with open("titles.txt", "w") as titles_file:
         for i in range(len(cross_domain_sample_idxs)):
-            titles_file.write("Query paper " + str(i) + " title: " + cross_domain_titles[cross_domain_sample_idxs[i]] + " (" + str(cross_domain_metadata_mag[cross_domain_sample_paper_ids[i]) + ")" + "\n\n")
+            titles_file.write("Query paper " + str(i) + " title: " + cross_domain_titles[cross_domain_sample_idxs[i]] + " (" + str(cross_domain_metadata_mag[cross_domain_sample_paper_ids[i]]) + ")" + "\n\n")
             
             for f in range(NUM_FACETS):
                 titles_file.write("Facet " + str(f) + "\n" + "\n")
