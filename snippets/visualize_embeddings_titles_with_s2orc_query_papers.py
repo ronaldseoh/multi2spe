@@ -62,6 +62,7 @@ if __name__ == "__main__":
     mag_titles = []
     cross_domain_titles = []
     cross_domain_abstract = []
+    cross_domain_mag = []
 
     # Pick cross domain papers from shard 3 query papers
     cross_domain_paper_ids_temp = set()
@@ -80,6 +81,8 @@ if __name__ == "__main__":
                 if field == "title":
                     cross_domain_paper_ids.append(paper_id)
                     cross_domain_titles.append(value)
+                    cross_domain_mag.append(str(cross_domain_metadata_mag[paper_id]))
+                    
                 elif field == "abstract":
                     cross_domain_abstract.append(value)
 
@@ -133,7 +136,7 @@ if __name__ == "__main__":
     # Write down the titles
     with open("titles.txt", "w") as titles_file:
         for i in range(len(cross_domain_sample_idxs)):
-            titles_file.write("Query paper " + str(i) + " title: " + cross_domain_titles[cross_domain_sample_idxs[i]] + " (" + str(cross_domain_metadata_mag[cross_domain_sample_paper_ids[i]]) + ")" + "\n\n")
+            titles_file.write("Query paper " + str(i) + " title: " + cross_domain_titles[cross_domain_sample_idxs[i]] + " (" + cross_domain_mag[cross_domain_sample_idxs[i]] + ")" + "\n\n")
             
             for f in range(NUM_FACETS):
                 titles_file.write("Facet " + str(f) + "\n" + "\n")
