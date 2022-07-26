@@ -89,7 +89,7 @@ if __name__ == "__main__":
     cross_domain_sample_idxs = random.sample(range(len(cross_domain_paper_ids)), k=20)
     cross_domain_sample_paper_ids = [cross_domain_paper_ids[si] for si in cross_domain_sample_idxs]
 
-    with open("20220721_shard_3_cross/embeddings_no_sum.jsonl", "r") as cross_domain_embedding_file:
+    with open("20220721_shard_3_cross/shard11_embeddings_no_sum.jsonl", "r") as cross_domain_embedding_file:
         while True:
             try:
                 paper = json.loads(cross_domain_embedding_file.readline())
