@@ -89,7 +89,7 @@ if __name__ == "__main__":
     cross_domain_sample_idxs = random.sample(range(len(cross_domain_paper_ids)), k=20)
     cross_domain_sample_paper_ids = [cross_domain_paper_ids[si] for si in cross_domain_sample_idxs]
 
-    with open("20220721_shard_3_cross/specter_embeddings_single.jsonl", "r") as cross_domain_embedding_file:
+    with open("20220721_shard_3_cross/shard11_embeddings_single.jsonl", "r") as cross_domain_embedding_file:
         while True:
             try:
                 paper = json.loads(cross_domain_embedding_file.readline())
@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
     mag_labels = []
 
-    with open("quartermaster/save_specter_09-09/cls.jsonl", "r") as mag_embeddings_file:
+    with open("quartermaster/save_shard11_U_specter_03-29/cls.jsonl", "r") as mag_embeddings_file:
         for line in tqdm.tqdm(mag_embeddings_file):
             paper = json.loads(line)
 
