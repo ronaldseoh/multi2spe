@@ -18,4 +18,5 @@ EXPERIMENT_DATE="06-13"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../20220721_shard_3_cross/metadata.json \
-                --output ../20220721_shard_3_cross/specter_embeddings_lambda-1.jsonl --batch-size 4
+                --output ../20220721_shard_3_cross/specter_embeddings_lambda-1_no_sum.jsonl --batch-size 4 \
+                --debug_disable_sum_embs
