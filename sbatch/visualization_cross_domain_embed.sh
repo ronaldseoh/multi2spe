@@ -13,9 +13,9 @@
 eval "$(conda shell.bash hook)"
 conda activate qm
 
-EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-1+no_sum-0_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
+EXPERIMENT_ID_PREFIX=U_k-3_sum_embs_original-0+no_sum-1_extra_facet_alternate_layer_8_4-alternate_identity_common_random_cross_entropy
 EXPERIMENT_DATE="06-13"
 
 python embed.py --pl-checkpoint-path save_${EXPERIMENT_ID_PREFIX}_${EXPERIMENT_DATE}/checkpoints/last.ckpt \
                 --data-path ../20220721_shard_3_cross/metadata.json \
-                --output ../20220721_shard_3_cross/specter_embeddings_lambda-0.jsonl --batch-size 4
+                --output ../20220721_shard_3_cross/specter_embeddings_lambda-1.jsonl --batch-size 4
