@@ -10,7 +10,7 @@ import tqdm
 
 random.seed(413)
 
-NUM_FACETS = 1
+NUM_FACETS = 3
 
 K = 5
 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     cross_domain_sample_idxs = random.sample(range(len(cross_domain_paper_ids)), k=20)
     cross_domain_sample_paper_ids = [cross_domain_paper_ids[si] for si in cross_domain_sample_idxs]
 
-    with open("20220721_shard_3_cross/shard11_embeddings_single.jsonl", "r") as cross_domain_embedding_file:
+    with open("20220721_shard_3_cross/shard11_embeddings_lambda-0.jsonl", "r") as cross_domain_embedding_file:
         while True:
             try:
                 paper = json.loads(cross_domain_embedding_file.readline())
@@ -128,12 +128,12 @@ if __name__ == "__main__":
     search_results_by_facets = {}
 
     for f in range(NUM_FACETS):
-        distances_by_facets[f] = sklearn.metrics.pairwise.euclidean_distances(cross_domain_embeddings_by_facets[f], mag_embeddings_by_facets[f])
-        # distances_by_facets[f] = sklearn.metrics.pairwise.cosine_similarity(cross_domain_embeddings_by_facets[f], mag_embeddings_by_facets[f])
+        # distances_by_facets[f] = sklearn.metrics.pairwise.euclidean_distances(cross_domain_embeddings_by_facets[f], mag_embeddings_by_facets[f])
+        distances_by_facets[f] = sklearn.metrics.pairwise.cosine_similarity(cross_domain_embeddings_by_facets[f], mag_embeddings_by_facets[f])
 
         # Closest first
-        search_results_by_facets[f] = np.argsort(distances_by_facets[f], axis=-1)
-        # search_results_by_facets[f] = np.argsort(-distances_by_facets[f], axis=-1)
+        # search_results_by_facets[f] = np.argsort(distances_by_facets[f], axis=-1)
+        search_results_by_facets[f] = np.argsort(-distances_by_facets[f], axis=-1)
 
     # Write down the titles
     with open("titles.txt", "w") as titles_file:
