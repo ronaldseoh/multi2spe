@@ -4,7 +4,7 @@
 #SBATCH -o sbatch_logs/stdout/shard11-weighted_U_debug_specter_%j.txt
 #SBATCH -e sbatch_logs/stderr/shard11-weighted_U_debug_specter_%j.err
 #SBATCH --ntasks=1
-#SBATCH --partition=gypsum-titanx-ms
+#SBATCH --partition=gypsum-titanx
 #SBATCH --gres=gpu:1
 #SBATCH --mem=24GB
 #SBATCH --cpus-per-task=2
