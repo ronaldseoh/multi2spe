@@ -1,7 +1,0 @@
-# allennlp 0.9 with gradient accumulation and fp16
-git+https://github.com/ronaldseoh/allennlp@fp16_v0.9.0#egg=allennlp
-
-overrides==3.1.0
-pytorch-lightning==1.4.2
-wandb==0.12.0
-transformers==4.9.2
