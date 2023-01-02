@@ -7,3 +7,6 @@
 [submodule "scidocs"]
 	path = scidocs
 	url = https://github.com/ronaldseoh/scidocs
+[submodule "scincl"]
+	path = scincl
+	url = https://github.com/ronaldseoh/scincl.git
