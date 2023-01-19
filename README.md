@@ -40,6 +40,10 @@ python embed.py --pl-checkpoint-path save/checkpoints/last.ckpt \
 python embed.py --pl-checkpoint-path save/checkpoints/last.ckpt \
                 --data-path scidocs/data/paper_metadata_view_cite_read.json \
                 --output save/user-citation.jsonl --batch-size 4
+                
+python embed.py --pl-checkpoint-path save/checkpoints/last.ckpt \
+                --data-path scidocs-shard7/data_final.json \
+                --output save/user-citation_custom_cite.jsonl --batch-size 4
 ```
 
 Please refer to our [`s2orc`](https://anonymous.4open.science/r/s2orc-7F1E/) repo for the instructions on producing multi-domain SPECTER training datasets and Multi-SciDocs datasets. After getting your own multi-domain SPECTER datasets, you could use them for training by setting the paths appropriately in `train_file` and `val_file` options for the training command above.
